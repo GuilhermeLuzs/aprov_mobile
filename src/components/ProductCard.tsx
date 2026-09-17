@@ -8,8 +8,8 @@ import { VoteBar } from './VoteBar';
 
 type Props = {
   product: Product;
-  onAvaliar: () => void;
-  onSecondary: () => void;
+  onAvaliar?: () => void;
+  onSecondary?: () => void;
   width?: number;
   secondaryLabel?: string;
 };
@@ -47,8 +47,20 @@ export function ProductCard({
         />
 
         <View style={styles.actions}>
-          <Button label="Avaliar" size="sm" fullWidth onPress={onAvaliar} />
-          <Button label={secondaryLabel} variant="text" size="sm" onPress={onSecondary} />
+          <Button
+            label="Avaliar"
+            size="sm"
+            fullWidth
+            disabled={!onAvaliar}
+            onPress={() => onAvaliar?.()}
+          />
+          <Button
+            label={secondaryLabel}
+            variant="text"
+            size="sm"
+            disabled={!onSecondary}
+            onPress={() => onSecondary?.()}
+          />
         </View>
       </View>
     </View>
