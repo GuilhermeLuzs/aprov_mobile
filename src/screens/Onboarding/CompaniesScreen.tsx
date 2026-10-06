@@ -11,7 +11,7 @@ import {
   MIN_COMPANIES,
   useLeaveOnboarding,
   useOnboarding,
-} from '../Onboarding/OnboardingContext';
+} from './OnboardingContext';
 
 export default function CompaniesScreen() {
   const insets = useSafeAreaInsets();

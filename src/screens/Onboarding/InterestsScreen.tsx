@@ -10,8 +10,8 @@ import {
   MIN_CATEGORIES,
   useLeaveOnboarding,
   useOnboarding,
-} from '../Onboarding/OnboardingContext';
-import { CATEGORY_ICON, CATEGORY_ORDER } from '../Onboarding/options';
+} from './OnboardingContext';
+import { CATEGORY_ICON, CATEGORY_ORDER } from './options';
 
 export default function InterestsScreen() {
   const insets = useSafeAreaInsets();
