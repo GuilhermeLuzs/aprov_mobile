@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   CompanyFilterSheet,
@@ -13,6 +15,7 @@ import {
 import { colors, space } from '../../theme';
 import { companies, products } from '../../mocks';
 import type { Company, Product } from '../../types';
+import type { HomeStackParamList } from '../../navigation/types';
 import { matchesSearch } from '../../utils/search';
 
 const COMPANIES_PER_PAGE = 5;
@@ -27,6 +30,7 @@ function byRating(a: Product, b: Product): number {
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList, 'Home'>>();
   const [query, setQuery] = useState('');
   const [selectedCompanyIds, setSelectedCompanyIds] = useState<string[]>([]);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -72,7 +76,11 @@ export default function HomeScreen() {
         data={pagedRows}
         keyExtractor={(row) => row.company.id}
         renderItem={({ item }) => (
-          <CompanyCarousel company={item.company} products={item.products} />
+          <CompanyCarousel
+            company={item.company}
+            products={item.products}
+            onSeeAll={() => navigation.navigate('CompanyCatalog', { companyId: item.company.id })}
+          />
         )}
         ListHeaderComponent={
           <View style={[styles.gutter, styles.searchRow]}>
@@ -130,14 +138,16 @@ export default function HomeScreen() {
 function CompanyCarousel({
   company,
   products: items,
+  onSeeAll,
 }: {
   company: Company;
   products: Product[];
+  onSeeAll: () => void;
 }) {
   return (
     <View style={styles.carousel}>
       <View style={styles.gutter}>
-        <SectionHeader title={company.name} />
+        <SectionHeader title={company.name} action={{ label: 'Ver mais', onPress: onSeeAll }} />
       </View>
       <FlatList
         horizontal
