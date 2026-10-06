@@ -12,6 +12,8 @@ export type { StarSize } from './StarRating';
 export { VoteBar } from './VoteBar';
 export { SectionHeader } from './SectionHeader';
 export { SearchBar } from './SearchBar';
+export { FilterButton } from './FilterButton';
+export { CompanyFilterSheet } from './CompanyFilterSheet';
 export { Pagination } from './Pagination';
 export { EmptyState } from './EmptyState';
 export { ProductCard } from './ProductCard';
