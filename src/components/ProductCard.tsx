@@ -54,7 +54,7 @@ export function ProductCard({
 
         <View style={styles.ratingRow}>
           {hasReviews ? (
-            <StarRating value={product.averageRating} size="sm" showValue />
+            <StarRating value={product.averageRating} size="md" showValue />
           ) : (
             <Text style={styles.noReviews}>sem avaliações</Text>
           )}
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   },
   ratingRow: {
     marginTop: space.sm,
-    minHeight: 18,
+    minHeight: type.numeric.lineHeight,
     justifyContent: 'center',
   },
   noReviews: {
