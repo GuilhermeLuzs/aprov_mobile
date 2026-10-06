@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { Search } from 'lucide-react-native';
-import { colors, icon as iconToken, radius, space, type } from '../theme';
+import { Search, X } from 'lucide-react-native';
+import { colors, icon as iconToken, radius, size, space, type } from '../theme';
 
 type Props = {
   placeholder: string;
@@ -25,12 +25,23 @@ export function SearchBar({ placeholder, onPress, value, onChangeText, autoFocus
           onChangeText={onChangeText}
           autoFocus={autoFocus}
           returnKeyType="search"
+          autoCorrect={false}
         />
       ) : (
         <Text style={styles.placeholder} numberOfLines={1}>
           {placeholder}
         </Text>
       )}
+      {isField && value ? (
+        <Pressable
+          onPress={() => onChangeText?.('')}
+          hitSlop={space.sm}
+          accessibilityRole="button"
+          accessibilityLabel="Limpar busca"
+        >
+          <X size={iconToken.size.md} color={colors.inkMuted} strokeWidth={iconToken.strokeWidth} />
+        </Pressable>
+      ) : null}
     </>
   );
 
@@ -51,7 +62,7 @@ export function SearchBar({ placeholder, onPress, value, onChangeText, autoFocus
 
 const styles = StyleSheet.create({
   bar: {
-    minHeight: 44,
+    minHeight: size.control,
     flexDirection: 'row',
     alignItems: 'center',
     gap: space.sm,

@@ -1,10 +1,10 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
-import { colors, radius, space, type } from '../theme';
+import { useState } from 'react';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Bookmark, Receipt, type LucideIcon } from 'lucide-react-native';
+import { colors, icon, radius, space, type } from '../theme';
 import type { Product } from '../types';
-import { formatRating } from '../utils/format';
 import { Button } from './Button';
 import { StarRating } from './StarRating';
-import { VoteBar } from './VoteBar';
 
 type Props = {
   product: Product;
@@ -22,10 +22,30 @@ export function ProductCard({
   secondaryLabel = 'Ver detalhes',
 }: Props) {
   const hasReviews = product.reviewCount > 0;
+  const [saved, setSaved] = useState(product.savedByCurrentUser);
+  const [purchased, setPurchased] = useState(product.purchasedByCurrentUser);
+  const purchaseVerb = product.kind === 'service' ? 'contratei' : 'comprei';
 
   return (
     <View style={[styles.card, width != null && { width }]}>
-      <Image source={{ uri: product.imageUri }} style={styles.image} resizeMode="cover" />
+      <View>
+        <Image source={{ uri: product.imageUri }} style={styles.image} resizeMode="cover" />
+        <View style={styles.toggles}>
+          <ToggleIcon
+            Icon={Receipt}
+            active={purchased}
+            label={purchased ? `Desmarcar ${purchaseVerb}` : `Marcar como ${purchaseVerb}`}
+            onPress={() => setPurchased((value) => !value)}
+          />
+          <ToggleIcon
+            Icon={Bookmark}
+            active={saved}
+            fillWhenActive
+            label={saved ? 'Remover dos salvos' : 'Salvar'}
+            onPress={() => setSaved((value) => !value)}
+          />
+        </View>
+      </View>
 
       <View style={styles.body}>
         <Text style={styles.title} numberOfLines={2}>
@@ -34,17 +54,11 @@ export function ProductCard({
 
         <View style={styles.ratingRow}>
           {hasReviews ? (
-            <StarRating value={product.averageRating} size="sm" showValue />
+            <StarRating value={product.averageRating} size="md" showValue />
           ) : (
             <Text style={styles.noReviews}>sem avaliações</Text>
           )}
         </View>
-
-        <VoteBar
-          agreements={product.agreements}
-          disagreements={product.disagreements}
-          size="sm"
-        />
 
         <View style={styles.actions}>
           <Button
@@ -67,6 +81,40 @@ export function ProductCard({
   );
 }
 
+function ToggleIcon({
+  Icon,
+  active,
+  fillWhenActive = false,
+  label,
+  onPress,
+}: {
+  Icon: LucideIcon;
+  active: boolean;
+  fillWhenActive?: boolean;
+  label: string;
+  onPress: () => void;
+}) {
+  const tint = active ? colors.primary : colors.ink;
+
+  return (
+    <Pressable
+      onPress={onPress}
+      hitSlop={space.xs}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: active }}
+      style={[styles.toggle, active && styles.toggleActive]}
+    >
+      <Icon
+        color={tint}
+        fill={active && fillWhenActive ? tint : 'transparent'}
+        size={icon.size.md}
+        strokeWidth={icon.strokeWidth}
+      />
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   card: {
     borderRadius: radius.card,
@@ -80,6 +128,24 @@ const styles = StyleSheet.create({
     aspectRatio: 4 / 3,
     backgroundColor: colors.surfaceAlt,
   },
+  toggles: {
+    position: 'absolute',
+    top: space.sm,
+    right: space.sm,
+    flexDirection: 'row',
+    gap: space.sm,
+  },
+  toggle: {
+    width: icon.button,
+    height: icon.button,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
+  },
+  toggleActive: {
+    backgroundColor: colors.primaryDim,
+  },
   body: {
     padding: space.md,
   },
@@ -92,7 +158,7 @@ const styles = StyleSheet.create({
   },
   ratingRow: {
     marginTop: space.sm,
-    minHeight: 18,
+    minHeight: type.numeric.lineHeight,
     justifyContent: 'center',
   },
   noReviews: {

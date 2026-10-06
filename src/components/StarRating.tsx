@@ -17,6 +17,11 @@ type Props = {
 const STAR =
   'M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z';
 const PX: Record<StarSize, number> = { sm: 14, md: 18, lg: 28 };
+const VALUE_TEXT: Record<StarSize, { size: number; lineHeight: number }> = {
+  sm: type.caption,
+  md: type.numeric,
+  lg: type.numeric,
+};
 
 let clipCounter = 0;
 
@@ -68,7 +73,16 @@ export function StarRating({ value, size = 'md', max = 5, showValue = false, onC
           </Pressable>
         );
       })}
-      {showValue ? <Text style={styles.value}>{formatRating(value)}</Text> : null}
+      {showValue ? (
+        <Text
+          style={[
+            styles.value,
+            { fontSize: VALUE_TEXT[size].size, lineHeight: VALUE_TEXT[size].lineHeight },
+          ]}
+        >
+          {formatRating(value)}
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -79,8 +93,6 @@ const styles = StyleSheet.create({
   value: {
     marginLeft: space.xs,
     fontFamily: type.numeric.family,
-    fontSize: type.caption.size,
-    lineHeight: type.caption.lineHeight,
     color: colors.valueDeep,
   },
 });

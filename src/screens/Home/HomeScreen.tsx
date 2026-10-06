@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  Chip,
+  CompanyFilterSheet,
   EmptyState,
+  FilterButton,
   Pagination,
   ProductCard,
   SearchBar,
@@ -12,90 +13,117 @@ import {
 import { colors, space } from '../../theme';
 import { companies, products } from '../../mocks';
 import type { Company, Product } from '../../types';
+import { matchesSearch } from '../../utils/search';
 
 const COMPANIES_PER_PAGE = 5;
 const PRODUCTS_PER_CAROUSEL = 6;
 const CARD_WIDTH = 232;
 
+type CompanyRow = { company: Company; products: Product[] };
+
+function byRating(a: Product, b: Product): number {
+  return b.averageRating - a.averageRating || b.reviewCount - a.reviewCount;
+}
+
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const [query, setQuery] = useState('');
   const [selectedCompanyIds, setSelectedCompanyIds] = useState<string[]>([]);
+  const [filterOpen, setFilterOpen] = useState(false);
   const [page, setPage] = useState(1);
 
-  const visibleCompanies =
-    selectedCompanyIds.length === 0
-      ? companies
-      : companies.filter((c) => selectedCompanyIds.includes(c.id));
+  const rows: CompanyRow[] = companies
+    .filter((c) => selectedCompanyIds.length === 0 || selectedCompanyIds.includes(c.id))
+    .map((company) => {
+      const own = products.filter((p) => p.companyId === company.id).sort(byRating);
+      const shown = matchesSearch(company.name, query)
+        ? own
+        : own.filter((p) => matchesSearch(p.title, query));
+      return { company, products: shown.slice(0, PRODUCTS_PER_CAROUSEL) };
+    })
+    .filter((row) => row.products.length > 0);
 
-  const pageCount = Math.max(1, Math.ceil(visibleCompanies.length / COMPANIES_PER_PAGE));
+  const pageCount = Math.max(1, Math.ceil(rows.length / COMPANIES_PER_PAGE));
   const safePage = Math.min(page, pageCount);
-  const pagedCompanies = visibleCompanies.slice(
-    (safePage - 1) * COMPANIES_PER_PAGE,
-    safePage * COMPANIES_PER_PAGE,
-  );
+  const pagedRows = rows.slice((safePage - 1) * COMPANIES_PER_PAGE, safePage * COMPANIES_PER_PAGE);
 
-  const topProducts = (companyId: string): Product[] =>
-    products
-      .filter((p) => p.companyId === companyId)
-      .sort((a, b) => b.averageRating - a.averageRating || b.reviewCount - a.reviewCount)
-      .slice(0, PRODUCTS_PER_CAROUSEL);
-
-  const toggleCompany = (id: string) => {
+  const changeQuery = (text: string) => {
     setPage(1);
-    setSelectedCompanyIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
+    setQuery(text);
   };
 
-  const header = (
-    <View>
-      <View style={styles.gutter}>
-        <SearchBar placeholder="Buscar empresas e produtos" />
-      </View>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterRow}
-      >
-        {companies.map((c) => (
-          <Chip
-            key={c.id}
-            label={c.name}
-            selected={selectedCompanyIds.includes(c.id)}
-            onPress={() => toggleCompany(c.id)}
-            style={styles.filterChip}
-          />
-        ))}
-      </ScrollView>
-    </View>
-  );
+  const applyCompanies = (ids: string[]) => {
+    setPage(1);
+    setSelectedCompanyIds(ids);
+  };
+
+  const clearAll = () => {
+    setPage(1);
+    setQuery('');
+    setSelectedCompanyIds([]);
+  };
+
+  const searching = query.trim() !== '';
 
   return (
-    <FlatList
-      style={styles.screen}
-      data={pagedCompanies}
-      keyExtractor={(c) => c.id}
-      renderItem={({ item }) => (
-        <CompanyCarousel company={item} products={topProducts(item.id)} />
-      )}
-      ListHeaderComponent={header}
-      ListFooterComponent={
-        <View style={styles.pagination}>
-          <Pagination page={safePage} pageCount={pageCount} onChange={setPage} />
-        </View>
-      }
-      ListEmptyComponent={
-        <View style={[styles.gutter, styles.carousel]}>
-          <EmptyState
-            title="Nada por aqui com esse filtro"
-            description="Tire uma empresa da seleção para ver mais."
-            action={{ label: 'Limpar filtro', onPress: () => setSelectedCompanyIds([]) }}
-          />
-        </View>
-      }
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingTop: insets.top + space.md, paddingBottom: space.xxl }}
-    />
+    <>
+      <FlatList
+        style={styles.screen}
+        data={pagedRows}
+        keyExtractor={(row) => row.company.id}
+        renderItem={({ item }) => (
+          <CompanyCarousel company={item.company} products={item.products} />
+        )}
+        ListHeaderComponent={
+          <View style={[styles.gutter, styles.searchRow]}>
+            <View style={styles.searchField}>
+              <SearchBar
+                placeholder="Buscar empresas e produtos"
+                value={query}
+                onChangeText={changeQuery}
+              />
+            </View>
+            <FilterButton
+              activeCount={selectedCompanyIds.length}
+              onPress={() => setFilterOpen(true)}
+              accessibilityLabel="Filtrar por empresa"
+            />
+          </View>
+        }
+        ListFooterComponent={
+          rows.length > 0 ? (
+            <View style={styles.pagination}>
+              <Pagination page={safePage} pageCount={pageCount} onChange={setPage} />
+            </View>
+          ) : null
+        }
+        ListEmptyComponent={
+          <View style={[styles.gutter, styles.carousel]}>
+            <EmptyState
+              title={searching ? `Nada encontrado para "${query.trim()}"` : 'Nada por aqui com esse filtro'}
+              description={
+                searching
+                  ? 'Confira a escrita ou busque por outro nome.'
+                  : 'Tire uma empresa da seleção para ver mais.'
+              }
+              action={{ label: 'Limpar busca e filtro', onPress: clearAll }}
+            />
+          </View>
+        }
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingTop: insets.top + space.md, paddingBottom: space.xxl }}
+      />
+
+      <CompanyFilterSheet
+        visible={filterOpen}
+        companies={companies}
+        selectedIds={selectedCompanyIds}
+        onApply={applyCompanies}
+        onClose={() => setFilterOpen(false)}
+      />
+    </>
   );
 }
 
@@ -128,12 +156,12 @@ function CompanyCarousel({
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   gutter: { paddingHorizontal: space.lg },
-  filterRow: {
-    paddingHorizontal: space.lg,
-    paddingTop: space.md,
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: space.sm,
   },
-  filterChip: { maxWidth: 200 },
+  searchField: { flex: 1 },
   carousel: { marginTop: space.xl },
   rail: {
     paddingHorizontal: space.lg,
