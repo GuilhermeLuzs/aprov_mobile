@@ -3,15 +3,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, MauricioMascot } from '../../components';
 import { colors, space, type } from '../../theme';
 import { setPreferences } from '../../store/preferences';
-import { useLeaveOnboarding, useOnboarding } from '../Onboarding/OnboardingContext';
+import { useLeaveOnboarding, useOnboarding } from './OnboardingContext';
 
-export default function NotificationsPermissionScreen() {
+export default function ReadyScreen() {
   const insets = useSafeAreaInsets();
   const leave = useLeaveOnboarding();
   const { categories, companyIds, goal } = useOnboarding();
 
-  const finish = (notifications: boolean) => {
-    setPreferences({ categories, companyIds, goal, notifications });
+  const finish = () => {
+    setPreferences({ categories, companyIds, goal });
     leave();
   };
 
@@ -19,26 +19,14 @@ export default function NotificationsPermissionScreen() {
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.hero}>
         <MauricioMascot size={124} />
-        <Text style={styles.title}>Te aviso quando cair a recompensa</Text>
+        <Text style={styles.title}>Tudo pronto</Text>
         <Text style={styles.body}>
-          Avisamos assim que sua avaliação for aprovada e as moedas entrarem.
+          Agora é só avaliar o que você usou e ganhar moedas, pontos e XP.
         </Text>
       </View>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + space.md }]}>
-        <Button
-          label="Ativar notificações"
-          tone="onBrand"
-          fullWidth
-          onPress={() => finish(true)}
-        />
-        <Button
-          label="Agora não"
-          variant="text"
-          tone="onBrand"
-          fullWidth
-          onPress={() => finish(false)}
-        />
+        <Button label="Começar" tone="onBrand" fullWidth onPress={finish} />
       </View>
     </View>
   );
@@ -74,6 +62,5 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: space.lg,
     paddingTop: space.md,
-    gap: space.sm,
   },
 });

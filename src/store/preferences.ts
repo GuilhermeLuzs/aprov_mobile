@@ -5,14 +5,12 @@ export type Preferences = {
   categories: Category[];
   companyIds: string[];
   goal: UserGoal | null;
-  notifications: boolean;
 };
 
 const EMPTY: Preferences = {
   categories: [],
   companyIds: [],
   goal: null,
-  notifications: false,
 };
 
 let state: Preferences = EMPTY;

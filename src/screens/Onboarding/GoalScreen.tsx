@@ -48,7 +48,7 @@ export default function GoalScreen() {
           label="Continuar"
           fullWidth
           disabled={goal === null}
-          onPress={() => navigation.navigate('NotificationsPermission')}
+          onPress={() => navigation.navigate('Ready')}
         />
       </View>
     </View>
