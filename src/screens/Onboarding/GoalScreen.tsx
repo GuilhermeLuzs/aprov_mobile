@@ -5,8 +5,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, SelectableCard, Stepper } from '../../components';
 import { colors, space, type } from '../../theme';
 import type { OnboardingStackParamList } from '../../navigation/types';
-import { useLeaveOnboarding, useOnboarding } from '../Onboarding/OnboardingContext';
-import { GOAL_OPTIONS as GOALS } from '../Onboarding/options';
+import { useLeaveOnboarding, useOnboarding } from './OnboardingContext';
+import { GOAL_OPTIONS as GOALS } from './options';
 
 export default function GoalScreen() {
   const insets = useSafeAreaInsets();
@@ -48,7 +48,7 @@ export default function GoalScreen() {
           label="Continuar"
           fullWidth
           disabled={goal === null}
-          onPress={() => navigation.navigate('NotificationsPermission')}
+          onPress={() => navigation.navigate('Ready')}
         />
       </View>
     </View>

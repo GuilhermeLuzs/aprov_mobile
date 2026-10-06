@@ -4,7 +4,7 @@ export type OnboardingStackParamList = {
   Interests: undefined;
   Companies: undefined;
   Goal: undefined;
-  NotificationsPermission: undefined;
+  Ready: undefined;
 };
 
 export type HomeStackParamList = {
