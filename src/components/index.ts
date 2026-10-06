@@ -13,6 +13,7 @@ export { VoteBar } from './VoteBar';
 export { SectionHeader } from './SectionHeader';
 export { SearchBar } from './SearchBar';
 export { FilterButton } from './FilterButton';
+export { BottomSheet } from './BottomSheet';
 export { CompanyFilterSheet } from './CompanyFilterSheet';
 export { Pagination } from './Pagination';
 export { EmptyState } from './EmptyState';
