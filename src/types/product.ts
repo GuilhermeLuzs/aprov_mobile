@@ -16,6 +16,7 @@ export interface Product {
   disagreements: number;
   coinsReward: number;
   xpReward: number;
+  savedByCurrentUser: boolean;
   purchasedByCurrentUser: boolean;
   reviewedByCurrentUser: boolean;
 }
