@@ -9,6 +9,7 @@ export type OnboardingStackParamList = {
 
 export type HomeStackParamList = {
   Home: undefined;
+  CompanyCatalog: { companyId: string };
 };
 
 export type MainTabParamList = {
