@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   CompanyFilterSheet,
@@ -15,7 +14,7 @@ import {
 import { colors, space } from '../../theme';
 import { companies, products } from '../../mocks';
 import type { Company, Product } from '../../types';
-import type { HomeStackParamList } from '../../navigation/types';
+import type { HomeStackNavigation } from '../../navigation/types';
 import { matchesSearch } from '../../utils/search';
 
 const COMPANIES_PER_PAGE = 5;
@@ -30,7 +29,7 @@ function byRating(a: Product, b: Product): number {
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList, 'Home'>>();
+  const navigation = useNavigation<HomeStackNavigation<'Home'>>();
   const [query, setQuery] = useState('');
   const [selectedCompanyIds, setSelectedCompanyIds] = useState<string[]>([]);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -80,6 +79,7 @@ export default function HomeScreen() {
             company={item.company}
             products={item.products}
             onSeeAll={() => navigation.navigate('CompanyCatalog', { companyId: item.company.id })}
+            onReview={(productId) => navigation.navigate('CreateReview', { productId })}
           />
         )}
         ListHeaderComponent={
@@ -139,10 +139,12 @@ function CompanyCarousel({
   company,
   products: items,
   onSeeAll,
+  onReview,
 }: {
   company: Company;
   products: Product[];
   onSeeAll: () => void;
+  onReview: (productId: string) => void;
 }) {
   return (
     <View style={styles.carousel}>
@@ -157,7 +159,9 @@ function CompanyCarousel({
         contentContainerStyle={styles.rail}
         snapToInterval={CARD_WIDTH + space.md}
         decelerationRate="fast"
-        renderItem={({ item }) => <ProductCard product={item} width={CARD_WIDTH} />}
+        renderItem={({ item }) => (
+          <ProductCard product={item} width={CARD_WIDTH} onAvaliar={() => onReview(item.id)} />
+        )}
       />
     </View>
   );

@@ -11,6 +11,20 @@ export const REVIEW_CHARACTERISTIC_LABEL: Record<ReviewCharacteristicKey, string
   custo_beneficio: 'Custo-benefício',
 };
 
+export const REVIEW_CHARACTERISTIC_DESCRIPTION: Record<ReviewCharacteristicKey, string> = {
+  entrega: 'Chegou no prazo, em boas condições e com acompanhamento adequado.',
+  qualidade: 'Nível de excelência, acabamento e durabilidade.',
+  conformidade: 'Fidelidade entre o anúncio e o que foi entregue.',
+  custo_beneficio: 'Se a compra realmente valeu o preço cobrado.',
+};
+
+export const REVIEW_CHARACTERISTIC_KEYS: ReviewCharacteristicKey[] = [
+  'entrega',
+  'qualidade',
+  'conformidade',
+  'custo_beneficio',
+];
+
 export interface ReviewCharacteristic {
   key: ReviewCharacteristicKey;
   rating: number;

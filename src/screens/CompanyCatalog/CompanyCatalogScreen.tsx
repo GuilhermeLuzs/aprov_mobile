@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { FlatList, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   CatalogFilterSheet,
   EMPTY_CATALOG_FILTERS,
@@ -16,7 +15,7 @@ import {
 import { colors, space } from '../../theme';
 import { companies, products } from '../../mocks';
 import type { Category, Product } from '../../types';
-import type { HomeStackParamList } from '../../navigation/types';
+import type { HomeStackNavigation, HomeStackParamList } from '../../navigation/types';
 import { matchesSearch } from '../../utils/search';
 
 const PAGE_SIZE = 20;
@@ -28,8 +27,7 @@ function byRating(a: Product, b: Product): number {
 
 export default function CompanyCatalogScreen() {
   const route = useRoute<RouteProp<HomeStackParamList, 'CompanyCatalog'>>();
-  const navigation =
-    useNavigation<NativeStackNavigationProp<HomeStackParamList, 'CompanyCatalog'>>();
+  const navigation = useNavigation<HomeStackNavigation<'CompanyCatalog'>>();
   const { width: screenWidth } = useWindowDimensions();
   const { companyId } = route.params;
 
@@ -98,7 +96,13 @@ export default function CompanyCatalogScreen() {
         keyExtractor={(p) => p.id}
         columnWrapperStyle={styles.row}
         contentContainerStyle={styles.content}
-        renderItem={({ item }) => <ProductCard product={item} width={cardWidth} />}
+        renderItem={({ item }) => (
+          <ProductCard
+            product={item}
+            width={cardWidth}
+            onAvaliar={() => navigation.navigate('CreateReview', { productId: item.id })}
+          />
+        )}
         ListHeaderComponent={
           <View style={styles.searchRow}>
             <View style={styles.searchField}>

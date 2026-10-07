@@ -4,6 +4,7 @@ import type { RootStackParamList } from './types';
 import { navTheme, stackScreenOptions } from './navTheme';
 import { OnboardingNavigator } from './OnboardingNavigator';
 import { MainTabNavigator } from './MainTabNavigator';
+import { CreateReviewScreen } from '../screens';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -26,6 +27,11 @@ export function RootNavigator({ showOnboarding = true }: Props) {
           name="MainTabs"
           component={MainTabNavigator}
           options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="CreateReview"
+          component={CreateReviewScreen}
+          options={{ headerShown: false, presentation: 'fullScreenModal', gestureEnabled: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>
