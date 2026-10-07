@@ -2,21 +2,19 @@ import type { Media } from './media';
 import type { Tag } from './tag';
 import type { Comment } from './comment';
 
-export type ReviewCharacteristicKey = 'entrega' | 'qualidade' | 'conteudo' | 'preco';
+export type ReviewCharacteristicKey = 'entrega' | 'qualidade' | 'conformidade' | 'custo_beneficio';
 
 export const REVIEW_CHARACTERISTIC_LABEL: Record<ReviewCharacteristicKey, string> = {
   entrega: 'Entrega',
   qualidade: 'Qualidade',
-  conteudo: 'Conteúdo',
-  preco: 'Preço',
+  conformidade: 'Conformidade',
+  custo_beneficio: 'Custo-benefício',
 };
 
 export interface ReviewCharacteristic {
   key: ReviewCharacteristicKey;
   rating: number;
 }
-
-export type ReviewStatus = 'pending' | 'approved' | 'rejected';
 
 export interface Review {
   id: string;
@@ -25,7 +23,6 @@ export interface Review {
   authorId: string;
   createdAt: string;
   editedAt: string | null;
-  status: ReviewStatus;
   title: string;
   characteristics: ReviewCharacteristic[];
   averageRating: number;
