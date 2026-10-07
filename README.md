@@ -1,6 +1,6 @@
 # APROV — App Mobile
 
-O APROV é uma plataforma de avaliação de produtos e serviços com gamificação.
+A APROV é uma plataforma de avaliação de produtos e serviços com gamificação.
 Você avalia algo que comprou ou usou e ganha recompensas por isso.
 
 ## Como funciona
@@ -8,11 +8,12 @@ Você avalia algo que comprou ou usou e ganha recompensas por isso.
 - O usuário escreve uma avaliação com estrelas, tags ("o que foi bom?" e
   "o que podemos melhorar?"), fotos ou vídeos e um comentário.
 - Outros usuários podem concordar ou discordar da avaliação.
-- Quando a avaliação é aprovada, o usuário ganha **moedas** da empresa
-  parceira, que podem ser trocadas por recompensas, e **XP**, que sobe o
-  seu nível na plataforma.
+- A avaliação é publicada assim que é enviada, e o usuário ganha na hora
+  **moedas** da empresa parceira, que podem ser trocadas por cupons,
+  **pontos APROV**, que desbloqueiam cosméticos, e **XP**, que sobe o seu
+  nível na plataforma.
 - As empresas parceiras recebem feedback organizado sobre seus produtos.
-- O Maurício, robô mascote do APROV, acompanha o usuário pelo app.
+- O Maurício, robô mascote da APROV, acompanha o usuário pelo app.
 
 Este repositório contém apenas o **aplicativo mobile**. O backend será
 desenvolvido em Laravel e ainda não está integrado; por enquanto os dados

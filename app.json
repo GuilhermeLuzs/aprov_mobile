@@ -25,7 +25,15 @@
     },
     "plugins": [
       "expo-font",
-      "expo-splash-screen"
+      "expo-splash-screen",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "A APROV usa suas fotos e vídeos para anexar à sua avaliação.",
+          "cameraPermission": "A APROV usa a câmera para você fotografar ou filmar o item que está avaliando.",
+          "microphonePermission": "A APROV usa o microfone para gravar o som dos vídeos da sua avaliação."
+        }
+      ]
     ]
   }
 }
