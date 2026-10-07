@@ -21,6 +21,7 @@ export type RootStackParamList = {
   Onboarding: NavigatorScreenParams<OnboardingStackParamList> | undefined;
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   CreateReview: { productId: string };
+  MauricioChat: { productId: string };
 };
 
 export type HomeStackNavigation<T extends keyof HomeStackParamList> = CompositeNavigationProp<

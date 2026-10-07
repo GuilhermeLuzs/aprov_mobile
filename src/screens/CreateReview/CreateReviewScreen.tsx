@@ -168,6 +168,10 @@ export default function CreateReviewScreen() {
             update={update}
             product={product}
             bonus={bonusLabel(STEP_SHARE.comment)}
+            onOpenChat={() => {
+              saveDraft(productId, draft);
+              navigation.navigate('MauricioChat', { productId });
+            }}
           />
         ) : null}
         {step === 5 ? (
