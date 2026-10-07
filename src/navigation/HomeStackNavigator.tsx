@@ -1,6 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { CompanyCatalogScreen, HomeScreen } from '../screens';
-import { companies } from '../mocks';
 import type { HomeStackParamList } from './types';
 import { stackScreenOptions } from './navTheme';
 
@@ -13,9 +12,7 @@ export function HomeStackNavigator() {
       <Stack.Screen
         name="CompanyCatalog"
         component={CompanyCatalogScreen}
-        options={({ route }) => ({
-          title: companies.find((c) => c.id === route.params.companyId)?.name ?? 'Catálogo',
-        })}
+        options={{ title: 'Catálogo' }}
       />
     </Stack.Navigator>
   );

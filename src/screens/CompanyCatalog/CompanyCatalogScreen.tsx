@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 import { FlatList, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import {
@@ -38,6 +38,10 @@ export default function CompanyCatalogScreen() {
 
   const company = companies.find((c) => c.id === companyId);
   const companyProducts = products.filter((p) => p.companyId === companyId);
+
+  useLayoutEffect(() => {
+    if (company) navigation.setOptions({ title: company.name });
+  }, [navigation, company]);
   const availableCategories = companyProducts.reduce<Category[]>(
     (acc, p) => (acc.includes(p.category) ? acc : [...acc, p.category]),
     [],
