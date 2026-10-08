@@ -1,5 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { CompanyCatalogScreen, HomeScreen } from '../screens';
+import { CompanyCatalogScreen, HomeScreen, ProductDetailsScreen } from '../screens';
 import type { HomeStackParamList } from './types';
 import { stackScreenOptions } from './navTheme';
 
@@ -13,6 +13,11 @@ export function HomeStackNavigator() {
         name="CompanyCatalog"
         component={CompanyCatalogScreen}
         options={{ title: 'Catálogo' }}
+      />
+      <Stack.Screen
+        name="ProductDetails"
+        component={ProductDetailsScreen}
+        options={{ title: 'Detalhes' }}
       />
     </Stack.Navigator>
   );

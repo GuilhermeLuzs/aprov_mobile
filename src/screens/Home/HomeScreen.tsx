@@ -80,6 +80,7 @@ export default function HomeScreen() {
             products={item.products}
             onSeeAll={() => navigation.navigate('CompanyCatalog', { companyId: item.company.id })}
             onReview={(productId) => navigation.navigate('CreateReview', { productId })}
+            onDetails={(productId) => navigation.navigate('ProductDetails', { productId })}
           />
         )}
         ListHeaderComponent={
@@ -140,11 +141,13 @@ function CompanyCarousel({
   products: items,
   onSeeAll,
   onReview,
+  onDetails,
 }: {
   company: Company;
   products: Product[];
   onSeeAll: () => void;
   onReview: (productId: string) => void;
+  onDetails: (productId: string) => void;
 }) {
   return (
     <View style={styles.carousel}>
@@ -160,7 +163,12 @@ function CompanyCarousel({
         snapToInterval={CARD_WIDTH + space.md}
         decelerationRate="fast"
         renderItem={({ item }) => (
-          <ProductCard product={item} width={CARD_WIDTH} onAvaliar={() => onReview(item.id)} />
+          <ProductCard
+            product={item}
+            width={CARD_WIDTH}
+            onAvaliar={() => onReview(item.id)}
+            onSecondary={() => onDetails(item.id)}
+          />
         )}
       />
     </View>
