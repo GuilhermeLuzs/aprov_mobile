@@ -11,6 +11,7 @@ export type OnboardingStackParamList = {
 export type HomeStackParamList = {
   Home: undefined;
   CompanyCatalog: { companyId: string };
+  ProductDetails: { productId: string };
 };
 
 export type MainTabParamList = {

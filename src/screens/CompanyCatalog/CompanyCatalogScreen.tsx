@@ -105,6 +105,7 @@ export default function CompanyCatalogScreen() {
             product={item}
             width={cardWidth}
             onAvaliar={() => navigation.navigate('CreateReview', { productId: item.id })}
+            onSecondary={() => navigation.navigate('ProductDetails', { productId: item.id })}
           />
         )}
         ListHeaderComponent={

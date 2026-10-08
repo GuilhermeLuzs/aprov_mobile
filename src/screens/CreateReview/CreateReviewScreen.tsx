@@ -16,8 +16,10 @@ import { BottomSheet, Button, EmptyState, RewardAmount, Stepper } from '../../co
 import { colors, icon, size, space, type } from '../../theme';
 import { aprovPointsPerReview, companies, products } from '../../mocks';
 import type { RootStackParamList } from '../../navigation/types';
+import { publishReview } from '../../store/publishedReviews';
 import {
   TOTAL_STEPS,
+  buildReview,
   clearDraft,
   commentDone,
   isDirty,
@@ -63,7 +65,19 @@ export default function CreateReviewScreen() {
   }
 
   if (published) {
-    return <Conclusion company={company} rewards={published} onReviewAnother={() => navigation.goBack()} />;
+    return (
+      <Conclusion
+        company={company}
+        rewards={published}
+        onViewReview={() =>
+          navigation.popTo('MainTabs', {
+            screen: 'HomeTab',
+            params: { screen: 'ProductDetails', params: { productId } },
+          })
+        }
+        onReviewAnother={() => navigation.goBack()}
+      />
+    );
   }
 
   const update = (patch: Partial<Draft>) => {
@@ -105,6 +119,7 @@ export default function CreateReviewScreen() {
       update({ step: step + 1 });
       return;
     }
+    publishReview(buildReview(draft, product, `published-${Date.now()}`));
     clearDraft(productId);
     setPublished(earned);
   };
