@@ -14,7 +14,7 @@ import { companies, products, reviews, users } from '../../mocks';
 import { usePublishedReviews } from '../../store/publishedReviews';
 import { useCurrentUser } from '../../store/wallet';
 import { formatInt } from '../../utils/format';
-import type { HomeStackNavigation, HomeStackParamList } from '../../navigation/types';
+import type { ProductDetailsNavigation, ProductDetailsParamList } from '../../navigation/types';
 
 const REVIEWS_PER_PAGE = 5;
 
@@ -23,8 +23,8 @@ function byNewest(a: { createdAt: string }, b: { createdAt: string }): number {
 }
 
 export default function ProductDetailsScreen() {
-  const route = useRoute<RouteProp<HomeStackParamList, 'ProductDetails'>>();
-  const navigation = useNavigation<HomeStackNavigation<'ProductDetails'>>();
+  const route = useRoute<RouteProp<ProductDetailsParamList, 'ProductDetails'>>();
+  const navigation = useNavigation<ProductDetailsNavigation>();
   const { productId } = route.params;
   const published = usePublishedReviews();
   const me = useCurrentUser();

@@ -8,14 +8,26 @@ export type OnboardingStackParamList = {
   Ready: undefined;
 };
 
-export type HomeStackParamList = {
+export type ProductDetailsParamList = {
+  ProductDetails: { productId: string };
+};
+
+export type HomeStackParamList = ProductDetailsParamList & {
   Home: undefined;
   CompanyCatalog: { companyId: string };
-  ProductDetails: { productId: string };
+};
+
+export type ItemListKind = 'saved' | 'purchased';
+
+export type ProfileStackParamList = ProductDetailsParamList & {
+  Profile: undefined;
+  Wallet: undefined;
+  ItemList: { kind: ItemListKind };
 };
 
 export type MainTabParamList = {
   HomeTab: NavigatorScreenParams<HomeStackParamList>;
+  ProfileTab: NavigatorScreenParams<ProfileStackParamList>;
 };
 
 export type RootStackParamList = {
@@ -27,6 +39,16 @@ export type RootStackParamList = {
 
 export type HomeStackNavigation<T extends keyof HomeStackParamList> = CompositeNavigationProp<
   NativeStackNavigationProp<HomeStackParamList, T>,
+  NativeStackNavigationProp<RootStackParamList>
+>;
+
+export type ProfileStackNavigation<T extends keyof ProfileStackParamList> = CompositeNavigationProp<
+  NativeStackNavigationProp<ProfileStackParamList, T>,
+  NativeStackNavigationProp<RootStackParamList>
+>;
+
+export type ProductDetailsNavigation = CompositeNavigationProp<
+  NativeStackNavigationProp<ProductDetailsParamList, 'ProductDetails'>,
   NativeStackNavigationProp<RootStackParamList>
 >;
 
