@@ -11,6 +11,7 @@ import {
 } from '../../components';
 import { colors, space, type } from '../../theme';
 import { companies, currentUser, products, reviews, users } from '../../mocks';
+import { usePublishedReviews } from '../../store/publishedReviews';
 import { formatInt } from '../../utils/format';
 import type { HomeStackNavigation, HomeStackParamList } from '../../navigation/types';
 
@@ -24,6 +25,7 @@ export default function ProductDetailsScreen() {
   const route = useRoute<RouteProp<HomeStackParamList, 'ProductDetails'>>();
   const navigation = useNavigation<HomeStackNavigation<'ProductDetails'>>();
   const { productId } = route.params;
+  const published = usePublishedReviews();
   const [page, setPage] = useState(1);
 
   const product = products.find((p) => p.id === productId);
@@ -45,7 +47,11 @@ export default function ProductDetailsScreen() {
     );
   }
 
-  const productReviews = reviews.filter((r) => r.productId === productId).sort(byNewest);
+  const productReviews = [
+    ...published.filter((r) => r.productId === productId),
+    ...reviews.filter((r) => r.productId === productId).sort(byNewest),
+  ];
+  const publishedIds = new Set(published.map((r) => r.id));
   const reviewCount = productReviews.length;
   const average =
     reviewCount === 0
@@ -115,6 +121,7 @@ export default function ProductDetailsScreen() {
               product={product}
               company={company}
               showProduct={false}
+              highlight={publishedIds.has(item.id) ? 'Sua avaliação' : undefined}
             />
           </View>
         );

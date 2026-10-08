@@ -11,10 +11,11 @@ import type { Rewards } from './rewards';
 type Props = {
   company: Company;
   rewards: Rewards;
+  onViewReview: () => void;
   onReviewAnother: () => void;
 };
 
-export function Conclusion({ company, rewards, onReviewAnother }: Props) {
+export function Conclusion({ company, rewards, onViewReview, onReviewAnother }: Props) {
   const insets = useSafeAreaInsets();
 
   const span = Math.max(1, currentUser.xpLevelCeiling - currentUser.xpLevelFloor);
@@ -48,8 +49,7 @@ export function Conclusion({ company, rewards, onReviewAnother }: Props) {
           label="Ver minha avaliação"
           tone="onBrand"
           fullWidth
-          disabled
-          onPress={() => {}}
+          onPress={onViewReview}
         />
         <Button
           label="Avaliar outro item"

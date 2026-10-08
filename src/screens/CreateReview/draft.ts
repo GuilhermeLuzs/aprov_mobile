@@ -1,7 +1,10 @@
+import { currentUser, tagById } from '../../mocks';
 import {
   REVIEW_CHARACTERISTIC_KEYS,
   type Media,
+  type Product,
   type ProductKind,
+  type Review,
   type ReviewCharacteristicKey,
 } from '../../types';
 
@@ -105,6 +108,35 @@ export function toReviewMedia(media: DraftMedia[]): Media[] {
     ];
   }
   return [{ id: first.id, type: 'photo', uri: first.uri, width: first.width, height: first.height }];
+}
+
+export function buildReview(draft: Draft, product: Product, id: string): Review {
+  return {
+    id,
+    productId: product.id,
+    companyId: product.companyId,
+    authorId: currentUser.id,
+    createdAt: new Date().toISOString(),
+    editedAt: null,
+    title: '',
+    characteristics: REVIEW_CHARACTERISTIC_KEYS.map((key) => ({
+      key,
+      rating: draft.characteristics[key],
+    })),
+    averageRating: averageRating(draft),
+    positiveTags: draft.positiveTagIds.map((tagId) => tagById[tagId]).filter(Boolean),
+    negativeTags: draft.negativeTagIds.map((tagId) => tagById[tagId]).filter(Boolean),
+    media: toReviewMedia(draft.media),
+    comment: draft.comment.trim(),
+    wouldBuyAgain: draft.wouldBuyAgain,
+    agreements: 0,
+    disagreements: 0,
+    comments: [],
+    commentCount: 0,
+    shares: 0,
+    coinsReward: product.coinsReward,
+    xpReward: product.xpReward,
+  };
 }
 
 const drafts = new Map<string, Draft>();
