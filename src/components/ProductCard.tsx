@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Bookmark, Receipt, type LucideIcon } from 'lucide-react-native';
 import { colors, icon, radius, space, type } from '../theme';
@@ -12,6 +11,10 @@ type Props = {
   onSecondary?: () => void;
   width?: number;
   secondaryLabel?: string;
+  saved?: boolean;
+  purchased?: boolean;
+  onToggleSaved?: () => void;
+  onTogglePurchased?: () => void;
 };
 
 export function ProductCard({
@@ -20,10 +23,12 @@ export function ProductCard({
   onSecondary,
   width,
   secondaryLabel = 'Ver detalhes',
+  saved = false,
+  purchased = false,
+  onToggleSaved,
+  onTogglePurchased,
 }: Props) {
   const hasReviews = product.reviewCount > 0;
-  const [saved, setSaved] = useState(product.savedByCurrentUser);
-  const [purchased, setPurchased] = useState(product.purchasedByCurrentUser);
   const purchaseVerb = product.kind === 'service' ? 'contratei' : 'comprei';
 
   return (
@@ -35,14 +40,14 @@ export function ProductCard({
             Icon={Receipt}
             active={purchased}
             label={purchased ? `Desmarcar ${purchaseVerb}` : `Marcar como ${purchaseVerb}`}
-            onPress={() => setPurchased((value) => !value)}
+            onPress={onTogglePurchased}
           />
           <ToggleIcon
             Icon={Bookmark}
             active={saved}
             fillWhenActive
             label={saved ? 'Remover dos salvos' : 'Salvar'}
-            onPress={() => setSaved((value) => !value)}
+            onPress={onToggleSaved}
           />
         </View>
       </View>
@@ -92,13 +97,14 @@ function ToggleIcon({
   active: boolean;
   fillWhenActive?: boolean;
   label: string;
-  onPress: () => void;
+  onPress?: () => void;
 }) {
   const tint = active ? colors.primary : colors.ink;
 
   return (
     <Pressable
       onPress={onPress}
+      disabled={!onPress}
       hitSlop={space.xs}
       accessibilityRole="button"
       accessibilityLabel={label}

@@ -16,6 +16,7 @@ import { companies, products } from '../../mocks';
 import type { Company, Product } from '../../types';
 import type { HomeStackNavigation } from '../../navigation/types';
 import { matchesSearch } from '../../utils/search';
+import { togglePurchased, toggleSaved, useUserItems } from '../../store/userItems';
 
 const COMPANIES_PER_PAGE = 5;
 const PRODUCTS_PER_CAROUSEL = 6;
@@ -149,6 +150,7 @@ function CompanyCarousel({
   onReview: (productId: string) => void;
   onDetails: (productId: string) => void;
 }) {
+  const userItems = useUserItems();
   return (
     <View style={styles.carousel}>
       <View style={styles.gutter}>
@@ -168,6 +170,10 @@ function CompanyCarousel({
             width={CARD_WIDTH}
             onAvaliar={() => onReview(item.id)}
             onSecondary={() => onDetails(item.id)}
+            saved={userItems.savedIds.includes(item.id)}
+            purchased={userItems.purchasedIds.includes(item.id)}
+            onToggleSaved={() => toggleSaved(item.id)}
+            onTogglePurchased={() => togglePurchased(item.id)}
           />
         )}
       />

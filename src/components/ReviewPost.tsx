@@ -14,6 +14,7 @@ type Props = {
   product: Product;
   company: Company;
   showProduct?: boolean;
+  showAuthor?: boolean;
   highlight?: string;
   onPressBody?: () => void;
   onOpenPhoto?: (mediaId: string) => void;
@@ -26,6 +27,7 @@ export function ReviewPost({
   product,
   company,
   showProduct = true,
+  showAuthor = true,
   highlight,
   onPressBody,
   onOpenPhoto,
@@ -37,18 +39,20 @@ export function ReviewPost({
 
   return (
     <View style={styles.post}>
-      <View style={styles.header}>
-        <Avatar uri={author.avatarUri} name={author.name} size="md" bordered />
-        <View style={styles.headerText}>
-          <Text style={styles.name} numberOfLines={1}>
-            {author.name}
-          </Text>
-          <Text style={styles.sub}>
-            Nível {author.level} · {formatRelativeTime(review.createdAt)}
-          </Text>
+      {showAuthor ? (
+        <View style={styles.header}>
+          <Avatar uri={author.avatarUri} name={author.name} size="md" bordered />
+          <View style={styles.headerText}>
+            <Text style={styles.name} numberOfLines={1}>
+              {author.name}
+            </Text>
+            <Text style={styles.sub}>
+              Nível {author.level} · {formatRelativeTime(review.createdAt)}
+            </Text>
+          </View>
+          {highlight ? <Chip label={highlight} size="sm" selected /> : null}
         </View>
-        {highlight ? <Chip label={highlight} size="sm" selected /> : null}
-      </View>
+      ) : null}
 
       <View style={styles.context}>
         {showProduct ? (

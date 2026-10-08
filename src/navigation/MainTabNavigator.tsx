@@ -1,8 +1,9 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { House } from 'lucide-react-native';
+import { CircleUserRound, House } from 'lucide-react-native';
 import { colors, icon, type } from '../theme';
 import type { MainTabParamList } from './types';
 import { HomeStackNavigator } from './HomeStackNavigator';
+import { ProfileStackNavigator } from './ProfileStackNavigator';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -30,6 +31,16 @@ export function MainTabNavigator() {
           title: 'Início',
           tabBarIcon: ({ color }) => (
             <House color={color} size={icon.size.lg} strokeWidth={icon.strokeWidth} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="ProfileTab"
+        component={ProfileStackNavigator}
+        options={{
+          title: 'Perfil',
+          tabBarIcon: ({ color }) => (
+            <CircleUserRound color={color} size={icon.size.lg} strokeWidth={icon.strokeWidth} />
           ),
         }}
       />

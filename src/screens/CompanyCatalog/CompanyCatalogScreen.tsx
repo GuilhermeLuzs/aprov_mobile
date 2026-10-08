@@ -17,6 +17,7 @@ import { companies, products } from '../../mocks';
 import type { Category, Product } from '../../types';
 import type { HomeStackNavigation, HomeStackParamList } from '../../navigation/types';
 import { matchesSearch } from '../../utils/search';
+import { togglePurchased, toggleSaved, useUserItems } from '../../store/userItems';
 
 const PAGE_SIZE = 20;
 const COLUMNS = 2;
@@ -35,6 +36,7 @@ export default function CompanyCatalogScreen() {
   const [filters, setFilters] = useState<CatalogFilters>(EMPTY_CATALOG_FILTERS);
   const [filterOpen, setFilterOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const items = useUserItems();
 
   const company = companies.find((c) => c.id === companyId);
   const companyProducts = products.filter((p) => p.companyId === companyId);
@@ -106,6 +108,10 @@ export default function CompanyCatalogScreen() {
             width={cardWidth}
             onAvaliar={() => navigation.navigate('CreateReview', { productId: item.id })}
             onSecondary={() => navigation.navigate('ProductDetails', { productId: item.id })}
+            saved={items.savedIds.includes(item.id)}
+            purchased={items.purchasedIds.includes(item.id)}
+            onToggleSaved={() => toggleSaved(item.id)}
+            onTogglePurchased={() => togglePurchased(item.id)}
           />
         )}
         ListHeaderComponent={
