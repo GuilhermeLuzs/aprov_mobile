@@ -17,6 +17,7 @@ import { colors, icon, size, space, type } from '../../theme';
 import { aprovPointsPerReview, companies, products } from '../../mocks';
 import type { RootStackParamList } from '../../navigation/types';
 import { publishReview } from '../../store/publishedReviews';
+import { creditRewards } from '../../store/wallet';
 import {
   TOTAL_STEPS,
   buildReview,
@@ -120,6 +121,7 @@ export default function CreateReviewScreen() {
       return;
     }
     publishReview(buildReview(draft, product, `published-${Date.now()}`));
+    creditRewards({ companyId: product.companyId, ...earned });
     clearDraft(productId);
     setPublished(earned);
   };

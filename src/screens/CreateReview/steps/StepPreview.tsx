@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { Button, Checkbox, ReviewPost } from '../../../components';
 import { colors, space, type } from '../../../theme';
-import { currentUser } from '../../../mocks';
+import { useCurrentUser } from '../../../store/wallet';
 import type { Company, Product } from '../../../types';
 import { buildReview, mediaDone, type Draft } from '../draft';
 import { StepHeading } from './StepHeading';
@@ -14,6 +14,7 @@ type Props = {
 };
 
 export function StepPreview({ draft, update, product, company }: Props) {
+  const me = useCurrentUser();
   const question = product.kind === 'service' ? 'Contrataria novamente?' : 'Compraria novamente?';
 
   return (
@@ -22,7 +23,7 @@ export function StepPreview({ draft, update, product, company }: Props) {
 
       <ReviewPost
         review={buildReview(draft, product, 'preview')}
-        author={currentUser}
+        author={me}
         product={product}
         company={company}
       />

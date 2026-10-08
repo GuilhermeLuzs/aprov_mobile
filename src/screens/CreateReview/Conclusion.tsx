@@ -3,7 +3,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Award } from 'lucide-react-native';
 import { Button, MauricioMascot, RewardAmount } from '../../components';
 import { colors, radius, size, space, type } from '../../theme';
-import { currentUser } from '../../mocks';
+import { xpPerLevel } from '../../mocks';
+import { useWallet } from '../../store/wallet';
+import { levelProgress } from '../../utils/level';
 import { formatInt } from '../../utils/format';
 import type { Company } from '../../types';
 import type { Rewards } from './rewards';
@@ -18,9 +20,10 @@ type Props = {
 export function Conclusion({ company, rewards, onViewReview, onReviewAnother }: Props) {
   const insets = useSafeAreaInsets();
 
-  const span = Math.max(1, currentUser.xpLevelCeiling - currentUser.xpLevelFloor);
-  const progress = Math.min(1, (currentUser.xp + rewards.xp - currentUser.xpLevelFloor) / span);
-  const toNextLevel = Math.max(0, currentUser.xpLevelCeiling - currentUser.xp - rewards.xp);
+  const { xp } = useWallet();
+  const now = levelProgress(xp, xpPerLevel);
+  const before = levelProgress(xp - rewards.xp, xpPerLevel);
+  const leveledUp = now.level > before.level;
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
@@ -34,12 +37,14 @@ export function Conclusion({ company, rewards, onViewReview, onReviewAnother }: 
         </View>
 
         <View style={styles.level}>
-          <Text style={styles.levelTitle}>Nível {currentUser.level}</Text>
+          <Text style={styles.levelTitle}>
+            {leveledUp ? `Você subiu para o nível ${now.level}!` : `Nível ${now.level}`}
+          </Text>
           <View style={styles.track}>
-            <View style={[styles.fill, { width: `${progress * 100}%` }]} />
+            <View style={[styles.fill, { width: `${now.progress * 100}%` }]} />
           </View>
           <Text style={styles.levelText}>
-            +{formatInt(rewards.xp)} XP · faltam {formatInt(toNextLevel)} XP para o próximo nível
+            +{formatInt(rewards.xp)} XP · faltam {formatInt(now.xpToNext)} XP para o nível {now.level + 1}
           </Text>
         </View>
       </View>

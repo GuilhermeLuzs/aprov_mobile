@@ -10,8 +10,9 @@ import {
   StarRating,
 } from '../../components';
 import { colors, space, type } from '../../theme';
-import { companies, currentUser, products, reviews, users } from '../../mocks';
+import { companies, products, reviews, users } from '../../mocks';
 import { usePublishedReviews } from '../../store/publishedReviews';
+import { useCurrentUser } from '../../store/wallet';
 import { formatInt } from '../../utils/format';
 import type { HomeStackNavigation, HomeStackParamList } from '../../navigation/types';
 
@@ -26,6 +27,7 @@ export default function ProductDetailsScreen() {
   const navigation = useNavigation<HomeStackNavigation<'ProductDetails'>>();
   const { productId } = route.params;
   const published = usePublishedReviews();
+  const me = useCurrentUser();
   const [page, setPage] = useState(1);
 
   const product = products.find((p) => p.id === productId);
@@ -112,7 +114,8 @@ export default function ProductDetailsScreen() {
       ListHeaderComponent={header}
       ItemSeparatorComponent={() => <View style={styles.separator} />}
       renderItem={({ item }) => {
-        const author = users.find((u) => u.id === item.authorId) ?? currentUser;
+        const author =
+          item.authorId === me.id ? me : (users.find((u) => u.id === item.authorId) ?? me);
         return (
           <View style={styles.body}>
             <ReviewPost

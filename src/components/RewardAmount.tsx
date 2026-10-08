@@ -5,7 +5,7 @@ import { formatInt } from '../utils/format';
 
 type Props = {
   amount: number;
-  label: string;
+  label?: string;
   icon?: LucideIcon;
   size?: 'sm' | 'md';
   tone?: 'onLight' | 'onBrand';
@@ -20,7 +20,7 @@ export function RewardAmount({
 }: Props) {
   const px = size === 'sm' ? iconToken.size.sm : iconToken.size.md;
   const color = tone === 'onBrand' ? colors.surface : colors.valueDeep;
-  const text = `${formatInt(amount)} ${label}`;
+  const text = label ? `${formatInt(amount)} ${label}` : formatInt(amount);
 
   return (
     <View style={styles.row} accessible accessibilityLabel={text}>
