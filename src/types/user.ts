@@ -1,4 +1,4 @@
-export type UserGoal = 'discover' | 'share' | 'earn';
+export type DiscoverySource = 'friend' | 'social' | 'partner' | 'ad' | 'search' | 'other';
 
 export interface Badge {
   id: string;

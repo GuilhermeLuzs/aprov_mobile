@@ -5,39 +5,37 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, SelectableCard, Stepper } from '../../components';
 import { colors, space, type } from '../../theme';
 import type { OnboardingStackParamList } from '../../navigation/types';
-import { useLeaveOnboarding, useOnboarding } from './OnboardingContext';
-import { GOAL_OPTIONS as GOALS } from './options';
+import { ONBOARDING_STEPS, useLeaveOnboarding, useOnboarding } from './OnboardingContext';
+import { DISCOVERY_OPTIONS } from './options';
+import { OnboardingTopBar } from './OnboardingTopBar';
 
-export default function GoalScreen() {
+export default function DiscoveryScreen() {
   const insets = useSafeAreaInsets();
   const navigation =
-    useNavigation<NativeStackNavigationProp<OnboardingStackParamList, 'Goal'>>();
-  const { goal, setGoal } = useOnboarding();
+    useNavigation<NativeStackNavigationProp<OnboardingStackParamList, 'Discovery'>>();
+  const { discovery, setDiscovery } = useOnboarding();
   const leave = useLeaveOnboarding();
 
   return (
     <View style={styles.screen}>
-      <View style={[styles.skipRow, { paddingTop: insets.top + space.xs }]}>
-        <Button variant="text" label="Pular" onPress={leave} />
-      </View>
+      <OnboardingTopBar onBack={() => navigation.goBack()} onSkip={leave} />
 
       <ScrollView contentContainerStyle={styles.content}>
-        <Stepper current={3} total={3} />
+        <Stepper current={3} total={ONBOARDING_STEPS} />
 
-        <Text style={styles.title}>O que te traz aqui?</Text>
+        <Text style={styles.title}>Como conheceu a APROV?</Text>
 
         <View style={styles.options}>
-          {GOALS.map((option) => (
+          {DISCOVERY_OPTIONS.map((option) => (
             <SelectableCard
               key={option.key}
               mode="radio"
               indicatorPosition="leading"
-              selected={goal === option.key}
-              onPress={() => setGoal(option.key)}
-              accessibilityLabel={`${option.title}. ${option.description}`}
+              selected={discovery === option.key}
+              onPress={() => setDiscovery(option.key)}
+              accessibilityLabel={option.label}
             >
-              <Text style={styles.optionTitle}>{option.title}</Text>
-              <Text style={styles.optionDescription}>{option.description}</Text>
+              <Text style={styles.optionLabel}>{option.label}</Text>
             </SelectableCard>
           ))}
         </View>
@@ -47,7 +45,7 @@ export default function GoalScreen() {
         <Button
           label="Continuar"
           fullWidth
-          disabled={goal === null}
+          disabled={discovery === null}
           onPress={() => navigation.navigate('Ready')}
         />
       </View>
@@ -57,10 +55,6 @@ export default function GoalScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  skipRow: {
-    alignItems: 'flex-end',
-    paddingHorizontal: space.sm,
-  },
   content: {
     paddingHorizontal: space.lg,
     paddingTop: space.sm,
@@ -77,18 +71,11 @@ const styles = StyleSheet.create({
     marginTop: space.lg,
     gap: space.md,
   },
-  optionTitle: {
+  optionLabel: {
     fontFamily: type.bodyBold.family,
     fontSize: type.bodyBold.size,
     lineHeight: type.bodyBold.lineHeight,
     color: colors.ink,
-  },
-  optionDescription: {
-    marginTop: space.xs,
-    fontFamily: type.caption.family,
-    fontSize: type.caption.size,
-    lineHeight: type.caption.lineHeight,
-    color: colors.inkMuted,
   },
   footer: {
     borderTopWidth: 1,

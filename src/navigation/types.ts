@@ -4,7 +4,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 export type OnboardingStackParamList = {
   Interests: undefined;
   Companies: undefined;
-  Goal: undefined;
+  Discovery: undefined;
   Ready: undefined;
 };
 

@@ -9,9 +9,11 @@ import { companies } from '../../mocks';
 import type { OnboardingStackParamList } from '../../navigation/types';
 import {
   MIN_COMPANIES,
+  ONBOARDING_STEPS,
   useLeaveOnboarding,
   useOnboarding,
 } from './OnboardingContext';
+import { OnboardingTopBar } from './OnboardingTopBar';
 
 export default function CompaniesScreen() {
   const insets = useSafeAreaInsets();
@@ -34,12 +36,10 @@ export default function CompaniesScreen() {
 
   return (
     <View style={styles.screen}>
-      <View style={[styles.skipRow, { paddingTop: insets.top + space.xs }]}>
-        <Button variant="text" label="Pular" onPress={leave} />
-      </View>
+      <OnboardingTopBar onBack={() => navigation.goBack()} onSkip={leave} />
 
       <ScrollView contentContainerStyle={styles.content}>
-        <Stepper current={2} total={3} />
+        <Stepper current={2} total={ONBOARDING_STEPS} />
 
         <Text style={styles.title}>Quem você quer acompanhar?</Text>
         <Text style={styles.support}>
@@ -87,7 +87,7 @@ export default function CompaniesScreen() {
           label="Continuar"
           fullWidth
           disabled={!canContinue}
-          onPress={() => navigation.navigate('Goal')}
+          onPress={() => navigation.navigate('Discovery')}
         />
       </View>
     </View>
@@ -96,10 +96,6 @@ export default function CompaniesScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  skipRow: {
-    alignItems: 'flex-end',
-    paddingHorizontal: space.sm,
-  },
   content: {
     paddingHorizontal: space.lg,
     paddingTop: space.sm,

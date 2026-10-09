@@ -1,16 +1,16 @@
 import { useSyncExternalStore } from 'react';
-import type { Category, UserGoal } from '../types';
+import type { Category, DiscoverySource } from '../types';
 
 export type Preferences = {
   categories: Category[];
   companyIds: string[];
-  goal: UserGoal | null;
+  discovery: DiscoverySource | null;
 };
 
 const EMPTY: Preferences = {
   categories: [],
   companyIds: [],
-  goal: null,
+  discovery: null,
 };
 
 let state: Preferences = EMPTY;

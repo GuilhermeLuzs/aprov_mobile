@@ -7,19 +7,19 @@ import {
   type ReactNode,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import type { Category, UserGoal } from '../../types';
-
-export type OnboardingGoal = UserGoal;
+import type { Category, DiscoverySource } from '../../types';
 
 export { MIN_CATEGORIES, MIN_COMPANIES } from './options';
+
+export const ONBOARDING_STEPS = 3;
 
 type OnboardingContextValue = {
   categories: Category[];
   companyIds: string[];
-  goal: OnboardingGoal | null;
+  discovery: DiscoverySource | null;
   toggleCategory: (category: Category) => void;
   toggleCompany: (companyId: string) => void;
-  setGoal: (goal: OnboardingGoal) => void;
+  setDiscovery: (source: DiscoverySource) => void;
 };
 
 const OnboardingContext = createContext<OnboardingContextValue | null>(null);
@@ -27,7 +27,7 @@ const OnboardingContext = createContext<OnboardingContextValue | null>(null);
 export function OnboardingProvider({ children }: { children: ReactNode }) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [companyIds, setCompanyIds] = useState<string[]>([]);
-  const [goal, setGoalState] = useState<OnboardingGoal | null>(null);
+  const [discovery, setDiscoveryState] = useState<DiscoverySource | null>(null);
 
   const toggleCategory = useCallback((category: Category) => {
     setCategories((prev) =>
@@ -41,11 +41,18 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
-  const setGoal = useCallback((next: OnboardingGoal) => setGoalState(next), []);
+  const setDiscovery = useCallback((source: DiscoverySource) => setDiscoveryState(source), []);
 
   const value = useMemo(
-    () => ({ categories, companyIds, goal, toggleCategory, toggleCompany, setGoal }),
-    [categories, companyIds, goal, toggleCategory, toggleCompany, setGoal],
+    () => ({
+      categories,
+      companyIds,
+      discovery,
+      toggleCategory,
+      toggleCompany,
+      setDiscovery,
+    }),
+    [categories, companyIds, discovery, toggleCategory, toggleCompany, setDiscovery],
   );
 
   return <OnboardingContext.Provider value={value}>{children}</OnboardingContext.Provider>;

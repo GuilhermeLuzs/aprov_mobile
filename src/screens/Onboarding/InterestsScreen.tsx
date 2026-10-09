@@ -8,10 +8,12 @@ import { CATEGORY_LABEL } from '../../types';
 import type { OnboardingStackParamList } from '../../navigation/types';
 import {
   MIN_CATEGORIES,
+  ONBOARDING_STEPS,
   useLeaveOnboarding,
   useOnboarding,
 } from './OnboardingContext';
 import { CATEGORY_ICON, CATEGORY_ORDER } from './options';
+import { OnboardingTopBar } from './OnboardingTopBar';
 
 export default function InterestsScreen() {
   const insets = useSafeAreaInsets();
@@ -25,16 +27,14 @@ export default function InterestsScreen() {
 
   return (
     <View style={styles.screen}>
-      <View style={[styles.skipRow, { paddingTop: insets.top + space.xs }]}>
-        <Button variant="text" label="Pular" onPress={leave} />
-      </View>
+      <OnboardingTopBar onSkip={leave} />
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <View style={styles.band}>
-          <MauricioBubble text="Oi, eu sou o Maurício. Me conta o que te interessa que eu monto o seu APROV." />
-        </View>
+        <Stepper current={1} total={ONBOARDING_STEPS} />
 
-        <Stepper current={1} total={3} />
+        <View style={styles.band}>
+          <MauricioBubble text="Oi, eu sou o Maurício. Me conta o que te interessa que eu deixo a APROV com a sua cara." />
+        </View>
 
         <Text style={styles.title}>O que te interessa?</Text>
 
@@ -73,19 +73,16 @@ export default function InterestsScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
-  skipRow: {
-    alignItems: 'flex-end',
-    paddingHorizontal: space.sm,
-  },
   content: {
     paddingHorizontal: space.lg,
+    paddingTop: space.sm,
     paddingBottom: space.xl,
   },
   band: {
     backgroundColor: colors.primaryBright,
     borderRadius: radius.card,
     padding: space.lg,
-    marginBottom: space.xl,
+    marginTop: space.lg,
   },
   title: {
     marginTop: space.xl,
