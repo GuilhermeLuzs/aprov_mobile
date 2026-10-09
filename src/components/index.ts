@@ -12,6 +12,7 @@ export type { StarSize } from './StarRating';
 export { VoteBar } from './VoteBar';
 export { SectionHeader } from './SectionHeader';
 export { SearchBar } from './SearchBar';
+export { TextField } from './TextField';
 export { FilterButton } from './FilterButton';
 export { BottomSheet } from './BottomSheet';
 export { CompanyFilterSheet } from './CompanyFilterSheet';

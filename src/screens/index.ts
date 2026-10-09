@@ -1,3 +1,6 @@
+export { default as LoginScreen } from './Login/LoginScreen';
+export { default as PersonalDataScreen } from './SignUp/PersonalDataScreen';
+export { default as PasswordScreen } from './SignUp/PasswordScreen';
 export { default as InterestsScreen } from './Onboarding/InterestsScreen';
 export { default as CompaniesScreen } from './Onboarding/CompaniesScreen';
 export { default as DiscoveryScreen } from './Onboarding/DiscoveryScreen';
