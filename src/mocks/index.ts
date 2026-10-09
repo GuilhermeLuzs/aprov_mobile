@@ -5,6 +5,8 @@ export { tags, tagById } from './tags';
 export { currentUser, users } from './users';
 export { aprovPointsPerReview, xpPerLevel } from './rewards';
 export { initialWallet } from './wallet';
+export { testAccount } from './accounts';
+export type { Account } from './accounts';
 export type { CoinBalance, Wallet } from './wallet';
 export { mauricioSuggestions, mauricioReplies, mauricioFallbacks } from './mauricio';
 export type { MauricioReply } from './mauricio';

@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { Button, Checkbox, ReviewPost } from '../../../components';
 import { colors, space, type } from '../../../theme';
-import { useCurrentUser } from '../../../store/wallet';
+import { useCurrentUser } from '../../../store/session';
 import type { Company, Product } from '../../../types';
 import { buildReview, mediaDone, type Draft } from '../draft';
 import { StepHeading } from './StepHeading';
@@ -22,7 +22,7 @@ export function StepPreview({ draft, update, product, company }: Props) {
       <StepHeading title="Prévia da avaliação" hint="É assim que ela vai aparecer para todos." />
 
       <ReviewPost
-        review={buildReview(draft, product, 'preview')}
+        review={buildReview(draft, product, 'preview', me.id)}
         author={me}
         product={product}
         company={company}

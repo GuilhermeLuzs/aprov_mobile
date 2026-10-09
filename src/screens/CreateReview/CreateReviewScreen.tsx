@@ -18,6 +18,7 @@ import { aprovPointsPerReview, companies, products } from '../../mocks';
 import type { RootStackParamList } from '../../navigation/types';
 import { publishReview } from '../../store/publishedReviews';
 import { creditRewards } from '../../store/wallet';
+import { useCurrentUser } from '../../store/session';
 import {
   TOTAL_STEPS,
   buildReview,
@@ -42,6 +43,7 @@ import { Conclusion } from './Conclusion';
 
 export default function CreateReviewScreen() {
   const insets = useSafeAreaInsets();
+  const me = useCurrentUser();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'CreateReview'>>();
   const route = useRoute<RouteProp<RootStackParamList, 'CreateReview'>>();
   const { productId } = route.params;
@@ -120,7 +122,7 @@ export default function CreateReviewScreen() {
       update({ step: step + 1 });
       return;
     }
-    publishReview(buildReview(draft, product, `published-${Date.now()}`));
+    publishReview(buildReview(draft, product, `published-${Date.now()}`, me.id));
     creditRewards({ companyId: product.companyId, ...earned });
     clearDraft(productId);
     setPublished(earned);

@@ -15,7 +15,8 @@ import { colors, icon, radius, size, space, type } from '../../theme';
 import { companies, products, reviews, xpPerLevel } from '../../mocks';
 import { usePublishedReviews } from '../../store/publishedReviews';
 import { useUserItems } from '../../store/userItems';
-import { useCurrentUser, useWallet } from '../../store/wallet';
+import { useCurrentUser } from '../../store/session';
+import { useWallet } from '../../store/wallet';
 import { formatInt } from '../../utils/format';
 import { levelProgress } from '../../utils/level';
 import type { ProfileStackNavigation } from '../../navigation/types';
@@ -34,7 +35,7 @@ export default function ProfileScreen() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const myReviews = [
-    ...published,
+    ...published.filter((r) => r.authorId === user.id),
     ...reviews.filter((r) => r.authorId === user.id).sort(byNewest),
   ];
   const agreementsReceived = myReviews.reduce((sum, r) => sum + r.agreements, 0);

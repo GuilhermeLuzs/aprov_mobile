@@ -1,4 +1,4 @@
-import { currentUser, tagById } from '../../mocks';
+import { tagById } from '../../mocks';
 import {
   REVIEW_CHARACTERISTIC_KEYS,
   type Media,
@@ -110,12 +110,12 @@ export function toReviewMedia(media: DraftMedia[]): Media[] {
   return [{ id: first.id, type: 'photo', uri: first.uri, width: first.width, height: first.height }];
 }
 
-export function buildReview(draft: Draft, product: Product, id: string): Review {
+export function buildReview(draft: Draft, product: Product, id: string, authorId: string): Review {
   return {
     id,
     productId: product.id,
     companyId: product.companyId,
-    authorId: currentUser.id,
+    authorId,
     createdAt: new Date().toISOString(),
     editedAt: null,
     title: '',
