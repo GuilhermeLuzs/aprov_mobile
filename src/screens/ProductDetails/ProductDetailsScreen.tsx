@@ -10,9 +10,9 @@ import {
   StarRating,
 } from '../../components';
 import { colors, space, type } from '../../theme';
-import { companies, products, reviews, users } from '../../mocks';
+import { companies, products, reviews } from '../../mocks';
 import { usePublishedReviews } from '../../store/publishedReviews';
-import { useCurrentUser } from '../../store/wallet';
+import { findUser, useCurrentUser } from '../../store/session';
 import { formatInt } from '../../utils/format';
 import type { ProductDetailsNavigation, ProductDetailsParamList } from '../../navigation/types';
 
@@ -115,7 +115,8 @@ export default function ProductDetailsScreen() {
       ItemSeparatorComponent={() => <View style={styles.separator} />}
       renderItem={({ item }) => {
         const author =
-          item.authorId === me.id ? me : (users.find((u) => u.id === item.authorId) ?? me);
+          item.authorId === me.id ? me : findUser(item.authorId);
+        if (!author) return null;
         return (
           <View style={styles.body}>
             <ReviewPost
@@ -124,7 +125,7 @@ export default function ProductDetailsScreen() {
               product={product}
               company={company}
               showProduct={false}
-              highlight={publishedIds.has(item.id) ? 'Sua avaliação' : undefined}
+              highlight={item.authorId === me.id && publishedIds.has(item.id) ? 'Sua avaliação' : undefined}
             />
           </View>
         );

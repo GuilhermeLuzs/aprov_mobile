@@ -8,10 +8,10 @@ import { useLeaveOnboarding, useOnboarding } from './OnboardingContext';
 export default function ReadyScreen() {
   const insets = useSafeAreaInsets();
   const leave = useLeaveOnboarding();
-  const { categories, companyIds, goal } = useOnboarding();
+  const { categories, companyIds, discovery } = useOnboarding();
 
   const finish = () => {
-    setPreferences({ categories, companyIds, goal });
+    setPreferences({ categories, companyIds, discovery });
     leave();
   };
 

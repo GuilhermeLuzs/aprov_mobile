@@ -1,10 +1,15 @@
 import type { CompositeNavigationProp, NavigatorScreenParams } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
+export type SignUpStackParamList = {
+  PersonalData: undefined;
+  Password: undefined;
+};
+
 export type OnboardingStackParamList = {
   Interests: undefined;
   Companies: undefined;
-  Goal: undefined;
+  Discovery: undefined;
   Ready: undefined;
 };
 
@@ -31,6 +36,8 @@ export type MainTabParamList = {
 };
 
 export type RootStackParamList = {
+  Login: undefined;
+  SignUp: NavigatorScreenParams<SignUpStackParamList> | undefined;
   Onboarding: NavigatorScreenParams<OnboardingStackParamList> | undefined;
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   CreateReview: { productId: string };

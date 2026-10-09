@@ -9,7 +9,7 @@ import {
   UtensilsCrossed,
   Wrench,
 } from 'lucide-react-native';
-import type { Category, UserGoal } from '../../types';
+import type { Category, DiscoverySource } from '../../types';
 
 export const CATEGORY_ORDER: Category[] = [
   'eletronicos',
@@ -33,22 +33,13 @@ export const CATEGORY_ICON: Record<Category, LucideIcon> = {
   saude: HeartPulse,
 };
 
-export const GOAL_OPTIONS: { key: UserGoal; title: string; description: string }[] = [
-  {
-    key: 'discover',
-    title: 'Descobrir produtos bons',
-    description: 'ver o que vale a pena antes de comprar',
-  },
-  {
-    key: 'share',
-    title: 'Compartilhar experiências',
-    description: 'escrever o que achei do que usei',
-  },
-  {
-    key: 'earn',
-    title: 'Juntar pontos e recompensas',
-    description: 'ganhar moedas das empresas parceiras',
-  },
+export const DISCOVERY_OPTIONS: { key: DiscoverySource; label: string }[] = [
+  { key: 'friend', label: 'Indicação de amigo ou família' },
+  { key: 'social', label: 'Redes sociais' },
+  { key: 'partner', label: 'Uma empresa parceira me indicou' },
+  { key: 'ad', label: 'Anúncio' },
+  { key: 'search', label: 'Pesquisa na internet' },
+  { key: 'other', label: 'Outro' },
 ];
 
 export const MIN_CATEGORIES = 3;

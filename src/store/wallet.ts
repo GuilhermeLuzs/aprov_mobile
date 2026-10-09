@@ -1,7 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { currentUser, initialWallet, xpPerLevel, type CoinBalance } from '../mocks';
-import type { User } from '../types';
-import { levelProgress } from '../utils/level';
+import { currentUser, initialWallet, type CoinBalance } from '../mocks';
 
 export type WalletState = {
   aprovPoints: number;
@@ -50,8 +48,9 @@ export function useWallet(): WalletState {
   return useSyncExternalStore(subscribe, getWallet, getWallet);
 }
 
-export function useCurrentUser(): User {
-  const { xp } = useWallet();
-  const { level } = levelProgress(xp, xpPerLevel);
-  return { ...currentUser, xp, level };
+export const EMPTY_WALLET: WalletState = { aprovPoints: 0, xp: 0, coins: [] };
+
+export function resetWallet(next: WalletState): void {
+  state = next;
+  emit();
 }

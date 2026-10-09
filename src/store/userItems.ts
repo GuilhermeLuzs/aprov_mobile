@@ -6,10 +6,16 @@ export type UserItems = {
   purchasedIds: string[];
 };
 
-let state: UserItems = {
-  savedIds: products.filter((p) => p.savedByCurrentUser).map((p) => p.id),
-  purchasedIds: products.filter((p) => p.purchasedByCurrentUser).map((p) => p.id),
-};
+export const EMPTY_USER_ITEMS: UserItems = { savedIds: [], purchasedIds: [] };
+
+export function seededUserItems(): UserItems {
+  return {
+    savedIds: products.filter((p) => p.savedByCurrentUser).map((p) => p.id),
+    purchasedIds: products.filter((p) => p.purchasedByCurrentUser).map((p) => p.id),
+  };
+}
+
+let state: UserItems = seededUserItems();
 const listeners = new Set<() => void>();
 
 function emit() {
@@ -27,6 +33,11 @@ export function toggleSaved(productId: string): void {
 
 export function togglePurchased(productId: string): void {
   state = { ...state, purchasedIds: toggled(state.purchasedIds, productId) };
+  emit();
+}
+
+export function resetUserItems(next: UserItems): void {
+  state = next;
   emit();
 }
 

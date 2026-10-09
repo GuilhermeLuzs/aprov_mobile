@@ -8,7 +8,7 @@ export {
   REVIEW_CHARACTERISTIC_KEYS,
 } from './review';
 export type { Tag, TagSentiment } from './tag';
-export type { User, Badge, UserGoal } from './user';
+export type { User, Badge, DiscoverySource } from './user';
 export type { Comment, CommentReply } from './comment';
 export type {
   Media,

@@ -3,26 +3,23 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { RootStackParamList } from './types';
 import { navTheme, stackScreenOptions } from './navTheme';
 import { OnboardingNavigator } from './OnboardingNavigator';
+import { SignUpNavigator } from './SignUpNavigator';
 import { MainTabNavigator } from './MainTabNavigator';
-import { CreateReviewScreen, MauricioChatScreen } from '../screens';
+import { CreateReviewScreen, LoginScreen, MauricioChatScreen } from '../screens';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-type Props = {
-  showOnboarding?: boolean;
-};
-
-export function RootNavigator({ showOnboarding = true }: Props) {
+export function RootNavigator() {
   return (
     <NavigationContainer theme={navTheme}>
-      <Stack.Navigator screenOptions={stackScreenOptions}>
-        {showOnboarding && (
-          <Stack.Screen
-            name="Onboarding"
-            component={OnboardingNavigator}
-            options={{ headerShown: false }}
-          />
-        )}
+      <Stack.Navigator screenOptions={stackScreenOptions} initialRouteName="Login">
+        <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SignUp" component={SignUpNavigator} options={{ headerShown: false }} />
+        <Stack.Screen
+          name="Onboarding"
+          component={OnboardingNavigator}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen
           name="MainTabs"
           component={MainTabNavigator}
