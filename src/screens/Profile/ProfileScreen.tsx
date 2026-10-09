@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Bookmark,
   ChevronRight,
+  LogOut,
   Menu,
   Receipt,
   Wallet as WalletIcon,
@@ -14,6 +15,7 @@ import { Avatar, BottomSheet, EmptyState, ReviewPost, SectionHeader } from '../.
 import { colors, icon, radius, size, space, type } from '../../theme';
 import { companies, products, reviews, xpPerLevel } from '../../mocks';
 import { usePublishedReviews } from '../../store/publishedReviews';
+import { signOut } from '../../store/session';
 import { useUserItems } from '../../store/userItems';
 import { useCurrentUser } from '../../store/session';
 import { useWallet } from '../../store/wallet';
@@ -171,6 +173,17 @@ export default function ProfileScreen() {
             label="Itens comprados"
             detail={`${formatInt(items.purchasedIds.length)} ${items.purchasedIds.length === 1 ? 'item' : 'itens'}`}
             onPress={() => openFromMenu(() => navigation.navigate('ItemList', { kind: 'purchased' }))}
+          />
+          <MenuRow
+            Icon={LogOut}
+            label="Sair"
+            detail={user.handle}
+            onPress={() =>
+              openFromMenu(() => {
+                signOut();
+                navigation.getParent()?.getParent()?.reset({ index: 0, routes: [{ name: 'Login' }] });
+              })
+            }
           />
         </View>
       </BottomSheet>
