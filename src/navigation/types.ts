@@ -17,7 +17,13 @@ export type ProductDetailsParamList = {
   ProductDetails: { productId: string };
 };
 
+export type ReviewDetailsParamList = {
+  ReviewDetails: { reviewId: string };
+  ProductDetails: { productId: string };
+};
+
 export type HomeStackParamList = ProductDetailsParamList & {
+  ReviewDetails: { reviewId: string };
   Home: undefined;
   CompanyCatalog: { companyId: string };
 };
@@ -25,6 +31,7 @@ export type HomeStackParamList = ProductDetailsParamList & {
 export type ItemListKind = 'saved' | 'purchased';
 
 export type ProfileStackParamList = ProductDetailsParamList & {
+  ReviewDetails: { reviewId: string };
   Profile: undefined;
   Wallet: undefined;
   ItemList: { kind: ItemListKind };
@@ -55,7 +62,12 @@ export type ProfileStackNavigation<T extends keyof ProfileStackParamList> = Comp
 >;
 
 export type ProductDetailsNavigation = CompositeNavigationProp<
-  NativeStackNavigationProp<ProductDetailsParamList, 'ProductDetails'>,
+  NativeStackNavigationProp<ProductDetailsParamList & ReviewDetailsParamList, 'ProductDetails'>,
+  NativeStackNavigationProp<RootStackParamList>
+>;
+
+export type ReviewDetailsNavigation = CompositeNavigationProp<
+  NativeStackNavigationProp<ReviewDetailsParamList, 'ReviewDetails'>,
   NativeStackNavigationProp<RootStackParamList>
 >;
 

@@ -11,6 +11,8 @@ export { StarRating } from './StarRating';
 export type { StarSize } from './StarRating';
 export { VoteBar } from './VoteBar';
 export type { VoteState } from './VoteBar';
+export { CommentThread } from './CommentThread';
+export { CommentComposer } from './CommentComposer';
 export { SectionHeader } from './SectionHeader';
 export { SearchBar } from './SearchBar';
 export { TextField } from './TextField';

@@ -128,6 +128,7 @@ export default function ProductDetailsScreen() {
               company={company}
               showProduct={false}
               highlight={item.authorId === me.id && publishedIds.has(item.id) ? 'Sua avaliação' : undefined}
+              onPressBody={() => navigation.navigate('ReviewDetails', { reviewId: item.id })}
             />
           </View>
         );
