@@ -6,7 +6,7 @@ import { Avatar } from './Avatar';
 import { Chip } from './Chip';
 import { ReviewMedia } from './ReviewMedia';
 import { StarRating } from './StarRating';
-import { VoteBar } from './VoteBar';
+import { VoteBar, type VoteState } from './VoteBar';
 
 type Props = {
   review: Review;
@@ -16,6 +16,8 @@ type Props = {
   showProduct?: boolean;
   showAuthor?: boolean;
   highlight?: string;
+  vote?: VoteState;
+  onVote?: (choice: 'agree' | 'disagree') => void;
   onPressBody?: () => void;
   onOpenPhoto?: (mediaId: string) => void;
   onOpenVideo?: () => void;
@@ -29,6 +31,8 @@ export function ReviewPost({
   showProduct = true,
   showAuthor = true,
   highlight,
+  vote = null,
+  onVote,
   onPressBody,
   onOpenPhoto,
   onOpenVideo,
@@ -93,6 +97,10 @@ export function ReviewPost({
         agreements={review.agreements}
         disagreements={review.disagreements}
         comments={review.commentCount}
+        active={vote}
+        onAgree={onVote && (() => onVote('agree'))}
+        onDisagree={onVote && (() => onVote('disagree'))}
+        onComments={onPressBody}
       />
     </View>
   );

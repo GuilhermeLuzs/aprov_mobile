@@ -18,6 +18,7 @@ import { usePublishedReviews } from '../../store/publishedReviews';
 import { signOut } from '../../store/session';
 import { useUserItems } from '../../store/userItems';
 import { useCurrentUser } from '../../store/session';
+import { useReviewDisplay } from '../../store/interactions';
 import { useWallet } from '../../store/wallet';
 import { formatInt } from '../../utils/format';
 import { levelProgress } from '../../utils/level';
@@ -31,6 +32,7 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<ProfileStackNavigation<'Profile'>>();
   const user = useCurrentUser();
+  const display = useReviewDisplay(user.id);
   const wallet = useWallet();
   const items = useUserItems();
   const published = usePublishedReviews();
@@ -124,7 +126,7 @@ export default function ProfileScreen() {
           return (
             <View style={styles.gutter}>
               <ReviewPost
-                review={item}
+                {...display(item)}
                 author={user}
                 product={product}
                 company={company}

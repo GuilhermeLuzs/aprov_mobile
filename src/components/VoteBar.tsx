@@ -1,35 +1,30 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import {
-  MessageCircle,
-  Share2,
-  ThumbsDown,
-  ThumbsUp,
-} from 'lucide-react-native';
+import { MessageCircle, ThumbsDown, ThumbsUp } from 'lucide-react-native';
 import { colors, icon as iconToken, space, type } from '../theme';
 import { formatInt } from '../utils/format';
+
+export type VoteState = 'agree' | 'disagree' | null;
 
 type Props = {
   agreements: number;
   disagreements: number;
   comments?: number;
-  shares?: number;
   size?: 'sm' | 'md';
+  active?: VoteState;
   onAgree?: () => void;
   onDisagree?: () => void;
   onComments?: () => void;
-  onShare?: () => void;
 };
 
 export function VoteBar({
   agreements,
   disagreements,
   comments,
-  shares,
   size = 'md',
+  active = null,
   onAgree,
   onDisagree,
   onComments,
-  onShare,
 }: Props) {
   const px = size === 'sm' ? iconToken.size.sm : iconToken.size.md;
 
@@ -40,7 +35,9 @@ export function VoteBar({
         color={colors.agree}
         px={px}
         count={agreements}
+        selected={active === 'agree'}
         label={`${formatInt(agreements)} concordâncias`}
+        actionLabel={active === 'agree' ? 'Desfazer concordância' : 'Concordar'}
         onPress={onAgree}
       />
       <Metric
@@ -48,7 +45,9 @@ export function VoteBar({
         color={colors.disagree}
         px={px}
         count={disagreements}
+        selected={active === 'disagree'}
         label={`${formatInt(disagreements)} discordâncias`}
+        actionLabel={active === 'disagree' ? 'Desfazer discordância' : 'Discordar'}
         onPress={onDisagree}
       />
       {comments != null ? (
@@ -58,17 +57,8 @@ export function VoteBar({
           px={px}
           count={comments}
           label={`${formatInt(comments)} comentários`}
+          actionLabel="Ver comentários"
           onPress={onComments}
-        />
-      ) : null}
-      {shares != null ? (
-        <Metric
-          Icon={Share2}
-          color={colors.inkMuted}
-          px={px}
-          count={shares}
-          label={`${formatInt(shares)} compartilhamentos`}
-          onPress={onShare}
         />
       ) : null}
     </View>
@@ -80,15 +70,22 @@ type MetricProps = {
   color: string;
   px: number;
   count: number;
+  selected?: boolean;
   label: string;
+  actionLabel: string;
   onPress?: () => void;
 };
 
-function Metric({ Icon, color, px, count, label, onPress }: MetricProps) {
+function Metric({ Icon, color, px, count, selected = false, label, actionLabel, onPress }: MetricProps) {
   const content = (
     <>
-      <Icon size={px} color={color} strokeWidth={iconToken.strokeWidth} />
-      <Text style={styles.count}>{formatInt(count)}</Text>
+      <Icon
+        size={px}
+        color={color}
+        fill={selected ? color : 'transparent'}
+        strokeWidth={iconToken.strokeWidth}
+      />
+      <Text style={[styles.count, selected && { color }]}>{formatInt(count)}</Text>
     </>
   );
 
@@ -102,10 +99,11 @@ function Metric({ Icon, color, px, count, label, onPress }: MetricProps) {
   return (
     <Pressable
       style={styles.metric}
-      hitSlop={8}
+      hitSlop={space.sm}
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityState={{ selected }}
+      accessibilityLabel={`${actionLabel}, ${label}`}
     >
       {content}
     </Pressable>
@@ -122,7 +120,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: space.xs,
-    minHeight: 24,
+    minHeight: space.xl,
   },
   count: {
     fontFamily: type.numeric.family,
