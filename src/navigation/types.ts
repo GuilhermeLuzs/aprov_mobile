@@ -28,6 +28,11 @@ export type HomeStackParamList = ProductDetailsParamList & {
   CompanyCatalog: { companyId: string };
 };
 
+export type FeedStackParamList = ProductDetailsParamList & {
+  ReviewDetails: { reviewId: string };
+  Feed: undefined;
+};
+
 export type ItemListKind = 'saved' | 'purchased';
 
 export type ProfileStackParamList = ProductDetailsParamList & {
@@ -39,6 +44,7 @@ export type ProfileStackParamList = ProductDetailsParamList & {
 
 export type MainTabParamList = {
   HomeTab: NavigatorScreenParams<HomeStackParamList>;
+  FeedTab: NavigatorScreenParams<FeedStackParamList>;
   ProfileTab: NavigatorScreenParams<ProfileStackParamList>;
 };
 
@@ -53,6 +59,11 @@ export type RootStackParamList = {
 
 export type HomeStackNavigation<T extends keyof HomeStackParamList> = CompositeNavigationProp<
   NativeStackNavigationProp<HomeStackParamList, T>,
+  NativeStackNavigationProp<RootStackParamList>
+>;
+
+export type FeedStackNavigation<T extends keyof FeedStackParamList> = CompositeNavigationProp<
+  NativeStackNavigationProp<FeedStackParamList, T>,
   NativeStackNavigationProp<RootStackParamList>
 >;
 

@@ -18,6 +18,7 @@ type Props = {
   highlight?: string;
   vote?: VoteState;
   onVote?: (choice: 'agree' | 'disagree') => void;
+  onPressProduct?: () => void;
   onPressBody?: () => void;
   onOpenPhoto?: (mediaId: string) => void;
   onOpenVideo?: () => void;
@@ -33,6 +34,7 @@ export function ReviewPost({
   highlight,
   vote = null,
   onVote,
+  onPressProduct,
   onPressBody,
   onOpenPhoto,
   onOpenVideo,
@@ -58,14 +60,20 @@ export function ReviewPost({
         </View>
       ) : null}
 
-      <View style={styles.context}>
+      <Pressable
+        style={styles.context}
+        onPress={onPressProduct}
+        disabled={!onPressProduct}
+        accessibilityRole={onPressProduct ? 'link' : undefined}
+        accessibilityLabel={onPressProduct ? `Abrir ${product.title}` : undefined}
+      >
         {showProduct ? (
           <Text style={styles.contextText} numberOfLines={2}>
             avaliou <Text style={styles.contextStrong}>{product.title}</Text> · {company.name}
           </Text>
         ) : null}
         <StarRating value={review.averageRating} size="sm" showValue />
-      </View>
+      </Pressable>
 
       {media ? <ReviewMedia media={media} onExpand={onOpenPhoto} onPlay={onOpenVideo} /> : null}
 

@@ -131,6 +131,7 @@ export default function ProfileScreen() {
                 product={product}
                 company={company}
                 showAuthor={false}
+                onPressProduct={() => navigation.navigate('ProductDetails', { productId: product.id })}
                 onPressBody={() => navigation.navigate('ReviewDetails', { reviewId: item.id })}
               />
             </View>

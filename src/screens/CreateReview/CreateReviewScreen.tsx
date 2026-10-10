@@ -72,12 +72,7 @@ export default function CreateReviewScreen() {
       <Conclusion
         company={company}
         rewards={published}
-        onViewReview={() =>
-          navigation.popTo('MainTabs', {
-            screen: 'HomeTab',
-            params: { screen: 'ProductDetails', params: { productId } },
-          })
-        }
+        onViewReview={() => navigation.goBack()}
         onReviewAnother={() => navigation.goBack()}
       />
     );

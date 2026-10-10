@@ -3,6 +3,7 @@ import { currentUser as testUser, initialWallet, testAccount, users, xpPerLevel 
 import type { User } from '../types';
 import { levelProgress } from '../utils/level';
 import { onlyDigits } from '../utils/validation';
+import { EMPTY_FOLLOWING, resetFollowing, seededFollowing } from './follows';
 import { EMPTY_USER_ITEMS, resetUserItems, seededUserItems } from './userItems';
 import { EMPTY_WALLET, resetWallet, useWallet } from './wallet';
 
@@ -47,9 +48,11 @@ function startSession(account: StoredAccount, isNew: boolean): void {
   if (isNew) {
     resetWallet(EMPTY_WALLET);
     resetUserItems(EMPTY_USER_ITEMS);
+    resetFollowing(EMPTY_FOLLOWING);
   } else {
     resetWallet({ ...initialWallet, xp: account.user.xp });
     resetUserItems(seededUserItems());
+    resetFollowing(seededFollowing());
   }
   session = account.user;
   emit();
