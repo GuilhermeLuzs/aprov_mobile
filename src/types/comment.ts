@@ -5,6 +5,7 @@ export interface CommentReply {
   createdAt: string;
   text: string;
   agreements: number;
+  disagreements: number;
 }
 
 export interface Comment {
@@ -14,5 +15,6 @@ export interface Comment {
   createdAt: string;
   text: string;
   agreements: number;
+  disagreements: number;
   replies: CommentReply[];
 }

@@ -8,6 +8,7 @@ export { default as ReadyScreen } from './Onboarding/ReadyScreen';
 export { default as HomeScreen } from './Home/HomeScreen';
 export { default as CompanyCatalogScreen } from './CompanyCatalog/CompanyCatalogScreen';
 export { default as ProductDetailsScreen } from './ProductDetails/ProductDetailsScreen';
+export { default as ReviewDetailsScreen } from './ReviewDetails/ReviewDetailsScreen';
 export { default as ProfileScreen } from './Profile/ProfileScreen';
 export { default as WalletScreen } from './Profile/WalletScreen';
 export { default as ItemListScreen } from './Profile/ItemListScreen';

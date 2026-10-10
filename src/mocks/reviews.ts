@@ -57,6 +57,12 @@ const carousel = (id: string, seeds: string[]): CarouselMedia => ({
   })),
 });
 
+const DISAGREEMENT_RATIO = 8;
+
+function mockDisagreements(agreements: number): number {
+  return Math.floor(agreements / DISAGREEMENT_RATIO);
+}
+
 function reply(
   id: string,
   parentId: string,
@@ -65,7 +71,7 @@ function reply(
   text: string,
   agreements: number,
 ): CommentReply {
-  return { id, parentId, authorId, createdAt, text, agreements };
+  return { id, parentId, authorId, createdAt, text, agreements, disagreements: mockDisagreements(agreements) };
 }
 
 function comment(
@@ -77,7 +83,16 @@ function comment(
   agreements: number,
   replies: CommentReply[] = [],
 ): Comment {
-  return { id, reviewId, authorId, createdAt, text, agreements, replies };
+  return {
+    id,
+    reviewId,
+    authorId,
+    createdAt,
+    text,
+    agreements,
+    disagreements: mockDisagreements(agreements),
+    replies,
+  };
 }
 
 type Seed = {
