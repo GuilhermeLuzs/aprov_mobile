@@ -1,7 +1,8 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { CircleUserRound, House } from 'lucide-react-native';
+import { CircleUserRound, House, Newspaper } from 'lucide-react-native';
 import { colors, icon, type } from '../theme';
 import type { MainTabParamList } from './types';
+import { FeedStackNavigator } from './FeedStackNavigator';
 import { HomeStackNavigator } from './HomeStackNavigator';
 import { ProfileStackNavigator } from './ProfileStackNavigator';
 
@@ -31,6 +32,16 @@ export function MainTabNavigator() {
           title: 'Início',
           tabBarIcon: ({ color }) => (
             <House color={color} size={icon.size.lg} strokeWidth={icon.strokeWidth} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="FeedTab"
+        component={FeedStackNavigator}
+        options={{
+          title: 'Feed',
+          tabBarIcon: ({ color }) => (
+            <Newspaper color={color} size={icon.size.lg} strokeWidth={icon.strokeWidth} />
           ),
         }}
       />
