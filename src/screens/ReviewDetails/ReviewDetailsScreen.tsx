@@ -131,7 +131,7 @@ export default function ReviewDetailsScreen() {
 
       {review.media[0] ? (
         <View style={styles.section}>
-          <ReviewMedia media={review.media[0]} />
+          <ReviewMedia media={review.media} />
         </View>
       ) : null}
 
