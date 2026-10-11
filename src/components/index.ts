@@ -12,6 +12,7 @@ export type { StarSize } from './StarRating';
 export { VoteBar } from './VoteBar';
 export { ProfileSummary } from './ProfileSummary';
 export { PersonRow } from './PersonRow';
+export { MenuRow } from './MenuRow';
 export { TopBar } from './TopBar';
 export { BrandMark } from './BrandMark';
 export type { VoteState } from './VoteBar';
