@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
+  BrandMark,
   CompanyFilterSheet,
   EmptyState,
   FilterButton,
@@ -71,6 +72,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.screen}>
       <TopBar style={styles.searchRow}>
+        <BrandMark />
         <View style={styles.searchField}>
           <SearchBar
             placeholder="Buscar empresas e produtos"

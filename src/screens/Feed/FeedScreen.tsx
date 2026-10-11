@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Search } from 'lucide-react-native';
-import { EmptyState, ReviewPost, TopBar } from '../../components';
+import { BrandMark, EmptyState, ReviewPost, TopBar } from '../../components';
 import { colors, icon, size, space, type } from '../../theme';
 import { companies, products, reviews } from '../../mocks';
 import type { Review } from '../../types';
@@ -94,6 +94,7 @@ export default function FeedScreen() {
   return (
     <View style={styles.screen}>
       <TopBar style={styles.tabs}>
+        <BrandMark />
         <View style={styles.tabList} accessibilityRole="tablist">
           {TABS.map((t) => (
             <TabButton

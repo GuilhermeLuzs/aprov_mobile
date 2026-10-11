@@ -12,6 +12,7 @@ import {
 } from 'lucide-react-native';
 import {
   BottomSheet,
+  BrandMark,
   EmptyState,
   ProfileSummary,
   ReviewPost,
@@ -86,6 +87,7 @@ export default function ProfileScreen() {
   return (
     <View style={styles.screen}>
       <TopBar style={styles.topRow}>
+        <BrandMark />
         <Text style={styles.handle} numberOfLines={1}>
           {user.handle}
         </Text>

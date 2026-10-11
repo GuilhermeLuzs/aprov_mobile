@@ -13,6 +13,7 @@ export { VoteBar } from './VoteBar';
 export { ProfileSummary } from './ProfileSummary';
 export { PersonRow } from './PersonRow';
 export { TopBar } from './TopBar';
+export { BrandMark } from './BrandMark';
 export type { VoteState } from './VoteBar';
 export { CommentThread } from './CommentThread';
 export { CommentComposer } from './CommentComposer';
