@@ -25,7 +25,7 @@ export function FilterButton({ activeCount, onPress, accessibilityLabel }: Props
       ]}
     >
       <SlidersHorizontal
-        size={icon.size.md}
+        size={icon.size.lg}
         color={active ? colors.primary : colors.ink}
         strokeWidth={icon.strokeWidth}
       />
@@ -45,7 +45,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.control,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.surfaceAlt,
   },
   buttonActive: { backgroundColor: colors.primaryDim },
   pressed: { opacity: 0.7 },

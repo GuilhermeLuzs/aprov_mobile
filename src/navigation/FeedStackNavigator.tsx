@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
   FeedScreen,
   FollowListScreen,
+  PeopleSearchScreen,
   ProductDetailsScreen,
   ReviewDetailsScreen,
   UserProfileScreen,
@@ -15,6 +16,11 @@ export function FeedStackNavigator() {
   return (
     <Stack.Navigator screenOptions={stackScreenOptions}>
       <Stack.Screen name="Feed" component={FeedScreen} options={{ headerShown: false }} />
+      <Stack.Screen
+        name="PeopleSearch"
+        component={PeopleSearchScreen}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name="ProductDetails"
         component={ProductDetailsScreen}

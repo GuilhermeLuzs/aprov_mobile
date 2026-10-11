@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react';
 import { currentUser as testUser, initialWallet, testAccount, users, xpPerLevel } from '../mocks';
 import type { User } from '../types';
 import { levelProgress } from '../utils/level';
-import { onlyDigits } from '../utils/validation';
+import { normalizeUsername, onlyDigits } from '../utils/validation';
 import { resetFollows } from './follows';
 import { EMPTY_USER_ITEMS, resetUserItems, seededUserItems } from './userItems';
 import { EMPTY_WALLET, resetWallet, useWallet } from './wallet';
@@ -11,12 +11,13 @@ type StoredAccount = { email: string; cpf: string; password: string; user: User 
 
 export type SignUpData = {
   name: string;
+  username: string;
   email: string;
   cpf: string;
   password: string;
 };
 
-export type SignUpResult = 'ok' | 'email-in-use' | 'cpf-in-use';
+export type SignUpResult = 'ok' | 'email-in-use' | 'cpf-in-use' | 'username-in-use';
 
 const accounts: StoredAccount[] = [
   {
@@ -44,6 +45,18 @@ export function isCpfInUse(cpf: string): boolean {
   return accounts.some((a) => a.cpf === onlyDigits(cpf));
 }
 
+export function allUsers(): User[] {
+  const created = accounts.map((a) => a.user).filter((u) => !users.some((m) => m.id === u.id));
+  return [...users, ...created];
+}
+
+const handleOf = (username: string) => `@${normalizeUsername(username)}`;
+
+export function isUsernameInUse(username: string): boolean {
+  const handle = handleOf(username);
+  return allUsers().some((u) => u.handle === handle);
+}
+
 function startSession(account: StoredAccount, isNew: boolean): void {
   if (isNew) {
     resetWallet(EMPTY_WALLET);
@@ -66,18 +79,14 @@ export function signIn(email: string, password: string): boolean {
   return true;
 }
 
-function handleFromEmail(email: string): string {
-  const local = normalizeEmail(email).split('@')[0].replace(/[^a-z0-9._]/g, '');
-  return `@${local}`;
-}
-
 export function signUp(data: SignUpData): SignUpResult {
   if (isEmailInUse(data.email)) return 'email-in-use';
   if (isCpfInUse(data.cpf)) return 'cpf-in-use';
+  if (isUsernameInUse(data.username)) return 'username-in-use';
   const user: User = {
     id: `user-${Date.now()}`,
     name: data.name.trim(),
-    handle: handleFromEmail(data.email),
+    handle: handleOf(data.username),
     avatarUri: '',
     bio: '',
     level: 1,
@@ -106,7 +115,7 @@ export function signOut(): void {
 }
 
 export function findUser(id: string): User | undefined {
-  return users.find((u) => u.id === id) ?? accounts.find((a) => a.user.id === id)?.user;
+  return allUsers().find((u) => u.id === id);
 }
 
 function getSession(): User | null {

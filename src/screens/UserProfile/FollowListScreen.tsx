@@ -1,8 +1,7 @@
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet } from 'react-native';
 import { useRoute, type RouteProp } from '@react-navigation/native';
-import { ChevronRight } from 'lucide-react-native';
-import { Avatar, EmptyState } from '../../components';
-import { colors, icon, radius, size, space, type } from '../../theme';
+import { EmptyState, PersonRow } from '../../components';
+import { colors, space } from '../../theme';
 import type { User } from '../../types';
 import { followersOf, followingOf, useFollows } from '../../store/follows';
 import { findUser, useCurrentUser } from '../../store/session';
@@ -53,52 +52,7 @@ export default function FollowListScreen() {
   );
 }
 
-function PersonRow({ user, onPress }: { user: User; onPress: () => void }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={`Ver perfil de ${user.name}`}
-      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-    >
-      <Avatar uri={user.avatarUri} name={user.name} size="md" />
-      <View style={styles.rowText}>
-        <Text style={styles.name} numberOfLines={1}>
-          {user.name}
-        </Text>
-        <Text style={styles.sub} numberOfLines={1}>
-          {user.handle} · Nível {user.level}
-        </Text>
-      </View>
-      <ChevronRight size={icon.size.md} color={colors.inkFaint} strokeWidth={icon.strokeWidth} />
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: space.lg, gap: space.xs },
-  row: {
-    minHeight: size.control,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.md,
-    paddingVertical: space.sm,
-    paddingHorizontal: space.sm,
-    borderRadius: radius.control,
-  },
-  rowPressed: { backgroundColor: colors.surfaceAlt },
-  rowText: { flex: 1 },
-  name: {
-    fontFamily: type.bodyBold.family,
-    fontSize: type.bodyBold.size,
-    lineHeight: type.bodyBold.lineHeight,
-    color: colors.ink,
-  },
-  sub: {
-    fontFamily: type.caption.family,
-    fontSize: type.caption.size,
-    lineHeight: type.caption.lineHeight,
-    color: colors.inkMuted,
-  },
 });

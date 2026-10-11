@@ -38,6 +38,7 @@ export type HomeStackParamList = ProductDetailsParamList & PeopleParamList & {
 export type FeedStackParamList = ProductDetailsParamList & PeopleParamList & {
   ReviewDetails: { reviewId: string };
   Feed: undefined;
+  PeopleSearch: undefined;
 };
 
 export type ItemListKind = 'saved' | 'purchased';

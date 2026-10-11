@@ -1,14 +1,16 @@
-import { useLayoutEffect, useState } from 'react';
+import { useState } from 'react';
 import { FlatList, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import {
   CatalogFilterSheet,
+  CompanyCard,
   EMPTY_CATALOG_FILTERS,
   EmptyState,
   FilterButton,
   Pagination,
   ProductCard,
   SearchBar,
+  TopBar,
   countCatalogFilters,
   type CatalogFilters,
 } from '../../components';
@@ -41,9 +43,6 @@ export default function CompanyCatalogScreen() {
   const company = companies.find((c) => c.id === companyId);
   const companyProducts = products.filter((p) => p.companyId === companyId);
 
-  useLayoutEffect(() => {
-    if (company) navigation.setOptions({ title: company.name });
-  }, [navigation, company]);
   const availableCategories = companyProducts.reduce<Category[]>(
     (acc, p) => (acc.includes(p.category) ? acc : [...acc, p.category]),
     [],
@@ -94,14 +93,35 @@ export default function CompanyCatalogScreen() {
   const filtering = searching || activeFilterCount > 0;
 
   return (
-    <>
+    <View style={styles.screen}>
+      <TopBar onBack={() => navigation.goBack()}>
+        <View style={styles.searchRow}>
+          <View style={styles.searchField}>
+            <SearchBar
+              placeholder="Buscar no catálogo"
+              value={query}
+              onChangeText={changeQuery}
+            />
+          </View>
+          <FilterButton
+            activeCount={activeFilterCount}
+            onPress={() => setFilterOpen(true)}
+            accessibilityLabel="Filtrar catálogo"
+          />
+        </View>
+      </TopBar>
       <FlatList
-        style={styles.screen}
+        style={styles.list}
         data={pageItems}
         numColumns={COLUMNS}
         keyExtractor={(p) => p.id}
         columnWrapperStyle={styles.row}
         contentContainerStyle={styles.content}
+        ListHeaderComponent={
+          <View style={styles.companyHeader}>
+            <CompanyCard company={company} />
+          </View>
+        }
         renderItem={({ item }) => (
           <ProductCard
             product={item}
@@ -114,22 +134,6 @@ export default function CompanyCatalogScreen() {
             onTogglePurchased={() => togglePurchased(item.id)}
           />
         )}
-        ListHeaderComponent={
-          <View style={styles.searchRow}>
-            <View style={styles.searchField}>
-              <SearchBar
-                placeholder="Buscar produtos e serviços"
-                value={query}
-                onChangeText={changeQuery}
-              />
-            </View>
-            <FilterButton
-              activeCount={activeFilterCount}
-              onPress={() => setFilterOpen(true)}
-              accessibilityLabel="Filtrar catálogo"
-            />
-          </View>
-        }
         ListEmptyComponent={
           filtering ? (
             <EmptyState
@@ -163,12 +167,13 @@ export default function CompanyCatalogScreen() {
         onApply={applyFilters}
         onClose={() => setFilterOpen(false)}
       />
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
+  list: { flex: 1 },
   notFound: {
     flex: 1,
     justifyContent: 'center',
@@ -180,9 +185,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: space.sm,
-    marginBottom: space.lg,
   },
   searchField: { flex: 1 },
+  companyHeader: { marginBottom: space.lg },
   row: { gap: space.md, marginBottom: space.md },
   pagination: { marginTop: space.lg },
 });

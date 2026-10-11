@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
+  BrandMark,
   CompanyFilterSheet,
   EmptyState,
   FilterButton,
@@ -10,6 +10,7 @@ import {
   ProductCard,
   SearchBar,
   SectionHeader,
+  TopBar,
 } from '../../components';
 import { colors, space } from '../../theme';
 import { companies, products } from '../../mocks';
@@ -29,7 +30,6 @@ function byRating(a: Product, b: Product): number {
 }
 
 export default function HomeScreen() {
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation<HomeStackNavigation<'Home'>>();
   const [query, setQuery] = useState('');
   const [selectedCompanyIds, setSelectedCompanyIds] = useState<string[]>([]);
@@ -70,9 +70,24 @@ export default function HomeScreen() {
   const searching = query.trim() !== '';
 
   return (
-    <>
+    <View style={styles.screen}>
+      <TopBar style={styles.searchRow}>
+        <BrandMark />
+        <View style={styles.searchField}>
+          <SearchBar
+            placeholder="Buscar empresas e produtos"
+            value={query}
+            onChangeText={changeQuery}
+          />
+        </View>
+        <FilterButton
+          activeCount={selectedCompanyIds.length}
+          onPress={() => setFilterOpen(true)}
+          accessibilityLabel="Filtrar por empresa"
+        />
+      </TopBar>
       <FlatList
-        style={styles.screen}
+        style={styles.list}
         data={pagedRows}
         keyExtractor={(row) => row.company.id}
         renderItem={({ item }) => (
@@ -84,22 +99,6 @@ export default function HomeScreen() {
             onDetails={(productId) => navigation.navigate('ProductDetails', { productId })}
           />
         )}
-        ListHeaderComponent={
-          <View style={[styles.gutter, styles.searchRow]}>
-            <View style={styles.searchField}>
-              <SearchBar
-                placeholder="Buscar empresas e produtos"
-                value={query}
-                onChangeText={changeQuery}
-              />
-            </View>
-            <FilterButton
-              activeCount={selectedCompanyIds.length}
-              onPress={() => setFilterOpen(true)}
-              accessibilityLabel="Filtrar por empresa"
-            />
-          </View>
-        }
         ListFooterComponent={
           rows.length > 0 ? (
             <View style={styles.pagination}>
@@ -123,7 +122,7 @@ export default function HomeScreen() {
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: insets.top + space.md, paddingBottom: space.xxl }}
+        contentContainerStyle={styles.content}
       />
 
       <CompanyFilterSheet
@@ -133,7 +132,7 @@ export default function HomeScreen() {
         onApply={applyCompanies}
         onClose={() => setFilterOpen(false)}
       />
-    </>
+    </View>
   );
 }
 
@@ -183,11 +182,14 @@ function CompanyCarousel({
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
+  list: { flex: 1 },
+  content: { paddingBottom: space.xxl },
   gutter: { paddingHorizontal: space.lg },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: space.sm,
+    paddingBottom: space.sm,
   },
   searchField: { flex: 1 },
   carousel: { marginTop: space.xl },

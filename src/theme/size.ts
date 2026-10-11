@@ -8,6 +8,7 @@ export const size = {
   textArea: 160,
   avatar: { sm: 32, md: 40, lg: 64 },
   avatarBorder: 3,
+  brandMark: 28,
   tabIndicator: 2,
   sheetMaxHeight: '85%',
   sheetHandle: { width: 40, height: 4 },

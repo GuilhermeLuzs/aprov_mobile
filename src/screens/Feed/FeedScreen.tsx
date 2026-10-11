@@ -1,9 +1,9 @@
 import { useRef, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { EmptyState, ReviewPost } from '../../components';
-import { colors, size, space, type } from '../../theme';
+import { Search } from 'lucide-react-native';
+import { BrandMark, EmptyState, ReviewPost, TopBar } from '../../components';
+import { colors, icon, size, space, type } from '../../theme';
 import { companies, products, reviews } from '../../mocks';
 import type { Review } from '../../types';
 import { followingOf, useFollows } from '../../store/follows';
@@ -40,7 +40,6 @@ const EMPTY_COPY: Record<FeedTab, { title: string; description: string }> = {
 const noPreference = () => false;
 
 export default function FeedScreen() {
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation<FeedStackNavigation<'Feed'>>();
   const listRef = useRef<FlatList<Review>>(null);
   const me = useCurrentUser();
@@ -94,16 +93,28 @@ export default function FeedScreen() {
 
   return (
     <View style={styles.screen}>
-      <View style={[styles.tabs, { paddingTop: insets.top + space.sm }]} accessibilityRole="tablist">
-        {TABS.map((t) => (
-          <TabButton
-            key={t.key}
-            label={t.label}
-            active={tab === t.key}
-            onPress={() => switchTab(t.key)}
-          />
-        ))}
-      </View>
+      <TopBar style={styles.tabs}>
+        <BrandMark />
+        <View style={styles.tabList} accessibilityRole="tablist">
+          {TABS.map((t) => (
+            <TabButton
+              key={t.key}
+              label={t.label}
+              active={tab === t.key}
+              onPress={() => switchTab(t.key)}
+            />
+          ))}
+        </View>
+        <Pressable
+          style={styles.searchButton}
+          onPress={() => navigation.navigate('PeopleSearch')}
+          hitSlop={space.sm}
+          accessibilityRole="button"
+          accessibilityLabel="Pesquisar pessoas"
+        >
+          <Search size={icon.size.lg} color={colors.ink} strokeWidth={icon.strokeWidth} />
+        </Pressable>
+      </TopBar>
 
       <FlatList
         ref={listRef}
@@ -180,11 +191,19 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   tabs: {
     flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+  },
+  tabList: {
+    flex: 1,
+    flexDirection: 'row',
     gap: space.xl,
-    paddingHorizontal: space.lg,
-    backgroundColor: colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+  },
+  searchButton: {
+    width: size.control,
+    height: size.control,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
   },
   tab: {
     minHeight: size.control,

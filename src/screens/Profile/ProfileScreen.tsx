@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Bookmark,
   ChevronRight,
@@ -11,7 +10,15 @@ import {
   Wallet as WalletIcon,
   type LucideIcon,
 } from 'lucide-react-native';
-import { BottomSheet, EmptyState, ProfileSummary, ReviewPost, SectionHeader } from '../../components';
+import {
+  BottomSheet,
+  BrandMark,
+  EmptyState,
+  ProfileSummary,
+  ReviewPost,
+  SectionHeader,
+  TopBar,
+} from '../../components';
 import { colors, icon, radius, size, space, type } from '../../theme';
 import { companies, products, reviews, xpPerLevel } from '../../mocks';
 import { followersOf, followingOf, useFollows } from '../../store/follows';
@@ -26,7 +33,6 @@ import { levelProgress } from '../../utils/level';
 import type { ProfileStackNavigation } from '../../navigation/types';
 
 export default function ProfileScreen() {
-  const insets = useSafeAreaInsets();
   const navigation = useNavigation<ProfileStackNavigation<'Profile'>>();
   const user = useCurrentUser();
   const display = useReviewDisplay(user.id);
@@ -50,21 +56,6 @@ export default function ProfileScreen() {
 
   const header = (
     <View style={styles.header}>
-      <View style={styles.topRow}>
-        <Text style={styles.handle} numberOfLines={1}>
-          {user.handle}
-        </Text>
-        <Pressable
-          style={styles.menuButton}
-          onPress={() => setMenuOpen(true)}
-          hitSlop={space.sm}
-          accessibilityRole="button"
-          accessibilityLabel="Abrir menu do perfil"
-        >
-          <Menu size={icon.size.lg} color={colors.ink} strokeWidth={icon.strokeWidth} />
-        </Pressable>
-      </View>
-
       <ProfileSummary
         user={user}
         level={progress.level}
@@ -94,10 +85,25 @@ export default function ProfileScreen() {
   );
 
   return (
-    <>
+    <View style={styles.screen}>
+      <TopBar style={styles.topRow}>
+        <BrandMark />
+        <Text style={styles.handle} numberOfLines={1}>
+          {user.handle}
+        </Text>
+        <Pressable
+          style={styles.menuButton}
+          onPress={() => setMenuOpen(true)}
+          hitSlop={space.sm}
+          accessibilityRole="button"
+          accessibilityLabel="Abrir menu do perfil"
+        >
+          <Menu size={icon.size.lg} color={colors.ink} strokeWidth={icon.strokeWidth} />
+        </Pressable>
+      </TopBar>
       <FlatList
-        style={styles.screen}
-        contentContainerStyle={{ paddingTop: insets.top + space.sm, paddingBottom: space.xxl }}
+        style={styles.list}
+        contentContainerStyle={styles.content}
         data={myReviews}
         keyExtractor={(r) => r.id}
         ListHeaderComponent={header}
@@ -174,7 +180,7 @@ export default function ProfileScreen() {
           />
         </View>
       </BottomSheet>
-    </>
+    </View>
   );
 }
 
@@ -208,13 +214,14 @@ function MenuRow({
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
+  list: { flex: 1 },
+  content: { paddingTop: space.lg, paddingBottom: space.xxl },
   gutter: { paddingHorizontal: space.lg },
   header: { paddingHorizontal: space.lg },
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: space.md,
+    gap: space.sm,
   },
   handle: {
     flex: 1,

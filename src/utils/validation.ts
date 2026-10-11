@@ -1,6 +1,11 @@
+import { normalizeForSearch } from './search';
+
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const MIN_PASSWORD_LENGTH = 8;
 const MIN_BIRTH_YEAR = 1900;
+export const USERNAME_MAX_LENGTH = 30;
+const USERNAME_MIN_LENGTH = 3;
+const USERNAME_CHARACTERS = /^[a-z0-9._]+$/;
 
 export function onlyDigits(text: string): string {
   return text.replace(/\D/g, '');
@@ -63,4 +68,25 @@ export function passwordRules(password: string): PasswordRules {
 export function isValidPassword(password: string): boolean {
   const rules = passwordRules(password);
   return rules.length && rules.letter && rules.number;
+}
+
+export function normalizeUsername(text: string): string {
+  return normalizeForSearch(text)
+    .replace(/^@/, '')
+    .replace(/[^a-z0-9._]/g, '')
+    .slice(0, USERNAME_MAX_LENGTH);
+}
+
+export function suggestUsername(name: string): string {
+  return normalizeUsername(normalizeForSearch(name).replace(/\s+/g, '.'))
+    .replace(/\.{2,}/g, '.')
+    .replace(/^\.|\.$/g, '');
+}
+
+export function isValidUsername(username: string): boolean {
+  return (
+    username.length >= USERNAME_MIN_LENGTH &&
+    username.length <= USERNAME_MAX_LENGTH &&
+    USERNAME_CHARACTERS.test(username)
+  );
 }

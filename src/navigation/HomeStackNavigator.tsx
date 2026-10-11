@@ -19,7 +19,7 @@ export function HomeStackNavigator() {
       <Stack.Screen
         name="CompanyCatalog"
         component={CompanyCatalogScreen}
-        options={{ title: 'Catálogo' }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="ProductDetails"
