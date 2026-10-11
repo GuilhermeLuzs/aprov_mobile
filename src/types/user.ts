@@ -21,8 +21,10 @@ export interface User {
   badges: Badge[];
   reviewCount: number;
   agreementsReceived: number;
-  followerCount: number;
-  followingCount: number;
-  followedByCurrentUser: boolean;
   joinedAt: string;
+}
+
+export interface Follow {
+  followerId: string;
+  followedId: string;
 }

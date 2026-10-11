@@ -3,6 +3,7 @@ export { products, productById } from './catalog';
 export { reviews, reviewById } from './reviews';
 export { tags, tagById } from './tags';
 export { currentUser, users } from './users';
+export { follows } from './follows';
 export { aprovPointsPerReview, xpPerLevel } from './rewards';
 export { initialWallet } from './wallet';
 export { testAccount } from './accounts';

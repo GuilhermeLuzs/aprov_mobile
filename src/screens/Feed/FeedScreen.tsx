@@ -6,7 +6,7 @@ import { EmptyState, ReviewPost } from '../../components';
 import { colors, size, space, type } from '../../theme';
 import { companies, products, reviews } from '../../mocks';
 import type { Review } from '../../types';
-import { useFollowing } from '../../store/follows';
+import { followingOf, useFollows } from '../../store/follows';
 import { useReviewDisplay } from '../../store/interactions';
 import { usePreferences } from '../../store/preferences';
 import { usePublishedReviews } from '../../store/publishedReviews';
@@ -46,7 +46,7 @@ export default function FeedScreen() {
   const display = useReviewDisplay(me.id);
   const published = usePublishedReviews();
   const preferences = usePreferences();
-  const following = useFollowing();
+  const following = followingOf(useFollows(), me.id);
   const [tab, setTab] = useState<FeedTab>('forYou');
   const [loaded, setLoaded] = useState(BATCH_SIZE);
   const [refreshing, setRefreshing] = useState(false);
