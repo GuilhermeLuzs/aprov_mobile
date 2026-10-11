@@ -14,7 +14,7 @@ import { useNavigation, useRoute, type RouteProp } from '@react-navigation/nativ
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ArrowLeft, SendHorizontal } from 'lucide-react-native';
 import { Chip, MauricioMascot } from '../../components';
-import { colors, icon, mauricioVoice, radius, size, space, type } from '../../theme';
+import { colors, icon, mauricioVoice, noFocusOutline, radius, size, space, type } from '../../theme';
 import { mauricioSuggestions } from '../../mocks';
 import type { RootStackParamList } from '../../navigation/types';
 import { loadDraft } from './draft';
@@ -216,6 +216,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.lg,
   },
   input: {
+    ...noFocusOutline,
     flex: 1,
     minHeight: size.control,
     paddingHorizontal: space.md,

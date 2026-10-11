@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Search, X } from 'lucide-react-native';
-import { colors, icon as iconToken, radius, size, space, type } from '../theme';
+import { colors, icon as iconToken, noFocusOutline, radius, size, space, type } from '../theme';
 
 type Props = {
   placeholder: string;
@@ -79,6 +79,7 @@ const styles = StyleSheet.create({
     color: colors.inkFaint,
   },
   input: {
+    ...noFocusOutline,
     flex: 1,
     paddingVertical: space.sm,
     fontFamily: type.body.family,

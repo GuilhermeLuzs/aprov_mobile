@@ -8,6 +8,7 @@ export { radius } from './radius';
 export type { RadiusToken } from './radius';
 export { icon } from './icons';
 export { size } from './size';
+export { noFocusOutline } from './focus';
 export type { IconSizeToken } from './icons';
 export { fontMap } from './fonts';
 export type { FontFamily } from './fonts';
