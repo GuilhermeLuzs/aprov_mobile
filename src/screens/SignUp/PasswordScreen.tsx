@@ -14,6 +14,7 @@ import { SignUpLayout } from './SignUpLayout';
 const SIGN_UP_ERROR = {
   'email-in-use': 'Já existe uma conta com este e-mail. Volte e use outro.',
   'cpf-in-use': 'Já existe uma conta com este CPF. Volte e confira.',
+  'username-in-use': 'Este nome de usuário acabou de ser usado. Volte e escolha outro.',
 } as const;
 
 export default function PasswordScreen() {
@@ -33,6 +34,7 @@ export default function PasswordScreen() {
     if (!isValidPassword(password) || confirmation !== password) return;
     const result = signUp({
       name: personalData.name,
+      username: personalData.username,
       email: personalData.email,
       cpf: personalData.cpf,
       password,

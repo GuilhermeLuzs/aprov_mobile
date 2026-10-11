@@ -4,12 +4,13 @@ export const SIGN_UP_STEPS = 2;
 
 export type PersonalData = {
   name: string;
+  username: string;
   email: string;
   birthDate: string;
   cpf: string;
 };
 
-const EMPTY_PERSONAL_DATA: PersonalData = { name: '', email: '', birthDate: '', cpf: '' };
+const EMPTY_PERSONAL_DATA: PersonalData = { name: '', username: '', email: '', birthDate: '', cpf: '' };
 
 type SignUpContextValue = {
   personalData: PersonalData;

@@ -16,6 +16,8 @@ type Props = {
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
+  prefix?: string;
+  hint?: string;
   error?: string;
   secure?: boolean;
   keyboardType?: KeyboardTypeOptions;
@@ -31,6 +33,8 @@ export function TextField({
   value,
   onChangeText,
   placeholder,
+  prefix,
+  hint,
   error,
   secure = false,
   keyboardType,
@@ -53,6 +57,7 @@ export function TextField({
           error ? styles.fieldError : null,
         ]}
       >
+        {prefix ? <Text style={styles.prefix}>{prefix}</Text> : null}
         <TextInput
           style={styles.input}
           value={value}
@@ -86,7 +91,11 @@ export function TextField({
           </Pressable>
         ) : null}
       </View>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? (
+        <Text style={styles.error}>{error}</Text>
+      ) : hint ? (
+        <Text style={styles.hint}>{hint}</Text>
+      ) : null}
     </View>
   );
 }
@@ -118,6 +127,17 @@ const styles = StyleSheet.create({
     fontFamily: type.body.family,
     fontSize: type.body.size,
     color: colors.ink,
+  },
+  prefix: {
+    fontFamily: type.body.family,
+    fontSize: type.body.size,
+    color: colors.inkMuted,
+  },
+  hint: {
+    fontFamily: type.caption.family,
+    fontSize: type.caption.size,
+    lineHeight: type.caption.lineHeight,
+    color: colors.inkMuted,
   },
   error: {
     fontFamily: type.caption.family,
