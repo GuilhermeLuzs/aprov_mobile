@@ -12,10 +12,19 @@ type Props = {
   canVote: (authorId: string) => boolean;
   onVote: (entryId: string, choice: 'agree' | 'disagree') => void;
   onReply: (comment: Comment) => void;
+  onPressAuthor: (authorId: string) => void;
 };
 
-export function CommentThread({ comment, authorFor, voteFor, canVote, onVote, onReply }: Props) {
-  const entryProps = { authorFor, voteFor, canVote, onVote };
+export function CommentThread({
+  comment,
+  authorFor,
+  voteFor,
+  canVote,
+  onVote,
+  onReply,
+  onPressAuthor,
+}: Props) {
+  const entryProps = { authorFor, voteFor, canVote, onVote, onPressAuthor };
 
   return (
     <View style={styles.card}>
@@ -36,17 +45,28 @@ type EntryProps = Omit<Props, 'comment' | 'onReply'> & {
   onReply?: () => void;
 };
 
-function Entry({ entry, authorFor, voteFor, canVote, onVote, onReply }: EntryProps) {
+function Entry({ entry, authorFor, voteFor, canVote, onVote, onReply, onPressAuthor }: EntryProps) {
   const author = authorFor(entry.authorId);
   const name = author?.name ?? 'Usuário';
   const votable = canVote(entry.authorId);
 
   return (
     <View style={styles.row}>
-      <Avatar uri={author?.avatarUri ?? ''} name={name} size="sm" />
+      <Pressable
+        onPress={() => onPressAuthor(entry.authorId)}
+        accessibilityRole="link"
+        accessibilityLabel={`Ver perfil de ${name}`}
+      >
+        <Avatar uri={author?.avatarUri ?? ''} name={name} size="sm" />
+      </Pressable>
       <View style={styles.body}>
         <View style={styles.head}>
-          <Text style={styles.name} numberOfLines={1}>
+          <Text
+            style={styles.name}
+            numberOfLines={1}
+            onPress={() => onPressAuthor(entry.authorId)}
+            accessibilityRole="link"
+          >
             {name}
           </Text>
           <Text style={styles.time}>{formatRelativeTime(entry.createdAt)}</Text>

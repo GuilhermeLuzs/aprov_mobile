@@ -17,6 +17,7 @@ import { useReviewDisplay } from '../../store/interactions';
 import { byNewest } from '../../utils/date';
 import { formatInt } from '../../utils/format';
 import type { ProductDetailsNavigation, ProductDetailsParamList } from '../../navigation/types';
+import { useOpenProfile } from '../UserProfile/useOpenProfile';
 
 const REVIEWS_PER_PAGE = 5;
 
@@ -27,6 +28,7 @@ export default function ProductDetailsScreen() {
   const published = usePublishedReviews();
   const me = useCurrentUser();
   const display = useReviewDisplay(me.id);
+  const openProfile = useOpenProfile();
   const [page, setPage] = useState(1);
 
   const product = products.find((p) => p.id === productId);
@@ -125,6 +127,7 @@ export default function ProductDetailsScreen() {
               company={company}
               showProduct={false}
               highlight={item.authorId === me.id && publishedIds.has(item.id) ? 'Sua avaliação' : undefined}
+              onPressAuthor={() => openProfile(author.id)}
               onPressBody={() => navigation.navigate('ReviewDetails', { reviewId: item.id })}
             />
           </View>

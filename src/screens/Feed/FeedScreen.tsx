@@ -13,6 +13,7 @@ import { usePublishedReviews } from '../../store/publishedReviews';
 import { findUser, useCurrentUser } from '../../store/session';
 import { sortFeed, spaceAuthors } from '../../utils/feed';
 import type { FeedStackNavigation } from '../../navigation/types';
+import { useOpenProfile } from '../UserProfile/useOpenProfile';
 
 const BATCH_SIZE = 10;
 const AUTHOR_GAP = 5;
@@ -44,6 +45,7 @@ export default function FeedScreen() {
   const listRef = useRef<FlatList<Review>>(null);
   const me = useCurrentUser();
   const display = useReviewDisplay(me.id);
+  const openProfile = useOpenProfile();
   const published = usePublishedReviews();
   const preferences = usePreferences();
   const following = followingOf(useFollows(), me.id);
@@ -118,6 +120,7 @@ export default function FeedScreen() {
               author={author}
               product={product}
               company={company}
+              onPressAuthor={() => openProfile(author.id)}
               onPressProduct={() => navigation.navigate('ProductDetails', { productId: product.id })}
               onPressBody={() => navigation.navigate('ReviewDetails', { reviewId: item.id })}
             />
