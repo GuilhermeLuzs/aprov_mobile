@@ -12,6 +12,7 @@ import {
   withVote,
   type VoteChoice,
 } from '../../store/interactions';
+import { reportedIds, useReports } from '../../store/reports';
 import { findUser, useCurrentUser } from '../../store/session';
 
 export const COMMENT_MAX_LENGTH = 500;
@@ -24,6 +25,7 @@ export function useReviewComments(review: Review | undefined) {
   const me = useCurrentUser();
   const interactions = useInteractions();
   const hiddenAuthorIds = useDeactivatedIds();
+  const reportedComments = reportedIds(useReports(), me.id, 'comment');
   const [draft, setDraft] = useState('');
   const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
 
@@ -31,7 +33,7 @@ export function useReviewComments(review: Review | undefined) {
   const voteFor = (id: string) => myVote(interactions, me.id, 'comment', id);
 
   const thread = review
-    ? threadOf(interactions, review, hiddenAuthorIds)
+    ? threadOf(interactions, review, hiddenAuthorIds, reportedComments)
         .map((comment) => ({
           ...withVote(comment, voteFor(comment.id)),
           replies: comment.replies.map((reply) => withVote(reply, voteFor(reply.id))),
