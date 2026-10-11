@@ -70,7 +70,9 @@ function Entry({ entry, authorFor, voteFor, canVote, onVote, onReply, onPressAut
           >
             {name}
           </Text>
-          <Text style={styles.time}>{formatRelativeTime(entry.createdAt)}</Text>
+          <Text style={styles.time} numberOfLines={1}>
+            {formatRelativeTime(entry.createdAt)}
+          </Text>
         </View>
         <Text style={styles.text}>{entry.text}</Text>
         <View style={styles.actions}>
@@ -127,6 +129,7 @@ const styles = StyleSheet.create({
     color: colors.ink,
   },
   time: {
+    flexShrink: 0,
     fontFamily: type.caption.family,
     fontSize: type.caption.size,
     lineHeight: type.caption.lineHeight,

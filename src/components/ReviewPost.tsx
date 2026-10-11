@@ -58,7 +58,7 @@ export function ReviewPost({
               <Text style={styles.name} numberOfLines={1}>
                 {author.name}
               </Text>
-              <Text style={styles.sub}>
+              <Text style={styles.sub} numberOfLines={1}>
                 Nível {author.level} · {formatRelativeTime(review.createdAt)}
               </Text>
             </View>

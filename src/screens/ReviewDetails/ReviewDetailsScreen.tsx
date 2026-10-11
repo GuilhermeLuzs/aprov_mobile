@@ -77,7 +77,7 @@ export default function ReviewDetailsScreen() {
           <Text style={styles.authorName} numberOfLines={1}>
             {author?.name ?? 'Usuário'}
           </Text>
-          <Text style={styles.muted}>
+          <Text style={styles.muted} numberOfLines={1}>
             Nível {author?.level ?? 1} · {formatRelativeTime(review.createdAt)}
           </Text>
         </View>
