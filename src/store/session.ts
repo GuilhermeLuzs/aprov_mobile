@@ -19,6 +19,15 @@ export type SignUpData = {
 
 export type SignUpResult = 'ok' | 'email-in-use' | 'cpf-in-use' | 'username-in-use';
 
+export type ProfileChanges = {
+  name: string;
+  username: string;
+  bio: string;
+  avatarUri: string;
+};
+
+export type ProfileUpdateResult = 'ok' | 'username-in-use';
+
 const accounts: StoredAccount[] = [
   {
     email: testAccount.email,
@@ -46,15 +55,16 @@ export function isCpfInUse(cpf: string): boolean {
 }
 
 export function allUsers(): User[] {
+  const fromMocks = users.map((u) => accounts.find((a) => a.user.id === u.id)?.user ?? u);
   const created = accounts.map((a) => a.user).filter((u) => !users.some((m) => m.id === u.id));
-  return [...users, ...created];
+  return [...fromMocks, ...created];
 }
 
 const handleOf = (username: string) => `@${normalizeUsername(username)}`;
 
-export function isUsernameInUse(username: string): boolean {
+export function isUsernameInUse(username: string, exceptUserId?: string): boolean {
   const handle = handleOf(username);
-  return allUsers().some((u) => u.handle === handle);
+  return allUsers().some((u) => u.handle === handle && u.id !== exceptUserId);
 }
 
 function startSession(account: StoredAccount, isNew: boolean): void {
@@ -106,6 +116,22 @@ export function signUp(data: SignUpData): SignUpResult {
   };
   accounts.push(account);
   startSession(account, true);
+  return 'ok';
+}
+
+export function updateProfile(changes: ProfileChanges): ProfileUpdateResult {
+  const account = accounts.find((a) => a.user.id === session?.id);
+  if (!account) return 'ok';
+  if (isUsernameInUse(changes.username, account.user.id)) return 'username-in-use';
+  account.user = {
+    ...account.user,
+    name: changes.name.trim(),
+    handle: handleOf(changes.username),
+    bio: changes.bio.trim(),
+    avatarUri: changes.avatarUri,
+  };
+  session = account.user;
+  emit();
   return 'ok';
 }
 

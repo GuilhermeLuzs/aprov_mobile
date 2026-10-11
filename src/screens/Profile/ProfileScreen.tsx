@@ -6,6 +6,7 @@ import {
   LogOut,
   Menu,
   Receipt,
+  UserPen,
   Wallet as WalletIcon,
 } from 'lucide-react-native';
 import {
@@ -148,6 +149,12 @@ export default function ProfileScreen() {
         onClose={() => setMenuOpen(false)}
       >
         <View style={styles.menuList}>
+          <MenuRow
+            Icon={UserPen}
+            label="Editar perfil"
+            detail="Foto, nome, @ e bio"
+            onPress={() => openFromMenu(() => navigation.navigate('EditProfile'))}
+          />
           <MenuRow
             Icon={WalletIcon}
             label="Carteira"

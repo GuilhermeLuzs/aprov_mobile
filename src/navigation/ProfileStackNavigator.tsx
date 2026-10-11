@@ -1,5 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
+  EditProfileScreen,
   FollowListScreen,
   ItemListScreen,
   ProductDetailsScreen,
@@ -19,6 +20,11 @@ export function ProfileStackNavigator() {
       <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Wallet" component={WalletScreen} options={{ title: 'Carteira' }} />
       <Stack.Screen name="ItemList" component={ItemListScreen} options={{ title: 'Itens' }} />
+      <Stack.Screen
+        name="EditProfile"
+        component={EditProfileScreen}
+        options={{ title: 'Editar perfil' }}
+      />
       <Stack.Screen
         name="ProductDetails"
         component={ProductDetailsScreen}

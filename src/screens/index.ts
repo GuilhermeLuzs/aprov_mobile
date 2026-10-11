@@ -15,6 +15,7 @@ export { default as UserProfileScreen } from './UserProfile/UserProfileScreen';
 export { default as PeopleSearchScreen } from './UserProfile/PeopleSearchScreen';
 export { default as FollowListScreen } from './UserProfile/FollowListScreen';
 export { default as WalletScreen } from './Profile/WalletScreen';
+export { default as EditProfileScreen } from './Profile/EditProfileScreen';
 export { default as ItemListScreen } from './Profile/ItemListScreen';
 export { default as CreateReviewScreen } from './CreateReview/CreateReviewScreen';
 export { default as MauricioChatScreen } from './CreateReview/MauricioChatScreen';
