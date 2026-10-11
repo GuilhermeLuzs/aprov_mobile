@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, radius, space, type } from '../theme';
+import { Flag } from 'lucide-react-native';
+import { colors, icon, radius, size, space, type } from '../theme';
 import type { Company, Product, Review, User } from '../types';
 import { formatRelativeTime } from '../utils/date';
 import { Avatar } from './Avatar';
@@ -22,6 +23,7 @@ type Props = {
   onPressProduct?: () => void;
   onPressBody?: () => void;
   onOpenMedia?: (index: number) => void;
+  onReport?: () => void;
 };
 
 export function ReviewPost({
@@ -38,9 +40,22 @@ export function ReviewPost({
   onPressProduct,
   onPressBody,
   onOpenMedia,
+  onReport,
 }: Props) {
   const hasTags = review.positiveTags.length + review.negativeTags.length > 0;
   const comment = review.comment.trim();
+
+  const reportButton = onReport ? (
+    <Pressable
+      onPress={onReport}
+      hitSlop={space.sm}
+      accessibilityRole="button"
+      accessibilityLabel="Denunciar avaliação"
+      style={styles.reportButton}
+    >
+      <Flag size={icon.size.md} color={colors.inkMuted} strokeWidth={icon.strokeWidth} />
+    </Pressable>
+  ) : null;
 
   return (
     <View style={styles.post}>
@@ -64,23 +79,27 @@ export function ReviewPost({
             </View>
           </Pressable>
           {highlight ? <Chip label={highlight} size="sm" selected /> : null}
+          {reportButton}
         </View>
       ) : null}
 
-      <Pressable
-        style={styles.context}
-        onPress={onPressProduct}
-        disabled={!onPressProduct}
-        accessibilityRole={onPressProduct ? 'link' : undefined}
-        accessibilityLabel={onPressProduct ? `Abrir ${product.title}` : undefined}
-      >
-        {showProduct ? (
-          <Text style={styles.contextText} numberOfLines={2}>
-            avaliou <Text style={styles.contextStrong}>{product.title}</Text> · {company.name}
-          </Text>
-        ) : null}
-        <StarRating value={review.averageRating} size="sm" showValue />
-      </Pressable>
+      <View style={styles.contextRow}>
+        <Pressable
+          style={styles.context}
+          onPress={onPressProduct}
+          disabled={!onPressProduct}
+          accessibilityRole={onPressProduct ? 'link' : undefined}
+          accessibilityLabel={onPressProduct ? `Abrir ${product.title}` : undefined}
+        >
+          {showProduct ? (
+            <Text style={styles.contextText} numberOfLines={2}>
+              avaliou <Text style={styles.contextStrong}>{product.title}</Text> · {company.name}
+            </Text>
+          ) : null}
+          <StarRating value={review.averageRating} size="sm" showValue />
+        </Pressable>
+        {showAuthor ? null : reportButton}
+      </View>
 
       {review.media.length > 0 ? <ReviewMedia media={review.media} onOpen={onOpenMedia} /> : null}
 
@@ -154,7 +173,14 @@ const styles = StyleSheet.create({
     lineHeight: type.caption.lineHeight,
     color: colors.inkMuted,
   },
-  context: { gap: space.xs },
+  contextRow: { flexDirection: 'row', alignItems: 'flex-start', gap: space.sm },
+  reportButton: {
+    width: size.control,
+    height: size.control,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
+  context: { flex: 1, gap: space.xs },
   contextText: {
     fontFamily: type.body.family,
     fontSize: type.body.size,

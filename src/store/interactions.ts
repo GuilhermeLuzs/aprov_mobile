@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import type { Comment, CommentReply, Review } from '../types';
 import { useDeactivatedIds } from './deactivated';
+import { reportedIds, useReports } from './reports';
 
 export type VoteChoice = 'agree' | 'disagree';
 export type VoteTarget = 'review' | 'comment';
@@ -103,8 +104,10 @@ export function threadOf(
   interactions: Interactions,
   review: Review,
   hiddenAuthorIds: string[],
+  hiddenEntryIds: string[],
 ): Comment[] {
-  const visible = (entry: { authorId: string }) => !hiddenAuthorIds.includes(entry.authorId);
+  const visible = (entry: { id: string; authorId: string }) =>
+    !hiddenAuthorIds.includes(entry.authorId) && !hiddenEntryIds.includes(entry.id);
   return [...review.comments, ...(interactions.comments[review.id] ?? [])]
     .filter(visible)
     .map((comment) => ({
@@ -126,9 +129,10 @@ export type ReviewDisplay = {
 export function useReviewDisplay(userId: string): (review: Review) => ReviewDisplay {
   const interactions = useInteractions();
   const hidden = useDeactivatedIds();
+  const reportedComments = reportedIds(useReports(), userId, 'comment');
   return (review: Review) => {
     const vote = myVote(interactions, userId, 'review', review.id);
-    const thread = threadOf(interactions, review, hidden);
+    const thread = threadOf(interactions, review, hidden, reportedComments);
     return {
       review: { ...withVote(review, vote), commentCount: commentTotal(thread) },
       vote,

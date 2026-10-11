@@ -18,3 +18,5 @@ export type {
   CarouselMedia,
   CarouselItem,
 } from './media';
+export type { Report, ReportReason, ReportTarget } from './report';
+export { REPORT_REASONS, REPORT_REASON_LABEL } from './report';

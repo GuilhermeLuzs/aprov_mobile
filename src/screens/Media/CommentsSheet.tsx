@@ -4,6 +4,7 @@ import { space } from '../../theme';
 import type { Review } from '../../types';
 import { formatInt } from '../../utils/format';
 import { COMMENT_MAX_LENGTH, useReviewComments } from '../ReviewDetails/useReviewComments';
+import { useReport } from '../Report/useReport';
 
 type Props = {
   review: Review | undefined;
@@ -12,6 +13,7 @@ type Props = {
 
 export function CommentsSheet({ review, onClose }: Props) {
   const comments = useReviewComments(review);
+  const report = useReport();
 
   return (
     <BottomSheet
@@ -33,6 +35,8 @@ export function CommentsSheet({ review, onClose }: Props) {
             canVote={comments.canVote}
             onVote={comments.vote}
             onReply={comments.setReplyingTo}
+            canReport={report.canReport}
+            onReport={(id) => report.open('comment', id)}
           />
         )}
         ItemSeparatorComponent={Separator}
@@ -53,6 +57,7 @@ export function CommentsSheet({ review, onClose }: Props) {
         onCancelReply={() => comments.setReplyingTo(null)}
         maxLength={COMMENT_MAX_LENGTH}
       />
+      {report.sheet}
     </BottomSheet>
   );
 }

@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, radius, space, type } from '../theme';
+import { Flag } from 'lucide-react-native';
+import { colors, icon, radius, space, type } from '../theme';
 import type { Comment, CommentReply, User } from '../types';
 import { formatRelativeTime } from '../utils/date';
 import { Avatar } from './Avatar';
@@ -13,6 +14,8 @@ type Props = {
   onVote: (entryId: string, choice: 'agree' | 'disagree') => void;
   onReply: (comment: Comment) => void;
   onPressAuthor?: (authorId: string) => void;
+  canReport?: (authorId: string) => boolean;
+  onReport?: (entryId: string) => void;
 };
 
 export function CommentThread({
@@ -23,8 +26,10 @@ export function CommentThread({
   onVote,
   onReply,
   onPressAuthor,
+  canReport,
+  onReport,
 }: Props) {
-  const entryProps = { authorFor, voteFor, canVote, onVote, onPressAuthor };
+  const entryProps = { authorFor, voteFor, canVote, onVote, onPressAuthor, canReport, onReport };
 
   return (
     <View style={styles.card}>
@@ -45,7 +50,17 @@ type EntryProps = Omit<Props, 'comment' | 'onReply'> & {
   onReply?: () => void;
 };
 
-function Entry({ entry, authorFor, voteFor, canVote, onVote, onReply, onPressAuthor }: EntryProps) {
+function Entry({
+  entry,
+  authorFor,
+  voteFor,
+  canVote,
+  onVote,
+  onReply,
+  onPressAuthor,
+  canReport,
+  onReport,
+}: EntryProps) {
   const author = authorFor(entry.authorId);
   const name = author?.name ?? 'Usuário';
   const votable = canVote(entry.authorId);
@@ -73,6 +88,17 @@ function Entry({ entry, authorFor, voteFor, canVote, onVote, onReply, onPressAut
           <Text style={styles.time} numberOfLines={1}>
             {formatRelativeTime(entry.createdAt)}
           </Text>
+          {onReport && canReport?.(entry.authorId) ? (
+            <Pressable
+              onPress={() => onReport(entry.id)}
+              hitSlop={space.sm}
+              accessibilityRole="button"
+              accessibilityLabel={`Denunciar comentário de ${name}`}
+              style={styles.menu}
+            >
+              <Flag size={icon.size.sm} color={colors.inkMuted} strokeWidth={icon.strokeWidth} />
+            </Pressable>
+          ) : null}
         </View>
         <Text style={styles.text}>{entry.text}</Text>
         <View style={styles.actions}>
@@ -128,6 +154,7 @@ const styles = StyleSheet.create({
     lineHeight: type.bodyBold.lineHeight,
     color: colors.ink,
   },
+  menu: { marginLeft: 'auto', alignSelf: 'center' },
   time: {
     flexShrink: 0,
     fontFamily: type.caption.family,

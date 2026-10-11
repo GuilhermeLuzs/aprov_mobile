@@ -15,6 +15,7 @@ import { sortFeed, spaceAuthors } from '../../utils/feed';
 import type { FeedStackNavigation } from '../../navigation/types';
 import { useOpenProfile } from '../UserProfile/useOpenProfile';
 import { useOpenMedia } from '../Media/useOpenMedia';
+import { useReport } from '../Report/useReport';
 
 const BATCH_SIZE = 10;
 const AUTHOR_GAP = 5;
@@ -46,6 +47,7 @@ export default function FeedScreen() {
   const me = useCurrentUser();
   const display = useReviewDisplay(me.id);
   const openMedia = useOpenMedia();
+  const report = useReport();
   const openProfile = useOpenProfile();
   const allReviews = useAllReviews();
   const preferences = usePreferences();
@@ -138,6 +140,9 @@ export default function FeedScreen() {
               onPressProduct={() => navigation.navigate('ProductDetails', { productId: product.id })}
               onPressBody={() => navigation.navigate('ReviewDetails', { reviewId: item.id })}
               onOpenMedia={(index) => openMedia(mediaIds, item.id, index)}
+              onReport={
+                report.canReport(item.authorId) ? () => report.open('review', item.id) : undefined
+              }
             />
           );
         }}
@@ -161,6 +166,7 @@ export default function FeedScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
       />
+      {report.sheet}
     </View>
   );
 }

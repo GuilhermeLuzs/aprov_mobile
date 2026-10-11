@@ -1,7 +1,31 @@
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import Svg, { Circle } from 'react-native-svg';
 import { Check } from 'lucide-react-native';
-import { colors, icon as iconToken, radius, space } from '../theme';
+import { colors, radius, size, space } from '../theme';
+
+const RADIO_STROKE = 2;
+const RADIO_GAP = 4;
+
+function RadioMark({ selected }: { selected: boolean }) {
+  const center = size.checkbox / 2;
+  const color = selected ? colors.primary : colors.inkFaint;
+  return (
+    <Svg width={size.checkbox} height={size.checkbox}>
+      <Circle
+        cx={center}
+        cy={center}
+        r={center - RADIO_STROKE / 2}
+        stroke={color}
+        strokeWidth={RADIO_STROKE}
+        fill="none"
+      />
+      {selected ? (
+        <Circle cx={center} cy={center} r={center - RADIO_STROKE - RADIO_GAP} fill={color} />
+      ) : null}
+    </Svg>
+  );
+}
 
 type Props = {
   children: ReactNode;
@@ -20,24 +44,14 @@ export function SelectableCard({
   indicatorPosition = 'trailing',
   accessibilityLabel,
 }: Props) {
-  const indicator = (
-    <View
-      style={[
-        styles.indicatorBase,
-        mode === 'radio' ? styles.radio : styles.check,
-        selected
-          ? mode === 'radio'
-            ? styles.radioOn
-            : styles.checkOn
-          : styles.indicatorOff,
-      ]}
-    >
-      {mode === 'radio' && selected ? <View style={styles.radioDot} /> : null}
-      {mode === 'check' && selected ? (
-        <Check size={14} color={colors.surface} strokeWidth={3} />
-      ) : null}
-    </View>
-  );
+  const indicator =
+    mode === 'radio' ? (
+      <RadioMark selected={selected} />
+    ) : (
+      <View style={[styles.indicatorBase, selected ? styles.checkOn : styles.indicatorOff]}>
+        {selected ? <Check size={14} color={colors.surface} strokeWidth={3} /> : null}
+      </View>
+    );
 
   return (
     <Pressable
@@ -58,8 +72,6 @@ export function SelectableCard({
   );
 }
 
-const INDICATOR = 22;
-
 const styles = StyleSheet.create({
   card: {
     minHeight: 44,
@@ -76,20 +88,12 @@ const styles = StyleSheet.create({
   pressed: { backgroundColor: colors.surfaceAlt },
   body: { flex: 1 },
   indicatorBase: {
-    width: INDICATOR,
-    height: INDICATOR,
+    width: size.checkbox,
+    height: size.checkbox,
+    borderRadius: radius.control,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  check: { borderRadius: radius.control },
-  radio: { borderRadius: radius.pill },
   indicatorOff: { borderWidth: 2, borderColor: colors.inkFaint },
   checkOn: { backgroundColor: colors.primary },
-  radioOn: { borderWidth: 2, borderColor: colors.primary },
-  radioDot: {
-    width: 10,
-    height: 10,
-    borderRadius: radius.pill,
-    backgroundColor: colors.primary,
-  },
 });
