@@ -15,7 +15,9 @@ export function SearchBar({ placeholder, onPress, value, onChangeText, autoFocus
 
   const inner = (
     <>
-      <Search size={iconToken.size.md} color={colors.inkFaint} strokeWidth={iconToken.strokeWidth} />
+      <View style={styles.icon}>
+        <Search size={iconToken.size.md} color={colors.inkFaint} strokeWidth={iconToken.strokeWidth} />
+      </View>
       {isField ? (
         <TextInput
           style={styles.input}
@@ -38,6 +40,7 @@ export function SearchBar({ placeholder, onPress, value, onChangeText, autoFocus
           hitSlop={space.sm}
           accessibilityRole="button"
           accessibilityLabel="Limpar busca"
+          style={styles.icon}
         >
           <X size={iconToken.size.md} color={colors.inkMuted} strokeWidth={iconToken.strokeWidth} />
         </Pressable>
@@ -71,6 +74,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceAlt,
   },
   pressed: { opacity: 0.7 },
+  icon: { flexShrink: 0 },
   placeholder: {
     flex: 1,
     fontFamily: type.body.family,
@@ -81,6 +85,7 @@ const styles = StyleSheet.create({
   input: {
     ...noFocusOutline,
     flex: 1,
+    minWidth: 0,
     paddingVertical: space.sm,
     fontFamily: type.body.family,
     fontSize: type.body.size,
