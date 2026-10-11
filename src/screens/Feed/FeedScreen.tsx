@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { Search } from 'lucide-react-native';
 import { EmptyState, ReviewPost, TopBar } from '../../components';
-import { colors, size, space, type } from '../../theme';
+import { colors, icon, size, space, type } from '../../theme';
 import { companies, products, reviews } from '../../mocks';
 import type { Review } from '../../types';
 import { followingOf, useFollows } from '../../store/follows';
@@ -103,6 +104,15 @@ export default function FeedScreen() {
             />
           ))}
         </View>
+        <Pressable
+          style={styles.searchButton}
+          onPress={() => navigation.navigate('PeopleSearch')}
+          hitSlop={space.sm}
+          accessibilityRole="button"
+          accessibilityLabel="Pesquisar pessoas"
+        >
+          <Search size={icon.size.lg} color={colors.ink} strokeWidth={icon.strokeWidth} />
+        </Pressable>
       </TopBar>
 
       <FlatList
@@ -187,6 +197,12 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     gap: space.xl,
+  },
+  searchButton: {
+    width: size.control,
+    height: size.control,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
   },
   tab: {
     minHeight: size.control,
