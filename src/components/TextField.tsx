@@ -20,6 +20,7 @@ type Props = {
   hint?: string;
   error?: string;
   secure?: boolean;
+  multiline?: boolean;
   keyboardType?: KeyboardTypeOptions;
   autoCapitalize?: TextInputProps['autoCapitalize'];
   autoComplete?: TextInputProps['autoComplete'];
@@ -37,6 +38,7 @@ export function TextField({
   hint,
   error,
   secure = false,
+  multiline = false,
   keyboardType,
   autoCapitalize,
   autoComplete,
@@ -59,7 +61,9 @@ export function TextField({
       >
         {prefix ? <Text style={styles.prefix}>{prefix}</Text> : null}
         <TextInput
-          style={styles.input}
+          style={[styles.input, multiline && styles.inputMultiline]}
+          multiline={multiline}
+          textAlignVertical={multiline ? 'top' : undefined}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
@@ -139,6 +143,7 @@ const styles = StyleSheet.create({
     lineHeight: type.caption.lineHeight,
     color: colors.inkMuted,
   },
+  inputMultiline: { minHeight: size.control * 2 },
   error: {
     fontFamily: type.caption.family,
     fontSize: type.caption.size,

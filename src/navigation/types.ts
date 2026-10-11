@@ -48,6 +48,9 @@ export type ProfileStackParamList = ProductDetailsParamList & PeopleParamList & 
   Profile: undefined;
   Wallet: undefined;
   ItemList: { kind: ItemListKind };
+  EditProfile: undefined;
+  Settings: undefined;
+  EditInterests: undefined;
 };
 
 export type MainTabParamList = {

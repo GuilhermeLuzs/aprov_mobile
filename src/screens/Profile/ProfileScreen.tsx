@@ -3,17 +3,18 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   Bookmark,
-  ChevronRight,
   LogOut,
   Menu,
   Receipt,
+  Settings,
+  UserPen,
   Wallet as WalletIcon,
-  type LucideIcon,
 } from 'lucide-react-native';
 import {
   BottomSheet,
   BrandMark,
   EmptyState,
+  MenuRow,
   ProfileSummary,
   ReviewPost,
   SectionHeader,
@@ -150,6 +151,12 @@ export default function ProfileScreen() {
       >
         <View style={styles.menuList}>
           <MenuRow
+            Icon={UserPen}
+            label="Editar perfil"
+            detail="Foto, nome, @ e bio"
+            onPress={() => openFromMenu(() => navigation.navigate('EditProfile'))}
+          />
+          <MenuRow
             Icon={WalletIcon}
             label="Carteira"
             detail={`${formatInt(wallet.aprovPoints)} pontos APROV`}
@@ -168,6 +175,12 @@ export default function ProfileScreen() {
             onPress={() => openFromMenu(() => navigation.navigate('ItemList', { kind: 'purchased' }))}
           />
           <MenuRow
+            Icon={Settings}
+            label="Configurações"
+            detail="Interesses e conta"
+            onPress={() => openFromMenu(() => navigation.navigate('Settings'))}
+          />
+          <MenuRow
             Icon={LogOut}
             label="Sair"
             detail={user.handle}
@@ -181,34 +194,6 @@ export default function ProfileScreen() {
         </View>
       </BottomSheet>
     </View>
-  );
-}
-
-function MenuRow({
-  Icon,
-  label,
-  detail,
-  onPress,
-}: {
-  Icon: LucideIcon;
-  label: string;
-  detail: string;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={`${label}, ${detail}`}
-      style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowPressed]}
-    >
-      <Icon size={icon.size.lg} color={colors.ink} strokeWidth={icon.strokeWidth} />
-      <View style={styles.menuText}>
-        <Text style={styles.menuLabel}>{label}</Text>
-        <Text style={styles.menuDetail}>{detail}</Text>
-      </View>
-      <ChevronRight size={icon.size.md} color={colors.inkFaint} strokeWidth={icon.strokeWidth} />
-    </Pressable>
   );
 }
 
@@ -261,27 +246,4 @@ const styles = StyleSheet.create({
   },
   separator: { height: space.md },
   menuList: { paddingHorizontal: space.lg, paddingVertical: space.md, gap: space.xs },
-  menuRow: {
-    minHeight: size.control,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.md,
-    paddingVertical: space.md,
-    paddingHorizontal: space.sm,
-    borderRadius: radius.control,
-  },
-  menuRowPressed: { backgroundColor: colors.surfaceAlt },
-  menuText: { flex: 1 },
-  menuLabel: {
-    fontFamily: type.bodyBold.family,
-    fontSize: type.bodyBold.size,
-    lineHeight: type.bodyBold.lineHeight,
-    color: colors.ink,
-  },
-  menuDetail: {
-    fontFamily: type.caption.family,
-    fontSize: type.caption.size,
-    lineHeight: type.caption.lineHeight,
-    color: colors.inkMuted,
-  },
 });

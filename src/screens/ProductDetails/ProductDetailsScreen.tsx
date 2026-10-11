@@ -10,8 +10,8 @@ import {
   StarRating,
 } from '../../components';
 import { colors, space, type } from '../../theme';
-import { companies, products, reviews } from '../../mocks';
-import { usePublishedReviews } from '../../store/publishedReviews';
+import { companies, products } from '../../mocks';
+import { useAllReviews, usePublishedReviews } from '../../store/publishedReviews';
 import { findUser, useCurrentUser } from '../../store/session';
 import { useReviewDisplay } from '../../store/interactions';
 import { byNewest } from '../../utils/date';
@@ -26,6 +26,7 @@ export default function ProductDetailsScreen() {
   const navigation = useNavigation<ProductDetailsNavigation>();
   const { productId } = route.params;
   const published = usePublishedReviews();
+  const allReviews = useAllReviews();
   const me = useCurrentUser();
   const display = useReviewDisplay(me.id);
   const openProfile = useOpenProfile();
@@ -50,10 +51,7 @@ export default function ProductDetailsScreen() {
     );
   }
 
-  const productReviews = [
-    ...published.filter((r) => r.productId === productId),
-    ...reviews.filter((r) => r.productId === productId).sort(byNewest),
-  ];
+  const productReviews = allReviews.filter((r) => r.productId === productId).sort(byNewest);
   const publishedIds = new Set(published.map((r) => r.id));
   const reviewCount = productReviews.length;
   const average =

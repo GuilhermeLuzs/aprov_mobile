@@ -16,8 +16,9 @@ import {
   VoteBar,
 } from '../../components';
 import { colors, icon, radius, size, space, type } from '../../theme';
-import { products, reviews } from '../../mocks';
-import { usePublishedReviews } from '../../store/publishedReviews';
+import { products } from '../../mocks';
+import { useDeactivatedIds } from '../../store/deactivated';
+import { useAllReviews } from '../../store/publishedReviews';
 import { findUser, useCurrentUser } from '../../store/session';
 import {
   addComment,
@@ -49,7 +50,8 @@ export default function ReviewDetailsScreen() {
   const { reviewId } = route.params;
   const insets = useSafeAreaInsets();
   const me = useCurrentUser();
-  const published = usePublishedReviews();
+  const allReviews = useAllReviews();
+  const hiddenAuthorIds = useDeactivatedIds();
   const interactions = useInteractions();
   const display = useReviewDisplay(me.id);
   const openProfile = useOpenProfile();
@@ -57,7 +59,7 @@ export default function ReviewDetailsScreen() {
   const [draft, setDraft] = useState('');
   const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
 
-  const base = [...published, ...reviews].find((r) => r.id === reviewId);
+  const base = allReviews.find((r) => r.id === reviewId);
   const product = base ? products.find((p) => p.id === base.productId) : undefined;
 
   if (!base || !product) {
@@ -77,7 +79,7 @@ export default function ReviewDetailsScreen() {
   const authorFor = (id: string) => (id === me.id ? me : findUser(id));
   const voteFor = (id: string) => myVote(interactions, me.id, 'comment', id);
 
-  const thread = threadOf(interactions, base)
+  const thread = threadOf(interactions, base, hiddenAuthorIds)
     .map((comment) => ({
       ...withVote(comment, voteFor(comment.id)),
       replies: comment.replies.map((reply) => withVote(reply, voteFor(reply.id))),

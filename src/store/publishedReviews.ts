@@ -1,5 +1,7 @@
 import { useSyncExternalStore } from 'react';
+import { reviews } from '../mocks';
 import type { Review } from '../types';
+import { useDeactivatedIds } from './deactivated';
 
 let published: Review[] = [];
 const listeners = new Set<() => void>();
@@ -26,4 +28,10 @@ function subscribe(listener: () => void) {
 
 export function usePublishedReviews(): Review[] {
   return useSyncExternalStore(subscribe, getPublishedReviews, getPublishedReviews);
+}
+
+export function useAllReviews(): Review[] {
+  const own = usePublishedReviews();
+  const hidden = useDeactivatedIds();
+  return [...own, ...reviews].filter((r) => !hidden.includes(r.authorId));
 }

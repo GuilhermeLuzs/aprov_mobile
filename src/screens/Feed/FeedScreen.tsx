@@ -4,12 +4,12 @@ import { useNavigation } from '@react-navigation/native';
 import { Search } from 'lucide-react-native';
 import { BrandMark, EmptyState, ReviewPost, TopBar } from '../../components';
 import { colors, icon, size, space, type } from '../../theme';
-import { companies, products, reviews } from '../../mocks';
+import { companies, products } from '../../mocks';
 import type { Review } from '../../types';
 import { followingOf, useFollows } from '../../store/follows';
 import { useReviewDisplay } from '../../store/interactions';
 import { usePreferences } from '../../store/preferences';
-import { usePublishedReviews } from '../../store/publishedReviews';
+import { useAllReviews } from '../../store/publishedReviews';
 import { findUser, useCurrentUser } from '../../store/session';
 import { sortFeed, spaceAuthors } from '../../utils/feed';
 import type { FeedStackNavigation } from '../../navigation/types';
@@ -45,7 +45,7 @@ export default function FeedScreen() {
   const me = useCurrentUser();
   const display = useReviewDisplay(me.id);
   const openProfile = useOpenProfile();
-  const published = usePublishedReviews();
+  const allReviews = useAllReviews();
   const preferences = usePreferences();
   const following = followingOf(useFollows(), me.id);
   const [tab, setTab] = useState<FeedTab>('forYou');
@@ -63,7 +63,7 @@ export default function FeedScreen() {
     );
   };
 
-  const all = [...published, ...reviews].filter((r) => productOf(r) !== undefined);
+  const all = allReviews.filter((r) => productOf(r) !== undefined);
   const scoped = tab === 'following' ? all.filter((r) => following.includes(r.authorId)) : all;
   const feed = spaceAuthors(
     sortFeed(scoped, tab === 'forYou' ? isPreferred : noPreference),

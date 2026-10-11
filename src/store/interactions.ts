@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import type { Comment, CommentReply, Review } from '../types';
+import { useDeactivatedIds } from './deactivated';
 
 export type VoteChoice = 'agree' | 'disagree';
 export type VoteTarget = 'review' | 'comment';
@@ -98,11 +99,18 @@ export function withVote<T extends { agreements: number; disagreements: number }
   };
 }
 
-export function threadOf(interactions: Interactions, review: Review): Comment[] {
-  return [...review.comments, ...(interactions.comments[review.id] ?? [])].map((comment) => ({
-    ...comment,
-    replies: [...comment.replies, ...(interactions.replies[comment.id] ?? [])],
-  }));
+export function threadOf(
+  interactions: Interactions,
+  review: Review,
+  hiddenAuthorIds: string[],
+): Comment[] {
+  const visible = (entry: { authorId: string }) => !hiddenAuthorIds.includes(entry.authorId);
+  return [...review.comments, ...(interactions.comments[review.id] ?? [])]
+    .filter(visible)
+    .map((comment) => ({
+      ...comment,
+      replies: [...comment.replies, ...(interactions.replies[comment.id] ?? [])].filter(visible),
+    }));
 }
 
 export function commentTotal(thread: Comment[]): number {
@@ -117,9 +125,10 @@ export type ReviewDisplay = {
 
 export function useReviewDisplay(userId: string): (review: Review) => ReviewDisplay {
   const interactions = useInteractions();
+  const hidden = useDeactivatedIds();
   return (review: Review) => {
     const vote = myVote(interactions, userId, 'review', review.id);
-    const thread = threadOf(interactions, review);
+    const thread = threadOf(interactions, review, hidden);
     return {
       review: { ...withVote(review, vote), commentCount: commentTotal(thread) },
       vote,
