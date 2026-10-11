@@ -5,25 +5,31 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, MauricioMascot, TextField } from '../../components';
 import { colors, space, type } from '../../theme';
-import { signIn } from '../../store/session';
+import { signIn, type SignInResult } from '../../store/session';
 import type { RootStackParamList } from '../../navigation/types';
+
+const SIGN_IN_ERROR: Record<Exclude<SignInResult, 'ok'>, string> = {
+  invalid: 'E-mail ou senha incorretos.',
+  deactivated: 'Esta conta foi desativada.',
+};
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'Login'>>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [failed, setFailed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const canSubmit = email.trim() !== '' && password !== '';
 
   const submit = () => {
     if (!canSubmit) return;
-    if (!signIn(email, password)) {
-      setFailed(true);
+    const result = signIn(email, password);
+    if (result !== 'ok') {
+      setError(SIGN_IN_ERROR[result]);
       return;
     }
-    setFailed(false);
+    setError(null);
     setPassword('');
     navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
   };
@@ -52,7 +58,7 @@ export default function LoginScreen() {
             value={email}
             onChangeText={(text) => {
               setEmail(text);
-              setFailed(false);
+              setError(null);
             }}
             placeholder="voce@email.com"
             keyboardType="email-address"
@@ -65,7 +71,7 @@ export default function LoginScreen() {
             value={password}
             onChangeText={(text) => {
               setPassword(text);
-              setFailed(false);
+              setError(null);
             }}
             secure
             autoCapitalize="none"
@@ -73,7 +79,7 @@ export default function LoginScreen() {
             returnKeyType="go"
             onSubmitEditing={submit}
           />
-          {failed ? <Text style={styles.error}>E-mail ou senha incorretos.</Text> : null}
+          {error ? <Text style={styles.error}>{error}</Text> : null}
         </View>
 
         <Button label="Entrar" fullWidth disabled={!canSubmit} onPress={submit} />

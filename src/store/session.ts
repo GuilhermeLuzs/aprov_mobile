@@ -3,7 +3,9 @@ import { currentUser as testUser, initialWallet, testAccount, users, xpPerLevel 
 import type { User } from '../types';
 import { levelProgress } from '../utils/level';
 import { normalizeUsername, onlyDigits } from '../utils/validation';
-import { resetFollows } from './follows';
+import { getDeactivatedIds, markDeactivated } from './deactivated';
+import { dropDeactivatedFollows, resetFollows } from './follows';
+import { resetPreferences } from './preferences';
 import { EMPTY_USER_ITEMS, resetUserItems, seededUserItems } from './userItems';
 import { EMPTY_WALLET, resetWallet, useWallet } from './wallet';
 
@@ -18,6 +20,8 @@ export type SignUpData = {
 };
 
 export type SignUpResult = 'ok' | 'email-in-use' | 'cpf-in-use' | 'username-in-use';
+
+export type SignInResult = 'ok' | 'invalid' | 'deactivated';
 
 export type ProfileChanges = {
   name: string;
@@ -54,17 +58,22 @@ export function isCpfInUse(cpf: string): boolean {
   return accounts.some((a) => a.cpf === onlyDigits(cpf));
 }
 
-export function allUsers(): User[] {
+function everyUser(): User[] {
   const fromMocks = users.map((u) => accounts.find((a) => a.user.id === u.id)?.user ?? u);
   const created = accounts.map((a) => a.user).filter((u) => !users.some((m) => m.id === u.id));
   return [...fromMocks, ...created];
+}
+
+export function allUsers(): User[] {
+  const hidden = getDeactivatedIds();
+  return everyUser().filter((u) => !hidden.includes(u.id));
 }
 
 const handleOf = (username: string) => `@${normalizeUsername(username)}`;
 
 export function isUsernameInUse(username: string, exceptUserId?: string): boolean {
   const handle = handleOf(username);
-  return allUsers().some((u) => u.handle === handle && u.id !== exceptUserId);
+  return everyUser().some((u) => u.handle === handle && u.id !== exceptUserId);
 }
 
 function startSession(account: StoredAccount, isNew: boolean): void {
@@ -76,17 +85,19 @@ function startSession(account: StoredAccount, isNew: boolean): void {
     resetUserItems(seededUserItems());
   }
   resetFollows();
+  resetPreferences();
   session = account.user;
   emit();
 }
 
-export function signIn(email: string, password: string): boolean {
+export function signIn(email: string, password: string): SignInResult {
   const account = accounts.find(
     (a) => a.email === normalizeEmail(email) && a.password === password,
   );
-  if (!account) return false;
+  if (!account) return 'invalid';
+  if (getDeactivatedIds().includes(account.user.id)) return 'deactivated';
   startSession(account, account.user.id !== testUser.id);
-  return true;
+  return 'ok';
 }
 
 export function signUp(data: SignUpData): SignUpResult {
@@ -138,6 +149,13 @@ export function updateProfile(changes: ProfileChanges): ProfileUpdateResult {
 export function signOut(): void {
   session = null;
   emit();
+}
+
+export function deactivateAccount(): void {
+  if (!session) return;
+  markDeactivated(session.id);
+  dropDeactivatedFollows();
+  signOut();
 }
 
 export function findUser(id: string): User | undefined {

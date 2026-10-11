@@ -6,6 +6,7 @@ import {
   LogOut,
   Menu,
   Receipt,
+  Settings,
   UserPen,
   Wallet as WalletIcon,
 } from 'lucide-react-native';
@@ -172,6 +173,12 @@ export default function ProfileScreen() {
             label="Itens comprados"
             detail={`${formatInt(items.purchasedIds.length)} ${items.purchasedIds.length === 1 ? 'item' : 'itens'}`}
             onPress={() => openFromMenu(() => navigation.navigate('ItemList', { kind: 'purchased' }))}
+          />
+          <MenuRow
+            Icon={Settings}
+            label="Configurações"
+            detail="Interesses e conta"
+            onPress={() => openFromMenu(() => navigation.navigate('Settings'))}
           />
           <MenuRow
             Icon={LogOut}

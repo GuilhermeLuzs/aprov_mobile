@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { follows as seededFollows } from '../mocks';
 import type { Follow } from '../types';
+import { getDeactivatedIds } from './deactivated';
 
 let state: Follow[] = seededFollows;
 const listeners = new Set<() => void>();
@@ -32,8 +33,18 @@ export function unfollow(followerId: string, followedId: string): void {
   emit();
 }
 
+function withoutDeactivated(follows: Follow[]): Follow[] {
+  const hidden = getDeactivatedIds();
+  return follows.filter((f) => !hidden.includes(f.followerId) && !hidden.includes(f.followedId));
+}
+
 export function resetFollows(): void {
-  state = seededFollows;
+  state = withoutDeactivated(seededFollows);
+  emit();
+}
+
+export function dropDeactivatedFollows(): void {
+  state = withoutDeactivated(state);
   emit();
 }
 
