@@ -18,6 +18,7 @@ import { byNewest } from '../../utils/date';
 import { formatInt } from '../../utils/format';
 import type { ProductDetailsNavigation, ProductDetailsParamList } from '../../navigation/types';
 import { useOpenProfile } from '../UserProfile/useOpenProfile';
+import { useOpenMedia } from '../Media/useOpenMedia';
 
 const REVIEWS_PER_PAGE = 5;
 
@@ -29,6 +30,7 @@ export default function ProductDetailsScreen() {
   const allReviews = useAllReviews();
   const me = useCurrentUser();
   const display = useReviewDisplay(me.id);
+  const openMedia = useOpenMedia();
   const openProfile = useOpenProfile();
   const [page, setPage] = useState(1);
 
@@ -52,6 +54,7 @@ export default function ProductDetailsScreen() {
   }
 
   const productReviews = allReviews.filter((r) => r.productId === productId).sort(byNewest);
+  const mediaIds = productReviews.map((r) => r.id);
   const publishedIds = new Set(published.map((r) => r.id));
   const reviewCount = productReviews.length;
   const average =
@@ -127,6 +130,7 @@ export default function ProductDetailsScreen() {
               highlight={item.authorId === me.id && publishedIds.has(item.id) ? 'Sua avaliação' : undefined}
               onPressAuthor={() => openProfile(author.id)}
               onPressBody={() => navigation.navigate('ReviewDetails', { reviewId: item.id })}
+              onOpenMedia={(index) => openMedia(mediaIds, item.id, index)}
             />
           </View>
         );

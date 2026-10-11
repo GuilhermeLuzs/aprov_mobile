@@ -12,7 +12,7 @@ type Props = {
   canVote: (authorId: string) => boolean;
   onVote: (entryId: string, choice: 'agree' | 'disagree') => void;
   onReply: (comment: Comment) => void;
-  onPressAuthor: (authorId: string) => void;
+  onPressAuthor?: (authorId: string) => void;
 };
 
 export function CommentThread({
@@ -53,9 +53,10 @@ function Entry({ entry, authorFor, voteFor, canVote, onVote, onReply, onPressAut
   return (
     <View style={styles.row}>
       <Pressable
-        onPress={() => onPressAuthor(entry.authorId)}
-        accessibilityRole="link"
-        accessibilityLabel={`Ver perfil de ${name}`}
+        onPress={() => onPressAuthor?.(entry.authorId)}
+        disabled={!onPressAuthor}
+        accessibilityRole={onPressAuthor ? 'link' : undefined}
+        accessibilityLabel={onPressAuthor ? `Ver perfil de ${name}` : undefined}
       >
         <Avatar uri={author?.avatarUri ?? ''} name={name} size="sm" />
       </Pressable>
@@ -64,8 +65,8 @@ function Entry({ entry, authorFor, voteFor, canVote, onVote, onReply, onPressAut
           <Text
             style={styles.name}
             numberOfLines={1}
-            onPress={() => onPressAuthor(entry.authorId)}
-            accessibilityRole="link"
+            onPress={onPressAuthor ? () => onPressAuthor(entry.authorId) : undefined}
+            accessibilityRole={onPressAuthor ? 'link' : undefined}
           >
             {name}
           </Text>

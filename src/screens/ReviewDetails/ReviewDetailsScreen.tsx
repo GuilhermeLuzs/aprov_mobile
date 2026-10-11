@@ -25,6 +25,7 @@ import { formatInt, formatRating } from '../../utils/format';
 import { formatRelativeTime } from '../../utils/date';
 import type { ReviewDetailsNavigation, ReviewDetailsParamList } from '../../navigation/types';
 import { useOpenProfile } from '../UserProfile/useOpenProfile';
+import { useOpenMedia } from '../Media/useOpenMedia';
 import { COMMENT_MAX_LENGTH, useReviewComments } from './useReviewComments';
 
 const COMMENTS_STEP = 5;
@@ -37,6 +38,7 @@ export default function ReviewDetailsScreen() {
   const me = useCurrentUser();
   const allReviews = useAllReviews();
   const display = useReviewDisplay(me.id);
+  const openMedia = useOpenMedia();
   const openProfile = useOpenProfile();
   const [visibleCount, setVisibleCount] = useState(COMMENTS_STEP);
 
@@ -131,7 +133,10 @@ export default function ReviewDetailsScreen() {
 
       {review.media[0] ? (
         <View style={styles.section}>
-          <ReviewMedia media={review.media} />
+          <ReviewMedia
+            media={review.media}
+            onOpen={(index) => openMedia([review.id], review.id, index)}
+          />
         </View>
       ) : null}
 

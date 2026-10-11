@@ -32,11 +32,13 @@ import { byNewest } from '../../utils/date';
 import { formatInt } from '../../utils/format';
 import { levelProgress } from '../../utils/level';
 import type { ProfileStackNavigation } from '../../navigation/types';
+import { useOpenMedia } from '../Media/useOpenMedia';
 
 export default function ProfileScreen() {
   const navigation = useNavigation<ProfileStackNavigation<'Profile'>>();
   const user = useCurrentUser();
   const display = useReviewDisplay(user.id);
+  const openMedia = useOpenMedia();
   const wallet = useWallet();
   const items = useUserItems();
   const published = usePublishedReviews();
@@ -47,6 +49,7 @@ export default function ProfileScreen() {
     ...published.filter((r) => r.authorId === user.id),
     ...reviews.filter((r) => r.authorId === user.id).sort(byNewest),
   ];
+  const mediaIds = myReviews.map((r) => r.id);
   const agreementsReceived = myReviews.reduce((sum, r) => sum + r.agreements, 0);
   const progress = levelProgress(wallet.xp, xpPerLevel);
 
@@ -123,6 +126,7 @@ export default function ProfileScreen() {
                 showAuthor={false}
                 onPressProduct={() => navigation.navigate('ProductDetails', { productId: product.id })}
                 onPressBody={() => navigation.navigate('ReviewDetails', { reviewId: item.id })}
+                onOpenMedia={(index) => openMedia(mediaIds, item.id, index)}
               />
             </View>
           );

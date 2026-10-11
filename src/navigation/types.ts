@@ -66,6 +66,12 @@ export type RootStackParamList = {
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   CreateReview: { productId: string };
   MauricioChat: { productId: string };
+  MediaViewer: {
+    reviewIds: string[];
+    reviewId: string;
+    index: number;
+    originTab: keyof MainTabParamList;
+  };
 };
 
 export type HomeStackNavigation<T extends keyof HomeStackParamList> = CompositeNavigationProp<

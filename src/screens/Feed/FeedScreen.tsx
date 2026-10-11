@@ -14,6 +14,7 @@ import { findUser, useCurrentUser } from '../../store/session';
 import { sortFeed, spaceAuthors } from '../../utils/feed';
 import type { FeedStackNavigation } from '../../navigation/types';
 import { useOpenProfile } from '../UserProfile/useOpenProfile';
+import { useOpenMedia } from '../Media/useOpenMedia';
 
 const BATCH_SIZE = 10;
 const AUTHOR_GAP = 5;
@@ -44,6 +45,7 @@ export default function FeedScreen() {
   const listRef = useRef<FlatList<Review>>(null);
   const me = useCurrentUser();
   const display = useReviewDisplay(me.id);
+  const openMedia = useOpenMedia();
   const openProfile = useOpenProfile();
   const allReviews = useAllReviews();
   const preferences = usePreferences();
@@ -69,6 +71,7 @@ export default function FeedScreen() {
     sortFeed(scoped, tab === 'forYou' ? isPreferred : noPreference),
     AUTHOR_GAP,
   );
+  const mediaIds = feed.map((r) => r.id);
   const visible = feed.slice(0, loaded);
   const exhausted = loaded >= feed.length;
 
@@ -134,6 +137,7 @@ export default function FeedScreen() {
               onPressAuthor={() => openProfile(author.id)}
               onPressProduct={() => navigation.navigate('ProductDetails', { productId: product.id })}
               onPressBody={() => navigation.navigate('ReviewDetails', { reviewId: item.id })}
+              onOpenMedia={(index) => openMedia(mediaIds, item.id, index)}
             />
           );
         }}

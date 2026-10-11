@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
 import { colors, icon, radius, size, space, type } from '../theme';
@@ -11,14 +11,26 @@ type Props = {
   onClose: () => void;
   children: ReactNode;
   footer?: ReactNode;
+  tall?: boolean;
 };
 
-export function BottomSheet({ visible, title, closeLabel, onClose, children, footer }: Props) {
+export function BottomSheet({
+  visible,
+  title,
+  closeLabel,
+  onClose,
+  children,
+  footer,
+  tall = false,
+}: Props) {
   const insets = useSafeAreaInsets();
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.root}>
+      <KeyboardAvoidingView
+        style={styles.root}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
         <Pressable
           style={styles.scrim}
           onPress={onClose}
@@ -26,7 +38,12 @@ export function BottomSheet({ visible, title, closeLabel, onClose, children, foo
           accessibilityLabel={closeLabel}
         />
 
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + space.md }]}>
+        <View
+          style={[
+            styles.sheet,
+            tall ? styles.sheetTall : { paddingBottom: insets.bottom + space.md },
+          ]}
+        >
           <View style={styles.handle} />
 
           <View style={styles.header}>
@@ -41,11 +58,11 @@ export function BottomSheet({ visible, title, closeLabel, onClose, children, foo
             </Pressable>
           </View>
 
-          <View style={styles.body}>{children}</View>
+          <View style={[styles.body, tall && styles.bodyTall]}>{children}</View>
 
           {footer ? <View style={styles.footer}>{footer}</View> : null}
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -59,6 +76,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: radius.card,
     backgroundColor: colors.bg,
   },
+  sheetTall: { height: size.sheetMaxHeight },
   handle: {
     alignSelf: 'center',
     width: size.sheetHandle.width,
@@ -81,6 +99,7 @@ const styles = StyleSheet.create({
     color: colors.ink,
   },
   body: { flexShrink: 1 },
+  bodyTall: { flex: 1 },
   footer: {
     flexDirection: 'row',
     gap: space.md,

@@ -5,7 +5,12 @@ import { navTheme, stackScreenOptions } from './navTheme';
 import { OnboardingNavigator } from './OnboardingNavigator';
 import { SignUpNavigator } from './SignUpNavigator';
 import { MainTabNavigator } from './MainTabNavigator';
-import { CreateReviewScreen, LoginScreen, MauricioChatScreen } from '../screens';
+import {
+  CreateReviewScreen,
+  LoginScreen,
+  MauricioChatScreen,
+  MediaViewerScreen,
+} from '../screens';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -34,6 +39,11 @@ export function RootNavigator() {
           name="MauricioChat"
           component={MauricioChatScreen}
           options={{ headerShown: false, animation: 'slide_from_right' }}
+        />
+        <Stack.Screen
+          name="MediaViewer"
+          component={MediaViewerScreen}
+          options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'fade' }}
         />
       </Stack.Navigator>
     </NavigationContainer>

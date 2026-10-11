@@ -26,6 +26,7 @@ import { findUser, useCurrentUser } from '../../store/session';
 import { byNewest } from '../../utils/date';
 import { formatInt } from '../../utils/format';
 import type { PeopleNavigation, PeopleParamList } from '../../navigation/types';
+import { useOpenMedia } from '../Media/useOpenMedia';
 
 export default function UserProfileScreen() {
   const route = useRoute<RouteProp<PeopleParamList, 'UserProfile'>>();
@@ -33,6 +34,7 @@ export default function UserProfileScreen() {
   const { userId } = route.params;
   const me = useCurrentUser();
   const display = useReviewDisplay(me.id);
+  const openMedia = useOpenMedia();
   const published = usePublishedReviews();
   const follows = useFollows();
   const [confirmUnfollow, setConfirmUnfollow] = useState(false);
@@ -56,6 +58,7 @@ export default function UserProfileScreen() {
     ...published.filter((r) => r.authorId === user.id),
     ...reviews.filter((r) => r.authorId === user.id).sort(byNewest),
   ];
+  const mediaIds = userReviews.map((r) => r.id);
   const agreementsReceived = userReviews.reduce((sum, r) => sum + r.agreements, 0);
   const following = isFollowing(follows, me.id, user.id);
 
@@ -118,6 +121,7 @@ export default function UserProfileScreen() {
                 showAuthor={false}
                 onPressProduct={() => navigation.navigate('ProductDetails', { productId: product.id })}
                 onPressBody={() => navigation.navigate('ReviewDetails', { reviewId: item.id })}
+                onOpenMedia={(index) => openMedia(mediaIds, item.id, index)}
               />
             </View>
           );
