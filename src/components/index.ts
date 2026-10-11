@@ -14,6 +14,7 @@ export { ProfileSummary } from './ProfileSummary';
 export { PersonRow } from './PersonRow';
 export { MenuRow } from './MenuRow';
 export { TopBar } from './TopBar';
+export { ReportSheet } from './ReportSheet';
 export { BrandMark } from './BrandMark';
 export { ZoomableImage } from './ZoomableImage';
 export type { VoteState } from './VoteBar';

@@ -19,6 +19,7 @@ import { formatInt } from '../../utils/format';
 import type { ProductDetailsNavigation, ProductDetailsParamList } from '../../navigation/types';
 import { useOpenProfile } from '../UserProfile/useOpenProfile';
 import { useOpenMedia } from '../Media/useOpenMedia';
+import { useReport } from '../Report/useReport';
 
 const REVIEWS_PER_PAGE = 5;
 
@@ -31,6 +32,7 @@ export default function ProductDetailsScreen() {
   const me = useCurrentUser();
   const display = useReviewDisplay(me.id);
   const openMedia = useOpenMedia();
+  const report = useReport();
   const openProfile = useOpenProfile();
   const [page, setPage] = useState(1);
 
@@ -60,8 +62,9 @@ export default function ProductDetailsScreen() {
   const average =
     reviewCount === 0
       ? 0
-      : Math.round((productReviews.reduce((sum, r) => sum + r.averageRating, 0) / reviewCount) * 10) /
-        10;
+      : Math.round(
+          (productReviews.reduce((sum, r) => sum + r.averageRating, 0) / reviewCount) * 10,
+        ) / 10;
 
   const pageCount = Math.max(1, Math.ceil(reviewCount / REVIEWS_PER_PAGE));
   const safePage = Math.min(page, pageCount);
@@ -108,52 +111,59 @@ export default function ProductDetailsScreen() {
   );
 
   return (
-    <FlatList
-      style={styles.screen}
-      contentContainerStyle={styles.content}
-      data={pageItems}
-      keyExtractor={(r) => r.id}
-      ListHeaderComponent={header}
-      ItemSeparatorComponent={() => <View style={styles.separator} />}
-      renderItem={({ item }) => {
-        const author =
-          item.authorId === me.id ? me : findUser(item.authorId);
-        if (!author) return null;
-        return (
+    <>
+      <FlatList
+        style={styles.screen}
+        contentContainerStyle={styles.content}
+        data={pageItems}
+        keyExtractor={(r) => r.id}
+        ListHeaderComponent={header}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        renderItem={({ item }) => {
+          const author = item.authorId === me.id ? me : findUser(item.authorId);
+          if (!author) return null;
+          return (
+            <View style={styles.body}>
+              <ReviewPost
+                {...display(item)}
+                author={author}
+                product={product}
+                company={company}
+                showProduct={false}
+                highlight={
+                  item.authorId === me.id && publishedIds.has(item.id) ? 'Sua avaliação' : undefined
+                }
+                onPressAuthor={() => openProfile(author.id)}
+                onPressBody={() => navigation.navigate('ReviewDetails', { reviewId: item.id })}
+                onOpenMedia={(index) => openMedia(mediaIds, item.id, index)}
+                onReport={
+                  report.canReport(item.authorId) ? () => report.open('review', item.id) : undefined
+                }
+              />
+            </View>
+          );
+        }}
+        ListEmptyComponent={
           <View style={styles.body}>
-            <ReviewPost
-              {...display(item)}
-              author={author}
-              product={product}
-              company={company}
-              showProduct={false}
-              highlight={item.authorId === me.id && publishedIds.has(item.id) ? 'Sua avaliação' : undefined}
-              onPressAuthor={() => openProfile(author.id)}
-              onPressBody={() => navigation.navigate('ReviewDetails', { reviewId: item.id })}
-              onOpenMedia={(index) => openMedia(mediaIds, item.id, index)}
+            <EmptyState
+              compact
+              title="Ninguém avaliou ainda"
+              description="Seja a primeira pessoa a contar como foi."
+              action={{ label: 'Avaliar', onPress: review }}
             />
           </View>
-        );
-      }}
-      ListEmptyComponent={
-        <View style={styles.body}>
-          <EmptyState
-            compact
-            title="Ninguém avaliou ainda"
-            description="Seja a primeira pessoa a contar como foi."
-            action={{ label: 'Avaliar', onPress: review }}
-          />
-        </View>
-      }
-      ListFooterComponent={
-        pageCount > 1 ? (
-          <View style={styles.pagination}>
-            <Pagination page={safePage} pageCount={pageCount} onChange={setPage} />
-          </View>
-        ) : null
-      }
-      showsVerticalScrollIndicator={false}
-    />
+        }
+        ListFooterComponent={
+          pageCount > 1 ? (
+            <View style={styles.pagination}>
+              <Pagination page={safePage} pageCount={pageCount} onChange={setPage} />
+            </View>
+          ) : null
+        }
+        showsVerticalScrollIndicator={false}
+      />
+      {report.sheet}
+    </>
   );
 }
 

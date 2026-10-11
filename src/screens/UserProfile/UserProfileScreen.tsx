@@ -27,6 +27,7 @@ import { byNewest } from '../../utils/date';
 import { formatInt } from '../../utils/format';
 import type { PeopleNavigation, PeopleParamList } from '../../navigation/types';
 import { useOpenMedia } from '../Media/useOpenMedia';
+import { useReport } from '../Report/useReport';
 
 export default function UserProfileScreen() {
   const route = useRoute<RouteProp<PeopleParamList, 'UserProfile'>>();
@@ -35,6 +36,7 @@ export default function UserProfileScreen() {
   const me = useCurrentUser();
   const display = useReviewDisplay(me.id);
   const openMedia = useOpenMedia();
+  const report = useReport();
   const published = usePublishedReviews();
   const follows = useFollows();
   const [confirmUnfollow, setConfirmUnfollow] = useState(false);
@@ -122,6 +124,9 @@ export default function UserProfileScreen() {
                 onPressProduct={() => navigation.navigate('ProductDetails', { productId: product.id })}
                 onPressBody={() => navigation.navigate('ReviewDetails', { reviewId: item.id })}
                 onOpenMedia={(index) => openMedia(mediaIds, item.id, index)}
+                onReport={
+                  report.canReport(item.authorId) ? () => report.open('review', item.id) : undefined
+                }
               />
             </View>
           );
@@ -159,6 +164,7 @@ export default function UserProfileScreen() {
           As avaliações de {firstName} deixam de aparecer na aba Seguindo do Feed.
         </Text>
       </BottomSheet>
+      {report.sheet}
     </>
   );
 }

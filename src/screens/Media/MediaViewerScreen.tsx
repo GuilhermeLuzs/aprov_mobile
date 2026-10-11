@@ -23,6 +23,7 @@ import { findUser, useCurrentUser } from '../../store/session';
 import { slidesOf } from '../../utils/media';
 import type { MainTabParamList, RootStackParamList } from '../../navigation/types';
 import { CommentsSheet } from './CommentsSheet';
+import { useReport } from '../Report/useReport';
 import { MediaPost } from './MediaPost';
 
 type Size = { width: number; height: number };
@@ -54,6 +55,7 @@ export default function MediaViewerScreen() {
   const me = useCurrentUser();
   const display = useReviewDisplay(me.id);
   const allReviews = useAllReviews();
+  const report = useReport();
 
   const posts = reviewIds
     .map((id) => allReviews.find((r) => r.id === id))
@@ -141,6 +143,9 @@ export default function MediaViewerScreen() {
                 onOpenProduct={() => openProduct(item.productId)}
                 infoCollapsed={infoCollapsed}
                 onToggleInfo={() => setInfoCollapsed((c) => !c)}
+                onReport={
+                  report.canReport(item.authorId) ? () => report.open('review', item.id) : undefined
+                }
               />
             );
           }}
@@ -160,6 +165,8 @@ export default function MediaViewerScreen() {
       >
         <X size={icon.size.lg} color={colors.surface} strokeWidth={icon.strokeWidth} />
       </Pressable>
+
+      {report.sheet}
 
       <CommentsSheet
         review={allReviews.find((r) => r.id === commentsFor)}

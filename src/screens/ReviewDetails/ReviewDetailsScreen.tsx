@@ -1,8 +1,16 @@
 import { useState } from 'react';
-import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Check, X } from 'lucide-react-native';
+import { Check, Flag, X } from 'lucide-react-native';
 import {
   Avatar,
   Button,
@@ -26,6 +34,7 @@ import { formatRelativeTime } from '../../utils/date';
 import type { ReviewDetailsNavigation, ReviewDetailsParamList } from '../../navigation/types';
 import { useOpenProfile } from '../UserProfile/useOpenProfile';
 import { useOpenMedia } from '../Media/useOpenMedia';
+import { useReport } from '../Report/useReport';
 import { COMMENT_MAX_LENGTH, useReviewComments } from './useReviewComments';
 
 const COMMENTS_STEP = 5;
@@ -44,6 +53,9 @@ export default function ReviewDetailsScreen() {
 
   const base = allReviews.find((r) => r.id === reviewId);
   const comments = useReviewComments(base);
+  const report = useReport((target) => {
+    if (target === 'review') navigation.goBack();
+  });
   const product = base ? products.find((p) => p.id === base.productId) : undefined;
 
   if (!base || !product) {
@@ -66,22 +78,40 @@ export default function ReviewDetailsScreen() {
 
   const header = (
     <View style={styles.body}>
-      <Pressable
-        style={styles.authorRow}
-        onPress={() => openProfile(base.authorId)}
-        accessibilityRole="link"
-        accessibilityLabel={`Ver perfil de ${author?.name ?? 'Usuário'}`}
-      >
-        <Avatar uri={author?.avatarUri ?? ''} name={author?.name ?? 'Usuário'} size="md" bordered />
-        <View style={styles.authorText}>
-          <Text style={styles.authorName} numberOfLines={1}>
-            {author?.name ?? 'Usuário'}
-          </Text>
-          <Text style={styles.muted} numberOfLines={1}>
-            Nível {author?.level ?? 1} · {formatRelativeTime(review.createdAt)}
-          </Text>
-        </View>
-      </Pressable>
+      <View style={styles.authorLine}>
+        <Pressable
+          style={styles.authorRow}
+          onPress={() => openProfile(base.authorId)}
+          accessibilityRole="link"
+          accessibilityLabel={`Ver perfil de ${author?.name ?? 'Usuário'}`}
+        >
+          <Avatar
+            uri={author?.avatarUri ?? ''}
+            name={author?.name ?? 'Usuário'}
+            size="md"
+            bordered
+          />
+          <View style={styles.authorText}>
+            <Text style={styles.authorName} numberOfLines={1}>
+              {author?.name ?? 'Usuário'}
+            </Text>
+            <Text style={styles.muted} numberOfLines={1}>
+              Nível {author?.level ?? 1} · {formatRelativeTime(review.createdAt)}
+            </Text>
+          </View>
+        </Pressable>
+        {report.canReport(base.authorId) ? (
+          <Pressable
+            onPress={() => report.open('review', base.id)}
+            hitSlop={space.sm}
+            accessibilityRole="button"
+            accessibilityLabel="Denunciar avaliação"
+            style={styles.reportButton}
+          >
+            <Flag size={icon.size.md} color={colors.inkMuted} strokeWidth={icon.strokeWidth} />
+          </Pressable>
+        ) : null}
+      </View>
 
       <Pressable
         onPress={() => navigation.navigate('ProductDetails', { productId: product.id })}
@@ -140,7 +170,9 @@ export default function ReviewDetailsScreen() {
         </View>
       ) : null}
 
-      {review.comment.trim() !== '' ? <Text style={styles.reviewText}>{review.comment}</Text> : null}
+      {review.comment.trim() !== '' ? (
+        <Text style={styles.reviewText}>{review.comment}</Text>
+      ) : null}
 
       <View style={styles.buyRow}>
         <Text style={styles.buyLabel}>{question}</Text>
@@ -200,6 +232,8 @@ export default function ReviewDetailsScreen() {
               canVote={comments.canVote}
               onVote={comments.vote}
               onReply={comments.setReplyingTo}
+              canReport={report.canReport}
+              onReport={(id) => report.open('comment', id)}
             />
           </View>
         )}
@@ -236,6 +270,7 @@ export default function ReviewDetailsScreen() {
         onCancelReply={() => comments.setReplyingTo(null)}
         maxLength={COMMENT_MAX_LENGTH}
       />
+      {report.sheet}
     </KeyboardAvoidingView>
   );
 }
@@ -250,7 +285,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   body: { paddingHorizontal: space.lg },
-  authorRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  authorLine: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  authorRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  reportButton: {
+    width: size.control,
+    height: size.control,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
   authorText: { flex: 1 },
   authorName: {
     fontFamily: type.bodyBold.family,

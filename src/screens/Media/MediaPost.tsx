@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ChevronDown,
   ChevronUp,
+  Flag,
   MessageCircle,
   ThumbsDown,
   ThumbsUp,
@@ -53,6 +54,7 @@ type Props = {
   onOpenProduct: () => void;
   infoCollapsed: boolean;
   onToggleInfo: () => void;
+  onReport?: () => void;
 };
 
 export function MediaPost({
@@ -77,6 +79,7 @@ export function MediaPost({
   onOpenProduct,
   infoCollapsed,
   onToggleInfo,
+  onReport,
 }: Props) {
   const insets = useSafeAreaInsets();
   const [index, setIndex] = useState(startIndex);
@@ -210,6 +213,15 @@ export function MediaPost({
             label="Ver comentários"
             onPress={onOpenComments}
           />
+          {onReport ? (
+            <RailButton
+              Icon={Flag}
+              active={false}
+              activeColor={colors.surface}
+              label="Denunciar avaliação"
+              onPress={onReport}
+            />
+          ) : null}
         </View>
 
         <View
@@ -311,7 +323,7 @@ function RailButton({
   onPress,
 }: {
   Icon: LucideIcon;
-  count: number;
+  count?: number;
   active: boolean;
   activeColor: string;
   label: string;
@@ -325,7 +337,7 @@ function RailButton({
       disabled={!onPress}
       hitSlop={space.xs}
       accessibilityRole="button"
-      accessibilityLabel={`${label}, ${formatInt(count)}`}
+      accessibilityLabel={count === undefined ? label : `${label}, ${formatInt(count)}`}
       accessibilityState={{ disabled: !onPress, selected: active }}
       style={styles.railItem}
     >
@@ -335,7 +347,7 @@ function RailButton({
         fill={active ? tint : 'transparent'}
         strokeWidth={icon.strokeWidth}
       />
-      <Text style={styles.railCount}>{formatInt(count)}</Text>
+      {count === undefined ? null : <Text style={styles.railCount}>{formatInt(count)}</Text>}
     </Pressable>
   );
 }
