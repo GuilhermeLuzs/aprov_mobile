@@ -1,6 +1,7 @@
 import { DefaultTheme, type Theme } from '@react-navigation/native';
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import { colors, space, type } from '../theme';
+import type { FollowListKind } from './types';
 
 export const navTheme: Theme = {
   ...DefaultTheme,
@@ -26,5 +27,9 @@ export const stackScreenOptions: NativeStackNavigationOptions = {
   headerBackButtonDisplayMode: 'minimal',
   contentStyle: { backgroundColor: colors.bg },
 };
+
+export function followListTitle(kind: FollowListKind): string {
+  return kind === 'followers' ? 'Seguidores' : 'Seguindo';
+}
 
 export const modalTopInset = space.xl;

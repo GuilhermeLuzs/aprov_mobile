@@ -25,3 +25,7 @@ export function formatRelativeTime(iso: string, now: Date = new Date()): string 
   const years = Math.floor(diff / YEAR);
   return years <= 1 ? 'há 1 ano' : `há ${years} anos`;
 }
+
+export function byNewest(a: { createdAt: string }, b: { createdAt: string }): number {
+  return Date.parse(b.createdAt) - Date.parse(a.createdAt);
+}

@@ -14,14 +14,11 @@ import { companies, products, reviews } from '../../mocks';
 import { usePublishedReviews } from '../../store/publishedReviews';
 import { findUser, useCurrentUser } from '../../store/session';
 import { useReviewDisplay } from '../../store/interactions';
+import { byNewest } from '../../utils/date';
 import { formatInt } from '../../utils/format';
 import type { ProductDetailsNavigation, ProductDetailsParamList } from '../../navigation/types';
 
 const REVIEWS_PER_PAGE = 5;
-
-function byNewest(a: { createdAt: string }, b: { createdAt: string }): number {
-  return Date.parse(b.createdAt) - Date.parse(a.createdAt);
-}
 
 export default function ProductDetailsScreen() {
   const route = useRoute<RouteProp<ProductDetailsParamList, 'ProductDetails'>>();

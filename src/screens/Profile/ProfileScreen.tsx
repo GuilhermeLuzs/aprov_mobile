@@ -11,22 +11,19 @@ import {
   Wallet as WalletIcon,
   type LucideIcon,
 } from 'lucide-react-native';
-import { Avatar, BottomSheet, EmptyState, ReviewPost, SectionHeader } from '../../components';
+import { BottomSheet, EmptyState, ProfileSummary, ReviewPost, SectionHeader } from '../../components';
 import { colors, icon, radius, size, space, type } from '../../theme';
 import { companies, products, reviews, xpPerLevel } from '../../mocks';
-import { usePublishedReviews } from '../../store/publishedReviews';
-import { signOut } from '../../store/session';
-import { useUserItems } from '../../store/userItems';
-import { useCurrentUser } from '../../store/session';
+import { followersOf, followingOf, useFollows } from '../../store/follows';
 import { useReviewDisplay } from '../../store/interactions';
+import { usePublishedReviews } from '../../store/publishedReviews';
+import { signOut, useCurrentUser } from '../../store/session';
+import { useUserItems } from '../../store/userItems';
 import { useWallet } from '../../store/wallet';
+import { byNewest } from '../../utils/date';
 import { formatInt } from '../../utils/format';
 import { levelProgress } from '../../utils/level';
 import type { ProfileStackNavigation } from '../../navigation/types';
-
-function byNewest(a: { createdAt: string }, b: { createdAt: string }): number {
-  return Date.parse(b.createdAt) - Date.parse(a.createdAt);
-}
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -36,6 +33,7 @@ export default function ProfileScreen() {
   const wallet = useWallet();
   const items = useUserItems();
   const published = usePublishedReviews();
+  const follows = useFollows();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const myReviews = [
@@ -67,42 +65,27 @@ export default function ProfileScreen() {
         </Pressable>
       </View>
 
-      <View style={styles.identity}>
-        <Avatar uri={user.avatarUri} name={user.name} size="lg" bordered />
-        <View style={styles.identityText}>
-          <Text style={styles.name}>{user.name}</Text>
-          <Text style={styles.levelLabel}>Nível {progress.level}</Text>
-        </View>
-      </View>
-
-      {user.bio ? <Text style={styles.bio}>{user.bio}</Text> : null}
-
-      <View style={styles.level}>
-        <View style={styles.track}>
-          <View style={[styles.fill, { width: `${progress.progress * 100}%` }]} />
-        </View>
-        <Text style={styles.levelText}>
-          {formatInt(progress.xpInLevel)}/{formatInt(xpPerLevel)} XP · faltam{' '}
-          {formatInt(progress.xpToNext)} para o nível {progress.level + 1}
-        </Text>
-      </View>
-
-      <View style={styles.stats}>
-        <Stat value={myReviews.length} label={myReviews.length === 1 ? 'avaliação' : 'avaliações'} />
-        <Stat
-          value={agreementsReceived}
-          label={agreementsReceived === 1 ? 'concordância recebida' : 'concordâncias recebidas'}
-        />
-      </View>
-
-      <View style={styles.section}>
-        <SectionHeader title="Badges" />
-        {user.badges.length > 0 ? null : (
-          <Text style={styles.emptyLine}>
-            Nenhuma badge ainda. Elas chegam conforme você avalia itens das empresas parceiras.
+      <ProfileSummary
+        user={user}
+        level={progress.level}
+        reviews={myReviews.length}
+        agreements={agreementsReceived}
+        followers={followersOf(follows, user.id).length}
+        following={followingOf(follows, user.id).length}
+        onPressFollowers={() => navigation.navigate('FollowList', { userId: user.id, kind: 'followers' })}
+        onPressFollowing={() => navigation.navigate('FollowList', { userId: user.id, kind: 'following' })}
+        emptyBadgesText="Nenhuma badge ainda. Elas chegam conforme você avalia itens das empresas parceiras."
+      >
+        <View style={styles.level}>
+          <View style={styles.track}>
+            <View style={[styles.fill, { width: `${progress.progress * 100}%` }]} />
+          </View>
+          <Text style={styles.levelText}>
+            {formatInt(progress.xpInLevel)}/{formatInt(xpPerLevel)} XP · faltam{' '}
+            {formatInt(progress.xpToNext)} para o nível {progress.level + 1}
           </Text>
-        )}
-      </View>
+        </View>
+      </ProfileSummary>
 
       <View style={styles.divider} />
 
@@ -195,14 +178,6 @@ export default function ProfileScreen() {
   );
 }
 
-function Stat({ value, label }: { value: number; label: string }) {
-  return (
-    <Text style={styles.statText}>
-      <Text style={styles.statNumber}>{formatInt(value)}</Text> {label}
-    </Text>
-  );
-}
-
 function MenuRow({
   Icon,
   label,
@@ -254,31 +229,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     justifyContent: 'center',
   },
-  identity: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.md,
-  },
-  identityText: { flex: 1 },
-  name: {
-    fontFamily: type.title.family,
-    fontSize: type.title.size,
-    lineHeight: type.title.lineHeight,
-    color: colors.ink,
-  },
-  levelLabel: {
-    fontFamily: type.caption.family,
-    fontSize: type.caption.size,
-    lineHeight: type.caption.lineHeight,
-    color: colors.inkMuted,
-  },
-  bio: {
-    marginTop: space.md,
-    fontFamily: type.body.family,
-    fontSize: type.body.size,
-    lineHeight: type.body.lineHeight,
-    color: colors.inkMuted,
-  },
   level: { marginTop: space.lg, gap: space.xs },
   track: {
     height: size.progressBar,
@@ -296,29 +246,6 @@ const styles = StyleSheet.create({
     fontSize: type.caption.size,
     lineHeight: type.caption.lineHeight,
     color: colors.inkMuted,
-  },
-  stats: {
-    marginTop: space.lg,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: space.lg,
-  },
-  statText: {
-    fontFamily: type.body.family,
-    fontSize: type.body.size,
-    lineHeight: type.body.lineHeight,
-    color: colors.inkMuted,
-  },
-  statNumber: {
-    fontFamily: type.numeric.family,
-    color: colors.ink,
-  },
-  section: { marginTop: space.xl },
-  emptyLine: {
-    fontFamily: type.body.family,
-    fontSize: type.body.size,
-    lineHeight: type.body.lineHeight,
-    color: colors.inkFaint,
   },
   divider: {
     height: 1,
