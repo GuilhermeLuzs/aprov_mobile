@@ -34,6 +34,7 @@ import { REVIEW_CHARACTERISTIC_LABEL, type Comment } from '../../types';
 import { formatInt, formatRating } from '../../utils/format';
 import { formatRelativeTime } from '../../utils/date';
 import type { ReviewDetailsNavigation, ReviewDetailsParamList } from '../../navigation/types';
+import { useOpenProfile } from '../UserProfile/useOpenProfile';
 
 const COMMENTS_STEP = 5;
 const COMMENT_MAX_LENGTH = 500;
@@ -51,6 +52,7 @@ export default function ReviewDetailsScreen() {
   const published = usePublishedReviews();
   const interactions = useInteractions();
   const display = useReviewDisplay(me.id);
+  const openProfile = useOpenProfile();
   const [visibleCount, setVisibleCount] = useState(COMMENTS_STEP);
   const [draft, setDraft] = useState('');
   const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
@@ -96,7 +98,12 @@ export default function ReviewDetailsScreen() {
 
   const header = (
     <View style={styles.body}>
-      <View style={styles.authorRow}>
+      <Pressable
+        style={styles.authorRow}
+        onPress={() => openProfile(base.authorId)}
+        accessibilityRole="link"
+        accessibilityLabel={`Ver perfil de ${author?.name ?? 'Usuário'}`}
+      >
         <Avatar uri={author?.avatarUri ?? ''} name={author?.name ?? 'Usuário'} size="md" bordered />
         <View style={styles.authorText}>
           <Text style={styles.authorName} numberOfLines={1}>
@@ -106,7 +113,7 @@ export default function ReviewDetailsScreen() {
             Nível {author?.level ?? 1} · {formatRelativeTime(review.createdAt)}
           </Text>
         </View>
-      </View>
+      </Pressable>
 
       <Pressable
         onPress={() => navigation.navigate('ProductDetails', { productId: product.id })}
@@ -217,6 +224,7 @@ export default function ReviewDetailsScreen() {
             <CommentThread
               comment={item}
               authorFor={authorFor}
+              onPressAuthor={openProfile}
               voteFor={voteFor}
               canVote={(authorId) => authorId !== me.id}
               onVote={(id, choice) => toggleVote(me.id, 'comment', id, choice)}

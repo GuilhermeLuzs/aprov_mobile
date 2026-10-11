@@ -13,9 +13,6 @@ export const currentUser: User = {
   badges: [],
   reviewCount: 0,
   agreementsReceived: 0,
-  followerCount: 0,
-  followingCount: 0,
-  followedByCurrentUser: false,
   joinedAt: '2026-10-01T10:00:00.000Z',
 };
 
@@ -34,9 +31,6 @@ export const users: User[] = [
     badges: [],
     reviewCount: 4,
     agreementsReceived: 21,
-    followerCount: 6,
-    followingCount: 40,
-    followedByCurrentUser: true,
     joinedAt: '2025-07-02T18:30:00.000Z',
   },
   {
@@ -60,9 +54,6 @@ export const users: User[] = [
     ],
     reviewCount: 19,
     agreementsReceived: 402,
-    followerCount: 54,
-    followingCount: 12,
-    followedByCurrentUser: false,
     joinedAt: '2025-03-11T08:15:00.000Z',
   },
   {
@@ -86,9 +77,6 @@ export const users: User[] = [
     ],
     reviewCount: 23,
     agreementsReceived: 712,
-    followerCount: 190,
-    followingCount: 61,
-    followedByCurrentUser: true,
     joinedAt: '2025-02-28T20:00:00.000Z',
   },
   {
@@ -104,9 +92,6 @@ export const users: User[] = [
     badges: [],
     reviewCount: 31,
     agreementsReceived: 988,
-    followerCount: 143,
-    followingCount: 77,
-    followedByCurrentUser: false,
     joinedAt: '2025-01-25T11:30:00.000Z',
   },
   {
@@ -122,9 +107,6 @@ export const users: User[] = [
     badges: [],
     reviewCount: 1,
     agreementsReceived: 2,
-    followerCount: 0,
-    followingCount: 3,
-    followedByCurrentUser: false,
     joinedAt: '2025-08-25T09:00:00.000Z',
   },
   {
@@ -148,9 +130,6 @@ export const users: User[] = [
     ],
     reviewCount: 26,
     agreementsReceived: 545,
-    followerCount: 71,
-    followingCount: 34,
-    followedByCurrentUser: false,
     joinedAt: '2025-03-05T15:20:00.000Z',
   },
   {
@@ -166,9 +145,6 @@ export const users: User[] = [
     badges: [],
     reviewCount: 12,
     agreementsReceived: 176,
-    followerCount: 28,
-    followingCount: 19,
-    followedByCurrentUser: false,
     joinedAt: '2025-04-30T22:00:00.000Z',
   },
   {
@@ -192,9 +168,6 @@ export const users: User[] = [
     ],
     reviewCount: 38,
     agreementsReceived: 1103,
-    followerCount: 260,
-    followingCount: 52,
-    followedByCurrentUser: true,
     joinedAt: '2025-02-14T12:45:00.000Z',
   },
   {
@@ -210,9 +183,6 @@ export const users: User[] = [
     badges: [],
     reviewCount: 9,
     agreementsReceived: 63,
-    followerCount: 11,
-    followingCount: 8,
-    followedByCurrentUser: false,
     joinedAt: '2025-05-22T17:00:00.000Z',
   },
 ];

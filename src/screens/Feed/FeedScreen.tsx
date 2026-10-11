@@ -6,13 +6,14 @@ import { EmptyState, ReviewPost } from '../../components';
 import { colors, size, space, type } from '../../theme';
 import { companies, products, reviews } from '../../mocks';
 import type { Review } from '../../types';
-import { useFollowing } from '../../store/follows';
+import { followingOf, useFollows } from '../../store/follows';
 import { useReviewDisplay } from '../../store/interactions';
 import { usePreferences } from '../../store/preferences';
 import { usePublishedReviews } from '../../store/publishedReviews';
 import { findUser, useCurrentUser } from '../../store/session';
 import { sortFeed, spaceAuthors } from '../../utils/feed';
 import type { FeedStackNavigation } from '../../navigation/types';
+import { useOpenProfile } from '../UserProfile/useOpenProfile';
 
 const BATCH_SIZE = 10;
 const AUTHOR_GAP = 5;
@@ -44,9 +45,10 @@ export default function FeedScreen() {
   const listRef = useRef<FlatList<Review>>(null);
   const me = useCurrentUser();
   const display = useReviewDisplay(me.id);
+  const openProfile = useOpenProfile();
   const published = usePublishedReviews();
   const preferences = usePreferences();
-  const following = useFollowing();
+  const following = followingOf(useFollows(), me.id);
   const [tab, setTab] = useState<FeedTab>('forYou');
   const [loaded, setLoaded] = useState(BATCH_SIZE);
   const [refreshing, setRefreshing] = useState(false);
@@ -118,6 +120,7 @@ export default function FeedScreen() {
               author={author}
               product={product}
               company={company}
+              onPressAuthor={() => openProfile(author.id)}
               onPressProduct={() => navigation.navigate('ProductDetails', { productId: product.id })}
               onPressBody={() => navigation.navigate('ReviewDetails', { reviewId: item.id })}
             />

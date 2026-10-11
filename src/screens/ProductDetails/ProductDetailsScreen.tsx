@@ -14,14 +14,12 @@ import { companies, products, reviews } from '../../mocks';
 import { usePublishedReviews } from '../../store/publishedReviews';
 import { findUser, useCurrentUser } from '../../store/session';
 import { useReviewDisplay } from '../../store/interactions';
+import { byNewest } from '../../utils/date';
 import { formatInt } from '../../utils/format';
 import type { ProductDetailsNavigation, ProductDetailsParamList } from '../../navigation/types';
+import { useOpenProfile } from '../UserProfile/useOpenProfile';
 
 const REVIEWS_PER_PAGE = 5;
-
-function byNewest(a: { createdAt: string }, b: { createdAt: string }): number {
-  return Date.parse(b.createdAt) - Date.parse(a.createdAt);
-}
 
 export default function ProductDetailsScreen() {
   const route = useRoute<RouteProp<ProductDetailsParamList, 'ProductDetails'>>();
@@ -30,6 +28,7 @@ export default function ProductDetailsScreen() {
   const published = usePublishedReviews();
   const me = useCurrentUser();
   const display = useReviewDisplay(me.id);
+  const openProfile = useOpenProfile();
   const [page, setPage] = useState(1);
 
   const product = products.find((p) => p.id === productId);
@@ -128,6 +127,7 @@ export default function ProductDetailsScreen() {
               company={company}
               showProduct={false}
               highlight={item.authorId === me.id && publishedIds.has(item.id) ? 'Sua avaliação' : undefined}
+              onPressAuthor={() => openProfile(author.id)}
               onPressBody={() => navigation.navigate('ReviewDetails', { reviewId: item.id })}
             />
           </View>

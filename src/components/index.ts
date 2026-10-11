@@ -10,6 +10,7 @@ export { MauricioBubble } from './MauricioBubble';
 export { StarRating } from './StarRating';
 export type { StarSize } from './StarRating';
 export { VoteBar } from './VoteBar';
+export { ProfileSummary } from './ProfileSummary';
 export type { VoteState } from './VoteBar';
 export { CommentThread } from './CommentThread';
 export { CommentComposer } from './CommentComposer';

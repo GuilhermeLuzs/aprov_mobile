@@ -1,7 +1,15 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { ItemListScreen, ProductDetailsScreen, ReviewDetailsScreen, ProfileScreen, WalletScreen } from '../screens';
+import {
+  FollowListScreen,
+  ItemListScreen,
+  ProductDetailsScreen,
+  ProfileScreen,
+  ReviewDetailsScreen,
+  UserProfileScreen,
+  WalletScreen,
+} from '../screens';
 import type { ProfileStackParamList } from './types';
-import { stackScreenOptions } from './navTheme';
+import { followListTitle, stackScreenOptions } from './navTheme';
 
 const Stack = createNativeStackNavigator<ProfileStackParamList>();
 
@@ -20,6 +28,16 @@ export function ProfileStackNavigator() {
         name="ReviewDetails"
         component={ReviewDetailsScreen}
         options={{ title: 'Avaliação' }}
+      />
+      <Stack.Screen
+        name="UserProfile"
+        component={UserProfileScreen}
+        options={{ title: 'Perfil' }}
+      />
+      <Stack.Screen
+        name="FollowList"
+        component={FollowListScreen}
+        options={({ route }) => ({ title: followListTitle(route.params.kind) })}
       />
     </Stack.Navigator>
   );

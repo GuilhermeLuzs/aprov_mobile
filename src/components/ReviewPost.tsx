@@ -18,6 +18,7 @@ type Props = {
   highlight?: string;
   vote?: VoteState;
   onVote?: (choice: 'agree' | 'disagree') => void;
+  onPressAuthor?: () => void;
   onPressProduct?: () => void;
   onPressBody?: () => void;
   onOpenPhoto?: (mediaId: string) => void;
@@ -34,6 +35,7 @@ export function ReviewPost({
   highlight,
   vote = null,
   onVote,
+  onPressAuthor,
   onPressProduct,
   onPressBody,
   onOpenPhoto,
@@ -47,15 +49,23 @@ export function ReviewPost({
     <View style={styles.post}>
       {showAuthor ? (
         <View style={styles.header}>
-          <Avatar uri={author.avatarUri} name={author.name} size="md" bordered />
-          <View style={styles.headerText}>
-            <Text style={styles.name} numberOfLines={1}>
-              {author.name}
-            </Text>
-            <Text style={styles.sub}>
-              Nível {author.level} · {formatRelativeTime(review.createdAt)}
-            </Text>
-          </View>
+          <Pressable
+            style={styles.author}
+            onPress={onPressAuthor}
+            disabled={!onPressAuthor}
+            accessibilityRole={onPressAuthor ? 'link' : undefined}
+            accessibilityLabel={onPressAuthor ? `Ver perfil de ${author.name}` : undefined}
+          >
+            <Avatar uri={author.avatarUri} name={author.name} size="md" bordered />
+            <View style={styles.headerText}>
+              <Text style={styles.name} numberOfLines={1}>
+                {author.name}
+              </Text>
+              <Text style={styles.sub}>
+                Nível {author.level} · {formatRelativeTime(review.createdAt)}
+              </Text>
+            </View>
+          </Pressable>
           {highlight ? <Chip label={highlight} size="sm" selected /> : null}
         </View>
       ) : null}
@@ -124,6 +134,12 @@ const styles = StyleSheet.create({
     gap: space.md,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+  },
+  author: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: space.sm,

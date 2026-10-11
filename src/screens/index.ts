@@ -11,6 +11,8 @@ export { default as ProductDetailsScreen } from './ProductDetails/ProductDetails
 export { default as FeedScreen } from './Feed/FeedScreen';
 export { default as ReviewDetailsScreen } from './ReviewDetails/ReviewDetailsScreen';
 export { default as ProfileScreen } from './Profile/ProfileScreen';
+export { default as UserProfileScreen } from './UserProfile/UserProfileScreen';
+export { default as FollowListScreen } from './UserProfile/FollowListScreen';
 export { default as WalletScreen } from './Profile/WalletScreen';
 export { default as ItemListScreen } from './Profile/ItemListScreen';
 export { default as CreateReviewScreen } from './CreateReview/CreateReviewScreen';

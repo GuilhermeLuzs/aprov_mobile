@@ -17,25 +17,32 @@ export type ProductDetailsParamList = {
   ProductDetails: { productId: string };
 };
 
+export type FollowListKind = 'followers' | 'following';
+
+export type PeopleParamList = {
+  UserProfile: { userId: string };
+  FollowList: { userId: string; kind: FollowListKind };
+};
+
 export type ReviewDetailsParamList = {
   ReviewDetails: { reviewId: string };
   ProductDetails: { productId: string };
 };
 
-export type HomeStackParamList = ProductDetailsParamList & {
+export type HomeStackParamList = ProductDetailsParamList & PeopleParamList & {
   ReviewDetails: { reviewId: string };
   Home: undefined;
   CompanyCatalog: { companyId: string };
 };
 
-export type FeedStackParamList = ProductDetailsParamList & {
+export type FeedStackParamList = ProductDetailsParamList & PeopleParamList & {
   ReviewDetails: { reviewId: string };
   Feed: undefined;
 };
 
 export type ItemListKind = 'saved' | 'purchased';
 
-export type ProfileStackParamList = ProductDetailsParamList & {
+export type ProfileStackParamList = ProductDetailsParamList & PeopleParamList & {
   ReviewDetails: { reviewId: string };
   Profile: undefined;
   Wallet: undefined;
@@ -73,12 +80,20 @@ export type ProfileStackNavigation<T extends keyof ProfileStackParamList> = Comp
 >;
 
 export type ProductDetailsNavigation = CompositeNavigationProp<
-  NativeStackNavigationProp<ProductDetailsParamList & ReviewDetailsParamList, 'ProductDetails'>,
+  NativeStackNavigationProp<
+    ProductDetailsParamList & ReviewDetailsParamList & PeopleParamList,
+    'ProductDetails'
+  >,
   NativeStackNavigationProp<RootStackParamList>
 >;
 
 export type ReviewDetailsNavigation = CompositeNavigationProp<
-  NativeStackNavigationProp<ReviewDetailsParamList, 'ReviewDetails'>,
+  NativeStackNavigationProp<ReviewDetailsParamList & PeopleParamList, 'ReviewDetails'>,
+  NativeStackNavigationProp<RootStackParamList>
+>;
+
+export type PeopleNavigation<T extends keyof PeopleParamList> = CompositeNavigationProp<
+  NativeStackNavigationProp<PeopleParamList & ReviewDetailsParamList, T>,
   NativeStackNavigationProp<RootStackParamList>
 >;
 
