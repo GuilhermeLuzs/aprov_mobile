@@ -17,32 +17,18 @@ import {
 } from '../../components';
 import { colors, icon, radius, size, space, type } from '../../theme';
 import { products } from '../../mocks';
-import { useDeactivatedIds } from '../../store/deactivated';
 import { useAllReviews } from '../../store/publishedReviews';
 import { findUser, useCurrentUser } from '../../store/session';
-import {
-  addComment,
-  addReply,
-  commentTotal,
-  myVote,
-  threadOf,
-  toggleVote,
-  useInteractions,
-  useReviewDisplay,
-  withVote,
-} from '../../store/interactions';
-import { REVIEW_CHARACTERISTIC_LABEL, type Comment } from '../../types';
+import { useReviewDisplay } from '../../store/interactions';
+import { REVIEW_CHARACTERISTIC_LABEL } from '../../types';
 import { formatInt, formatRating } from '../../utils/format';
 import { formatRelativeTime } from '../../utils/date';
 import type { ReviewDetailsNavigation, ReviewDetailsParamList } from '../../navigation/types';
 import { useOpenProfile } from '../UserProfile/useOpenProfile';
+import { useOpenMedia } from '../Media/useOpenMedia';
+import { COMMENT_MAX_LENGTH, useReviewComments } from './useReviewComments';
 
 const COMMENTS_STEP = 5;
-const COMMENT_MAX_LENGTH = 500;
-
-function byRelevance(a: Comment, b: Comment): number {
-  return b.agreements - a.agreements || Date.parse(b.createdAt) - Date.parse(a.createdAt);
-}
 
 export default function ReviewDetailsScreen() {
   const route = useRoute<RouteProp<ReviewDetailsParamList, 'ReviewDetails'>>();
@@ -51,15 +37,13 @@ export default function ReviewDetailsScreen() {
   const insets = useSafeAreaInsets();
   const me = useCurrentUser();
   const allReviews = useAllReviews();
-  const hiddenAuthorIds = useDeactivatedIds();
-  const interactions = useInteractions();
   const display = useReviewDisplay(me.id);
+  const openMedia = useOpenMedia();
   const openProfile = useOpenProfile();
   const [visibleCount, setVisibleCount] = useState(COMMENTS_STEP);
-  const [draft, setDraft] = useState('');
-  const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
 
   const base = allReviews.find((r) => r.id === reviewId);
+  const comments = useReviewComments(base);
   const product = base ? products.find((p) => p.id === base.productId) : undefined;
 
   if (!base || !product) {
@@ -76,27 +60,9 @@ export default function ReviewDetailsScreen() {
 
   const { review, vote, onVote } = display(base);
   const author = base.authorId === me.id ? me : findUser(base.authorId);
-  const authorFor = (id: string) => (id === me.id ? me : findUser(id));
-  const voteFor = (id: string) => myVote(interactions, me.id, 'comment', id);
-
-  const thread = threadOf(interactions, base, hiddenAuthorIds)
-    .map((comment) => ({
-      ...withVote(comment, voteFor(comment.id)),
-      replies: comment.replies.map((reply) => withVote(reply, voteFor(reply.id))),
-    }))
-    .sort(byRelevance);
-  const total = commentTotal(thread);
+  const { thread, total } = comments;
   const visible = thread.slice(0, visibleCount);
   const question = product.kind === 'service' ? 'Contrataria novamente?' : 'Compraria novamente?';
-
-  const send = () => {
-    const text = draft.trim();
-    if (text === '') return;
-    if (replyingTo) addReply(replyingTo.id, me.id, text);
-    else addComment(base.id, me.id, text);
-    setDraft('');
-    setReplyingTo(null);
-  };
 
   const header = (
     <View style={styles.body}>
@@ -111,7 +77,7 @@ export default function ReviewDetailsScreen() {
           <Text style={styles.authorName} numberOfLines={1}>
             {author?.name ?? 'Usuário'}
           </Text>
-          <Text style={styles.muted}>
+          <Text style={styles.muted} numberOfLines={1}>
             Nível {author?.level ?? 1} · {formatRelativeTime(review.createdAt)}
           </Text>
         </View>
@@ -167,7 +133,10 @@ export default function ReviewDetailsScreen() {
 
       {review.media[0] ? (
         <View style={styles.section}>
-          <ReviewMedia media={review.media[0]} />
+          <ReviewMedia
+            media={review.media}
+            onOpen={(index) => openMedia([review.id], review.id, index)}
+          />
         </View>
       ) : null}
 
@@ -225,12 +194,12 @@ export default function ReviewDetailsScreen() {
           <View style={styles.body}>
             <CommentThread
               comment={item}
-              authorFor={authorFor}
+              authorFor={comments.authorFor}
               onPressAuthor={openProfile}
-              voteFor={voteFor}
-              canVote={(authorId) => authorId !== me.id}
-              onVote={(id, choice) => toggleVote(me.id, 'comment', id, choice)}
-              onReply={setReplyingTo}
+              voteFor={comments.voteFor}
+              canVote={comments.canVote}
+              onVote={comments.vote}
+              onReply={comments.setReplyingTo}
             />
           </View>
         )}
@@ -260,11 +229,11 @@ export default function ReviewDetailsScreen() {
       />
 
       <CommentComposer
-        value={draft}
-        onChangeText={setDraft}
-        onSend={send}
-        replyingTo={replyingTo ? authorFor(replyingTo.authorId)?.name ?? 'Usuário' : undefined}
-        onCancelReply={() => setReplyingTo(null)}
+        value={comments.draft}
+        onChangeText={comments.setDraft}
+        onSend={comments.send}
+        replyingTo={comments.replyingToName}
+        onCancelReply={() => comments.setReplyingTo(null)}
         maxLength={COMMENT_MAX_LENGTH}
       />
     </KeyboardAvoidingView>

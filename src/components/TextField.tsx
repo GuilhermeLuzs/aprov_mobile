@@ -9,7 +9,7 @@ import {
   type TextInputProps,
 } from 'react-native';
 import { Eye, EyeOff } from 'lucide-react-native';
-import { colors, icon, radius, size, space, type } from '../theme';
+import { colors, icon, noFocusOutline, radius, size, space, type } from '../theme';
 
 type Props = {
   label: string;
@@ -126,6 +126,7 @@ const styles = StyleSheet.create({
   fieldFocused: { borderColor: colors.primary },
   fieldError: { borderColor: colors.disagree },
   input: {
+    ...noFocusOutline,
     flex: 1,
     paddingVertical: space.sm,
     fontFamily: type.body.family,

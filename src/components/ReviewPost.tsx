@@ -21,8 +21,7 @@ type Props = {
   onPressAuthor?: () => void;
   onPressProduct?: () => void;
   onPressBody?: () => void;
-  onOpenPhoto?: (mediaId: string) => void;
-  onOpenVideo?: () => void;
+  onOpenMedia?: (index: number) => void;
 };
 
 export function ReviewPost({
@@ -38,10 +37,8 @@ export function ReviewPost({
   onPressAuthor,
   onPressProduct,
   onPressBody,
-  onOpenPhoto,
-  onOpenVideo,
+  onOpenMedia,
 }: Props) {
-  const media = review.media[0];
   const hasTags = review.positiveTags.length + review.negativeTags.length > 0;
   const comment = review.comment.trim();
 
@@ -61,7 +58,7 @@ export function ReviewPost({
               <Text style={styles.name} numberOfLines={1}>
                 {author.name}
               </Text>
-              <Text style={styles.sub}>
+              <Text style={styles.sub} numberOfLines={1}>
                 Nível {author.level} · {formatRelativeTime(review.createdAt)}
               </Text>
             </View>
@@ -85,7 +82,7 @@ export function ReviewPost({
         <StarRating value={review.averageRating} size="sm" showValue />
       </Pressable>
 
-      {media ? <ReviewMedia media={media} onExpand={onOpenPhoto} onPlay={onOpenVideo} /> : null}
+      {review.media.length > 0 ? <ReviewMedia media={review.media} onOpen={onOpenMedia} /> : null}
 
       <Pressable
         onPress={onPressBody}

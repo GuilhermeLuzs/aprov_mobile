@@ -13,15 +13,16 @@ import {
 import { Play } from 'lucide-react-native';
 import { colors, icon, radius, size, space, type } from '../theme';
 import type { Media } from '../types';
+import { slidesOf, type MediaSlide } from '../utils/media';
 
 type Props = {
-  media: Media;
-  onExpand?: (mediaId: string) => void;
-  onPlay?: () => void;
+  media: Media[];
+  onOpen?: (index: number) => void;
 };
 
 const SIDE_TAP_FLEX = 3;
 const CENTER_TAP_FLEX = 4;
+const SINGLE_PHOTO_FALLBACK_RATIO = 4 / 3;
 
 function formatDuration(totalSeconds: number): string {
   const minutes = Math.floor(totalSeconds / 60);
@@ -29,61 +30,70 @@ function formatDuration(totalSeconds: number): string {
   return `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
 
-export function ReviewMedia({ media, onExpand, onPlay }: Props) {
+function SlideContent({ slide }: { slide: MediaSlide }) {
+  if (slide.kind === 'photo') {
+    return <Image source={{ uri: slide.uri }} style={StyleSheet.absoluteFill} resizeMode="cover" />;
+  }
+  return (
+    <>
+      <View style={[StyleSheet.absoluteFill, styles.videoBackdrop]} />
+      {slide.thumbnailUri ? (
+        <Image source={{ uri: slide.thumbnailUri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+      ) : null}
+      <View style={styles.videoCenter} pointerEvents="none">
+        <View style={styles.playCircle}>
+          <Play size={icon.size.lg} color={colors.surface} fill={colors.surface} />
+        </View>
+      </View>
+      <View style={styles.durationBadge} pointerEvents="none">
+        <Text style={styles.durationText}>{formatDuration(slide.durationSeconds)}</Text>
+      </View>
+    </>
+  );
+}
+
+export function ReviewMedia({ media, onOpen }: Props) {
   const window = useWindowDimensions();
   const [width, setWidth] = useState(window.width - space.lg * 2);
   const [index, setIndex] = useState(0);
   const indexRef = useRef(0);
   const listRef = useRef<FlatList>(null);
+  const slides = slidesOf(media);
 
-  if (media.type === 'photo') {
-    const ratio = media.width && media.height ? media.width / media.height : 4 / 3;
+  if (slides.length === 0) return null;
+
+  if (slides.length === 1) {
+    const slide = slides[0];
+    const ratio =
+      slide.kind === 'video'
+        ? styles.videoRatio.aspectRatio
+        : slide.width && slide.height
+          ? slide.width / slide.height
+          : SINGLE_PHOTO_FALLBACK_RATIO;
     return (
       <Pressable
-        style={styles.frame}
-        onPress={() => onExpand?.(media.id)}
-        disabled={!onExpand}
-        accessibilityRole={onExpand ? 'button' : 'image'}
-        accessibilityLabel="Foto da avaliação"
+        style={[styles.frame, { aspectRatio: ratio }]}
+        onPress={() => onOpen?.(0)}
+        disabled={!onOpen}
+        accessibilityRole={onOpen ? 'button' : 'image'}
+        accessibilityLabel={slide.kind === 'video' ? 'Vídeo da avaliação' : 'Foto da avaliação'}
       >
-        <Image source={{ uri: media.uri }} style={[styles.full, { aspectRatio: ratio }]} resizeMode="cover" />
+        <SlideContent slide={slide} />
       </Pressable>
     );
   }
 
-  if (media.type === 'video') {
-    return (
-      <Pressable
-        style={styles.frame}
-        onPress={onPlay}
-        disabled={!onPlay}
-        accessibilityRole={onPlay ? 'button' : 'image'}
-        accessibilityLabel="Vídeo da avaliação"
-      >
-        <View style={[styles.full, styles.videoFrame]}>
-          {media.thumbnailUri ? (
-            <Image source={{ uri: media.thumbnailUri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
-          ) : null}
-          <View style={styles.playCircle}>
-            <Play size={icon.size.lg} color={colors.surface} fill={colors.surface} />
-          </View>
-        </View>
-        <View style={styles.durationBadge}>
-          <Text style={styles.durationText}>{formatDuration(media.durationSeconds)}</Text>
-        </View>
-      </Pressable>
-    );
-  }
-
-  const lastIndex = media.items.length - 1;
+  const lastIndex = slides.length - 1;
 
   const showIndex = (next: number) => {
     indexRef.current = next;
     setIndex(next);
   };
 
-  const onScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    if (width > 0) showIndex(Math.round(e.nativeEvent.contentOffset.x / width));
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (width <= 0) return;
+    const next = Math.round(e.nativeEvent.contentOffset.x / width);
+    if (next !== indexRef.current) showIndex(next);
   };
 
   const goTo = (target: number) => {
@@ -102,27 +112,31 @@ export function ReviewMedia({ media, onExpand, onPlay }: Props) {
         pagingEnabled
         nestedScrollEnabled
         showsHorizontalScrollIndicator={false}
-        data={media.items}
-        keyExtractor={(_, i) => String(i)}
+        data={slides}
+        keyExtractor={(slide, i) => `${i}-${slide.uri}`}
         getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
-        onMomentumScrollEnd={onScrollEnd}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         extraData={index}
         renderItem={({ item, index: itemIndex }) => (
           <View
-            style={[styles.carouselImage, { width }]}
+            style={[styles.carouselSlide, { width }]}
             accessible
             accessibilityRole="adjustable"
-            accessibilityLabel={`Mídia ${itemIndex + 1} de ${media.items.length}`}
-            accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
-            onAccessibilityAction={(e) => step(e.nativeEvent.actionName === 'increment' ? 1 : -1)}
+            accessibilityLabel={`Mídia ${itemIndex + 1} de ${slides.length}${item.kind === 'video' ? ', vídeo' : ''}`}
+            accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }, { name: 'activate' }]}
+            onAccessibilityAction={(e) => {
+              if (e.nativeEvent.actionName === 'activate') onOpen?.(itemIndex);
+              else step(e.nativeEvent.actionName === 'increment' ? 1 : -1);
+            }}
           >
-            <Image source={{ uri: item.uri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+            <SlideContent slide={item} />
             <View style={styles.tapZones}>
               <Pressable style={styles.sideZone} onPress={() => step(-1)} />
               <Pressable
                 style={styles.centerZone}
-                onPress={() => onExpand?.(media.id)}
-                disabled={!onExpand}
+                onPress={() => onOpen?.(itemIndex)}
+                disabled={!onOpen}
               />
               <Pressable style={styles.sideZone} onPress={() => step(1)} />
             </View>
@@ -131,13 +145,13 @@ export function ReviewMedia({ media, onExpand, onPlay }: Props) {
       />
 
       <View style={styles.dots}>
-        {media.items.map((_, i) => (
+        {slides.map((_, i) => (
           <Pressable
             key={i}
             onPress={() => goTo(i)}
             hitSlop={space.xs}
             accessibilityRole="button"
-            accessibilityLabel={`Ver mídia ${i + 1} de ${media.items.length}`}
+            accessibilityLabel={`Ver mídia ${i + 1} de ${slides.length}`}
           >
             <View style={[styles.dot, i === index && styles.dotOn]} />
           </Pressable>
@@ -149,16 +163,17 @@ export function ReviewMedia({ media, onExpand, onPlay }: Props) {
 
 const styles = StyleSheet.create({
   frame: {
+    width: '100%',
     borderRadius: radius.card,
     overflow: 'hidden',
     backgroundColor: colors.surfaceAlt,
   },
-  full: { width: '100%' },
-  videoFrame: {
-    aspectRatio: 16 / 9,
+  videoRatio: { aspectRatio: 16 / 9 },
+  videoBackdrop: { backgroundColor: colors.ink },
+  videoCenter: {
+    ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.ink,
   },
   playCircle: {
     width: size.playButton,
@@ -171,7 +186,7 @@ const styles = StyleSheet.create({
   durationBadge: {
     position: 'absolute',
     right: space.sm,
-    bottom: space.sm,
+    top: space.sm,
     paddingHorizontal: space.xs,
     borderRadius: radius.pill,
     backgroundColor: colors.scrim,
@@ -182,7 +197,7 @@ const styles = StyleSheet.create({
     lineHeight: type.micro.lineHeight,
     color: colors.surface,
   },
-  carouselImage: { aspectRatio: 4 / 3, backgroundColor: colors.surfaceAlt },
+  carouselSlide: { aspectRatio: 4 / 3, backgroundColor: colors.surfaceAlt },
   tapZones: { ...StyleSheet.absoluteFill, flexDirection: 'row' },
   sideZone: { flex: SIDE_TAP_FLEX },
   centerZone: { flex: CENTER_TAP_FLEX },

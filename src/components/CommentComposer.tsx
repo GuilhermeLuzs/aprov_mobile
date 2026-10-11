@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SendHorizontal, X } from 'lucide-react-native';
-import { colors, icon, radius, size, space, type } from '../theme';
+import { colors, icon, noFocusOutline, radius, size, space, type } from '../theme';
 
 type Props = {
   value: string;
@@ -86,6 +86,7 @@ const styles = StyleSheet.create({
   replyingName: { fontFamily: type.bodyBold.family, color: colors.ink },
   row: { flexDirection: 'row', alignItems: 'flex-end', gap: space.sm },
   input: {
+    ...noFocusOutline,
     flex: 1,
     minHeight: size.control,
     maxHeight: size.textArea,

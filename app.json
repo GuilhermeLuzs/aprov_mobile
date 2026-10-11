@@ -33,7 +33,8 @@
           "cameraPermission": "A APROV usa a câmera para você fotografar ou filmar o item que está avaliando.",
           "microphonePermission": "A APROV usa o microfone para gravar o som dos vídeos da sua avaliação."
         }
-      ]
+      ],
+      "expo-video"
     ]
   }
 }

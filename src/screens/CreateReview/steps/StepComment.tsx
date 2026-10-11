@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { MessageCircle } from 'lucide-react-native';
 import { MauricioBubble } from '../../../components';
-import { colors, icon, radius, size, space, type } from '../../../theme';
+import { colors, icon, noFocusOutline, radius, size, space, type } from '../../../theme';
 import type { Product } from '../../../types';
 import { COMMENT_MAX_LENGTH, type Draft } from '../draft';
 import { contextualQuestion } from '../mauricio';
@@ -70,6 +70,7 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
   },
   input: {
+    ...noFocusOutline,
     minHeight: size.textArea,
     padding: space.md,
     borderRadius: radius.control,

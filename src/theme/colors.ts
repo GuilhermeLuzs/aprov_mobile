@@ -21,6 +21,7 @@ export const colors = {
   disagree: '#CC0C5F',
   agreeDim: '#E2F2ED',
   disagreeDim: '#FBE4EE',
+  agreeHalo: 'rgba(14, 143, 110, 0.25)',
 
   botBody: '#EBEBEB',
   botJoint: '#4A4F55',
@@ -28,6 +29,8 @@ export const colors = {
   botScreen: '#F4B608',
 
   scrim: 'rgba(20, 12, 8, 0.55)',
+  mediaBackdrop: '#000000',
+  mediaControl: 'rgba(0, 0, 0, 0.45)',
 } as const;
 
 export const brandGradient = ['#E8840E', '#FACE04', '#CC0C5F'] as const;
