@@ -1,14 +1,13 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
-import { colors, icon as iconToken, radius, space, type } from '../theme';
+import { colors, icon as iconToken, radius, size, space, type } from '../theme';
+import { pageItems } from '../utils/pagination';
 
 type Props = {
   page: number;
   pageCount: number;
   onChange: (page: number) => void;
 };
-
-const DOTS_LIMIT = 7;
 
 export function Pagination({ page, pageCount, onChange }: Props) {
   if (pageCount <= 1) return null;
@@ -27,28 +26,33 @@ export function Pagination({ page, pageCount, onChange }: Props) {
         onPress={() => go(page - 1)}
       />
 
-      {pageCount <= DOTS_LIMIT ? (
-        <View style={styles.dots}>
-          {Array.from({ length: pageCount }, (_, i) => {
-            const n = i + 1;
-            const active = n === page;
-            return (
-              <Pressable
-                key={n}
-                hitSlop={12}
-                onPress={() => go(n)}
-                accessibilityRole="button"
-                accessibilityState={{ selected: active }}
-                accessibilityLabel={`Página ${n}`}
-              >
-                <View style={[styles.dot, active ? styles.dotOn : styles.dotOff]} />
-              </Pressable>
-            );
-          })}
-        </View>
-      ) : (
-        <Text style={styles.label}>{`página ${page} de ${pageCount}`}</Text>
-      )}
+      {pageItems(page, pageCount).map((item, i) => {
+        if (item === 'gap') {
+          return (
+            <Text key={`gap-${i}`} style={styles.gap} accessibilityElementsHidden>
+              …
+            </Text>
+          );
+        }
+        const active = item === page;
+        return (
+          <Pressable
+            key={item}
+            onPress={() => go(item)}
+            hitSlop={space.xs}
+            accessibilityRole="button"
+            accessibilityState={{ selected: active }}
+            accessibilityLabel={active ? `Página ${item}, atual` : `Ir para a página ${item}`}
+            style={({ pressed }) => [
+              styles.number,
+              active && styles.numberOn,
+              pressed && !active && styles.numberPressed,
+            ]}
+          >
+            <Text style={[styles.numberText, active && styles.numberTextOn]}>{item}</Text>
+          </Pressable>
+        );
+      })}
 
       <Arrow
         Icon={ChevronRight}
@@ -72,11 +76,11 @@ function Arrow({ Icon, label, disabled, onPress }: ArrowProps) {
     <Pressable
       onPress={disabled ? undefined : onPress}
       disabled={disabled}
-      hitSlop={8}
+      hitSlop={space.xs}
       accessibilityRole="button"
       accessibilityState={{ disabled }}
       accessibilityLabel={label}
-      style={({ pressed }) => [styles.arrow, pressed && !disabled && styles.arrowPressed]}
+      style={({ pressed }) => [styles.number, pressed && !disabled && styles.numberPressed]}
     >
       <Icon
         size={iconToken.size.md}
@@ -92,32 +96,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: space.md,
+    gap: space.xs,
   },
-  arrow: {
-    width: 44,
-    height: 44,
+  number: {
+    width: size.pageButton,
+    height: size.pageButton,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: radius.control,
-  },
-  arrowPressed: { backgroundColor: colors.surfaceAlt },
-  dots: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.sm,
-  },
-  dot: {
-    width: 8,
-    height: 8,
     borderRadius: radius.pill,
   },
-  dotOn: { backgroundColor: colors.primary },
-  dotOff: { backgroundColor: colors.border },
-  label: {
-    fontFamily: type.caption.family,
-    fontSize: type.caption.size,
-    lineHeight: type.caption.lineHeight,
+  numberOn: { backgroundColor: colors.primary },
+  numberPressed: { backgroundColor: colors.surfaceAlt },
+  numberText: {
+    fontFamily: type.numeric.family,
+    fontSize: type.body.size,
+    lineHeight: type.body.lineHeight,
+    color: colors.ink,
+  },
+  numberTextOn: { color: colors.surface },
+  gap: {
+    width: size.pageButton,
+    textAlign: 'center',
+    fontFamily: type.body.family,
+    fontSize: type.body.size,
+    lineHeight: type.body.lineHeight,
     color: colors.inkMuted,
   },
 });
