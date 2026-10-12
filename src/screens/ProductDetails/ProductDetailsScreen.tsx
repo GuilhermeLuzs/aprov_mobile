@@ -3,6 +3,7 @@ import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import {
   Button,
+  Chip,
   EmptyState,
   ItemToggles,
   Pagination,
@@ -12,6 +13,7 @@ import {
 } from '../../components';
 import { colors, space, type } from '../../theme';
 import { companies, products } from '../../mocks';
+import { CATEGORY_LABEL, PRODUCT_KIND_LABEL } from '../../types';
 import { useAllReviews, usePublishedReviews } from '../../store/publishedReviews';
 import { findUser, useCurrentUser } from '../../store/session';
 import { useReviewDisplay } from '../../store/interactions';
@@ -20,6 +22,7 @@ import { ratingStats } from '../../utils/rating';
 import { formatInt } from '../../utils/format';
 import type { ProductDetailsNavigation, ProductDetailsParamList } from '../../navigation/types';
 import { togglePurchased, toggleSaved, useUserItems } from '../../store/userItems';
+import { CATEGORY_ICON } from '../Onboarding/options';
 import { useOpenProfile } from '../UserProfile/useOpenProfile';
 import { useOpenMedia } from '../Media/useOpenMedia';
 import { useReport } from '../Report/useReport';
@@ -88,6 +91,15 @@ export default function ProductDetailsScreen() {
 
       <View style={styles.body}>
         <Text style={styles.title}>{product.title}</Text>
+
+        <View style={styles.classification}>
+          <Chip label={PRODUCT_KIND_LABEL[product.kind]} size="sm" />
+          <Chip
+            label={CATEGORY_LABEL[product.category]}
+            icon={CATEGORY_ICON[product.category]}
+            size="sm"
+          />
+        </View>
 
         <View style={styles.statsRow}>
           {reviewCount > 0 ? (
@@ -196,6 +208,7 @@ const styles = StyleSheet.create({
     lineHeight: type.title.lineHeight,
     color: colors.ink,
   },
+  classification: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, marginTop: space.sm },
   statsRow: {
     marginTop: space.sm,
     flexDirection: 'row',

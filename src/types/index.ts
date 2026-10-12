@@ -1,6 +1,7 @@
 export type { Category, Company } from './company';
 export { CATEGORY_LABEL } from './company';
 export type { Product, ProductKind } from './product';
+export { PRODUCT_KIND_LABEL } from './product';
 export type { Review, ReviewCharacteristic, ReviewCharacteristicKey } from './review';
 export {
   REVIEW_CHARACTERISTIC_LABEL,

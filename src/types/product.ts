@@ -2,6 +2,11 @@ import type { Category } from './company';
 
 export type ProductKind = 'product' | 'service';
 
+export const PRODUCT_KIND_LABEL: Record<ProductKind, string> = {
+  product: 'Produto',
+  service: 'Serviço',
+};
+
 export interface Product {
   id: string;
   companyId: string;
