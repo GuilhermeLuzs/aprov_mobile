@@ -12,7 +12,7 @@ export interface Product {
   id: string;
   companyId: string;
   kind: ProductKind;
-  category: Category;
+  categories: Category[];
   title: string;
   description: string;
   imageUri: string;

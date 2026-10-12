@@ -63,7 +63,7 @@ export default function FeedScreen() {
     if (!product) return false;
     return (
       preferences.companyIds.includes(product.companyId) ||
-      preferences.categories.includes(product.category)
+      product.categories.some((c) => preferences.categories.includes(c))
     );
   };
 

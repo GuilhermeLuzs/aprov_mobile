@@ -101,11 +101,14 @@ export default function ProductDetailsScreen() {
 
         <View style={styles.classification}>
           <Chip label={PRODUCT_KIND_LABEL[product.kind]} size="sm" />
-          <Chip
-            label={CATEGORY_LABEL[product.category]}
-            icon={CATEGORY_ICON[product.category]}
-            size="sm"
-          />
+          {product.categories.map((category) => (
+            <Chip
+              key={category}
+              label={CATEGORY_LABEL[category]}
+              icon={CATEGORY_ICON[category]}
+              size="sm"
+            />
+          ))}
         </View>
 
         <View style={styles.statsRow}>

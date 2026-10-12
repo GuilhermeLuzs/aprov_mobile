@@ -23,7 +23,7 @@ export function StepTags({ draft, update, product, bonus }: Props) {
   const ratingFor = (tag: Tag) => draft.characteristics[tag.characteristic] || NEUTRAL_RATING;
 
   const forCategory = allTags.filter(
-    (t) => t.categories.length === 0 || t.categories.includes(product.category),
+    (t) => t.categories.length === 0 || t.categories.some((c) => product.categories.includes(c)),
   );
   const positive = forCategory
     .filter((t) => t.sentiment === 'positive')

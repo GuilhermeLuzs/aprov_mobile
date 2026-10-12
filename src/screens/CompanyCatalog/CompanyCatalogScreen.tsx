@@ -45,14 +45,17 @@ export default function CompanyCatalogScreen() {
   const companyProducts = products.filter((p) => p.companyId === companyId);
 
   const availableCategories = companyProducts.reduce<Category[]>(
-    (acc, p) => (acc.includes(p.category) ? acc : [...acc, p.category]),
+    (acc, p) => [...acc, ...p.categories.filter((c) => !acc.includes(c))],
     [],
   );
 
   const filtered = companyProducts
     .filter((p) => matchesSearch(p.title, query))
     .filter((p) => filters.kinds.length === 0 || filters.kinds.includes(p.kind))
-    .filter((p) => filters.categories.length === 0 || filters.categories.includes(p.category))
+    .filter(
+      (p) =>
+        filters.categories.length === 0 || p.categories.some((c) => filters.categories.includes(c)),
+    )
     .sort(byRating);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
@@ -98,11 +101,7 @@ export default function CompanyCatalogScreen() {
       <TopBar onBack={() => navigation.goBack()}>
         <View style={styles.searchRow}>
           <View style={styles.searchField}>
-            <SearchBar
-              placeholder="Buscar no catálogo"
-              value={query}
-              onChangeText={changeQuery}
-            />
+            <SearchBar placeholder="Buscar no catálogo" value={query} onChangeText={changeQuery} />
           </View>
           <FilterButton
             activeCount={activeFilterCount}
@@ -145,7 +144,9 @@ export default function CompanyCatalogScreen() {
         ListEmptyComponent={
           filtering ? (
             <EmptyState
-              title={searching ? `Nada encontrado para "${query.trim()}"` : 'Nada com esses filtros'}
+              title={
+                searching ? `Nada encontrado para "${query.trim()}"` : 'Nada com esses filtros'
+              }
               description="Confira a escrita ou tire um filtro."
               action={{ label: 'Limpar busca e filtros', onPress: clearAll }}
             />

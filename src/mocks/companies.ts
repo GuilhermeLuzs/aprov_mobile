@@ -37,7 +37,7 @@ export const companies: Company[] = [
     logoUri: 'https://picsum.photos/seed/aprov-logo-bhering/160/160',
     description:
       'Skincare, maquiagem e acessórios autorais, com curso online de automaquiagem.',
-    categories: ['beleza', 'moda', 'educacao'],
+    categories: ['beleza', 'moda', 'educacao', 'saude'],
     coinName: 'BheringGlow',
     coinIcon: 'sparkles',
     coinColor: '#BE185D',
@@ -122,7 +122,7 @@ export const companies: Company[] = [
     name: 'Tora Marcenaria e Móveis Planejados Sob Medida',
     logoUri: 'https://picsum.photos/seed/aprov-logo-tora/160/160',
     description: 'Móveis planejados em madeira maciça e MDF, com projeto 3D e montagem inclusos.',
-    categories: ['casa'],
+    categories: ['casa', 'servicos_domesticos'],
     coinName: 'ToraCoins',
     coinIcon: 'hammer',
     coinColor: '#57534E',
