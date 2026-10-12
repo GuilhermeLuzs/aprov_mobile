@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { FlatList, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { FlatList, Image, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import {
   CatalogFilterSheet,
-  CompanyCard,
   EMPTY_CATALOG_FILTERS,
   EmptyState,
   FilterButton,
@@ -14,7 +13,7 @@ import {
   countCatalogFilters,
   type CatalogFilters,
 } from '../../components';
-import { colors, space } from '../../theme';
+import { colors, radius, size, space, type } from '../../theme';
 import { companies } from '../../mocks';
 import { useProductsWithStats } from '../../store/publishedReviews';
 import type { Category, Product } from '../../types';
@@ -121,7 +120,14 @@ export default function CompanyCatalogScreen() {
         contentContainerStyle={styles.content}
         ListHeaderComponent={
           <View style={styles.companyHeader}>
-            <CompanyCard company={company} />
+            <Image
+              source={{ uri: company.logoUri }}
+              style={styles.companyLogo}
+              accessibilityIgnoresInvertColors
+            />
+            <Text style={styles.companyName} accessibilityRole="header">
+              {company.name}
+            </Text>
           </View>
         }
         renderItem={({ item }) => (
@@ -189,7 +195,27 @@ const styles = StyleSheet.create({
     gap: space.sm,
   },
   searchField: { flex: 1 },
-  companyHeader: { marginBottom: space.lg },
+  companyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+    marginBottom: space.lg,
+  },
+  companyLogo: {
+    width: size.companyLogo,
+    height: size.companyLogo,
+    borderRadius: radius.control,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceAlt,
+  },
+  companyName: {
+    flex: 1,
+    fontFamily: type.subtitle.family,
+    fontSize: type.subtitle.size,
+    lineHeight: type.subtitle.lineHeight,
+    color: colors.ink,
+  },
   row: { gap: space.md, marginBottom: space.md },
   pagination: { marginTop: space.lg },
 });

@@ -11,6 +11,7 @@ export const size = {
   agreeBurst: 96,
   agreeHalo: 168,
   pageButton: 32,
+  companyLogo: 64,
   brandMark: 28,
   tabIndicator: 2,
   sheetMaxHeight: '85%',
