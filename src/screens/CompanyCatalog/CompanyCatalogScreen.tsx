@@ -15,7 +15,8 @@ import {
   type CatalogFilters,
 } from '../../components';
 import { colors, space } from '../../theme';
-import { companies, products } from '../../mocks';
+import { companies } from '../../mocks';
+import { useProductsWithStats } from '../../store/publishedReviews';
 import type { Category, Product } from '../../types';
 import type { HomeStackNavigation, HomeStackParamList } from '../../navigation/types';
 import { matchesSearch } from '../../utils/search';
@@ -41,6 +42,7 @@ export default function CompanyCatalogScreen() {
   const items = useUserItems();
 
   const company = companies.find((c) => c.id === companyId);
+  const products = useProductsWithStats();
   const companyProducts = products.filter((p) => p.companyId === companyId);
 
   const availableCategories = companyProducts.reduce<Category[]>(

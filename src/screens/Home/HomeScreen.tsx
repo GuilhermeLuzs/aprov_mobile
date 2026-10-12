@@ -13,7 +13,8 @@ import {
   TopBar,
 } from '../../components';
 import { colors, space } from '../../theme';
-import { companies, products } from '../../mocks';
+import { companies } from '../../mocks';
+import { useProductsWithStats } from '../../store/publishedReviews';
 import type { Company, Product } from '../../types';
 import type { HomeStackNavigation } from '../../navigation/types';
 import { matchesSearch } from '../../utils/search';
@@ -35,6 +36,7 @@ export default function HomeScreen() {
   const [selectedCompanyIds, setSelectedCompanyIds] = useState<string[]>([]);
   const [filterOpen, setFilterOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const products = useProductsWithStats();
 
   const rows: CompanyRow[] = companies
     .filter((c) => selectedCompanyIds.length === 0 || selectedCompanyIds.includes(c.id))

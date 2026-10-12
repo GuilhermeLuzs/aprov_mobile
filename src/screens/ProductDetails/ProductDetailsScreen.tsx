@@ -15,6 +15,7 @@ import { useAllReviews, usePublishedReviews } from '../../store/publishedReviews
 import { findUser, useCurrentUser } from '../../store/session';
 import { useReviewDisplay } from '../../store/interactions';
 import { byNewest } from '../../utils/date';
+import { ratingStats } from '../../utils/rating';
 import { formatInt } from '../../utils/format';
 import type { ProductDetailsNavigation, ProductDetailsParamList } from '../../navigation/types';
 import { useOpenProfile } from '../UserProfile/useOpenProfile';
@@ -58,13 +59,7 @@ export default function ProductDetailsScreen() {
   const productReviews = allReviews.filter((r) => r.productId === productId).sort(byNewest);
   const mediaIds = productReviews.map((r) => r.id);
   const publishedIds = new Set(published.map((r) => r.id));
-  const reviewCount = productReviews.length;
-  const average =
-    reviewCount === 0
-      ? 0
-      : Math.round(
-          (productReviews.reduce((sum, r) => sum + r.averageRating, 0) / reviewCount) * 10,
-        ) / 10;
+  const { reviewCount, averageRating: average } = ratingStats(productReviews);
 
   const pageCount = Math.max(1, Math.ceil(reviewCount / REVIEWS_PER_PAGE));
   const safePage = Math.min(page, pageCount);
