@@ -144,7 +144,12 @@ export default function CreateReviewScreen() {
     >
       <View style={[styles.top, { paddingTop: insets.top + space.sm }]}>
         <View style={styles.topRow}>
-          <RewardAmount amount={earned.coins} label={company.coinName} size="sm" />
+          <RewardAmount
+            amount={earned.coins}
+            label={company.coinName}
+            size="sm"
+            coin={{ icon: company.coinIcon, color: company.coinColor }}
+          />
           <Pressable
             style={styles.close}
             onPress={requestClose}

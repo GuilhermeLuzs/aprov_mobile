@@ -18,7 +18,7 @@ import {
   CommentComposer,
   CommentThread,
   EmptyState,
-  ReviewMedia,
+  MediaCarousel,
   SectionHeader,
   StarRating,
   VoteBar,
@@ -163,7 +163,7 @@ export default function ReviewDetailsScreen() {
 
       {review.media[0] ? (
         <View style={styles.section}>
-          <ReviewMedia
+          <MediaCarousel
             media={review.media}
             onOpen={(index) => openMedia([review.id], review.id, index)}
           />

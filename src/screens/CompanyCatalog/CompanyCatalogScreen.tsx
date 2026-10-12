@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { FlatList, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { FlatList, Image, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import {
   CatalogFilterSheet,
-  CompanyCard,
   EMPTY_CATALOG_FILTERS,
   EmptyState,
   FilterButton,
@@ -14,8 +13,9 @@ import {
   countCatalogFilters,
   type CatalogFilters,
 } from '../../components';
-import { colors, space } from '../../theme';
-import { companies, products } from '../../mocks';
+import { colors, radius, size, space, type } from '../../theme';
+import { companies } from '../../mocks';
+import { useProductsWithStats } from '../../store/publishedReviews';
 import type { Category, Product } from '../../types';
 import type { HomeStackNavigation, HomeStackParamList } from '../../navigation/types';
 import { matchesSearch } from '../../utils/search';
@@ -41,17 +41,21 @@ export default function CompanyCatalogScreen() {
   const items = useUserItems();
 
   const company = companies.find((c) => c.id === companyId);
+  const products = useProductsWithStats();
   const companyProducts = products.filter((p) => p.companyId === companyId);
 
   const availableCategories = companyProducts.reduce<Category[]>(
-    (acc, p) => (acc.includes(p.category) ? acc : [...acc, p.category]),
+    (acc, p) => [...acc, ...p.categories.filter((c) => !acc.includes(c))],
     [],
   );
 
   const filtered = companyProducts
     .filter((p) => matchesSearch(p.title, query))
     .filter((p) => filters.kinds.length === 0 || filters.kinds.includes(p.kind))
-    .filter((p) => filters.categories.length === 0 || filters.categories.includes(p.category))
+    .filter(
+      (p) =>
+        filters.categories.length === 0 || p.categories.some((c) => filters.categories.includes(c)),
+    )
     .sort(byRating);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
@@ -97,11 +101,7 @@ export default function CompanyCatalogScreen() {
       <TopBar onBack={() => navigation.goBack()}>
         <View style={styles.searchRow}>
           <View style={styles.searchField}>
-            <SearchBar
-              placeholder="Buscar no catálogo"
-              value={query}
-              onChangeText={changeQuery}
-            />
+            <SearchBar placeholder="Buscar no catálogo" value={query} onChangeText={changeQuery} />
           </View>
           <FilterButton
             activeCount={activeFilterCount}
@@ -119,7 +119,14 @@ export default function CompanyCatalogScreen() {
         contentContainerStyle={styles.content}
         ListHeaderComponent={
           <View style={styles.companyHeader}>
-            <CompanyCard company={company} />
+            <Image
+              source={{ uri: company.logoUri }}
+              style={styles.companyLogo}
+              accessibilityIgnoresInvertColors
+            />
+            <Text style={styles.companyName} accessibilityRole="header">
+              {company.name}
+            </Text>
           </View>
         }
         renderItem={({ item }) => (
@@ -137,7 +144,9 @@ export default function CompanyCatalogScreen() {
         ListEmptyComponent={
           filtering ? (
             <EmptyState
-              title={searching ? `Nada encontrado para "${query.trim()}"` : 'Nada com esses filtros'}
+              title={
+                searching ? `Nada encontrado para "${query.trim()}"` : 'Nada com esses filtros'
+              }
               description="Confira a escrita ou tire um filtro."
               action={{ label: 'Limpar busca e filtros', onPress: clearAll }}
             />
@@ -187,7 +196,27 @@ const styles = StyleSheet.create({
     gap: space.sm,
   },
   searchField: { flex: 1 },
-  companyHeader: { marginBottom: space.lg },
+  companyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.md,
+    marginBottom: space.lg,
+  },
+  companyLogo: {
+    width: size.companyLogo,
+    height: size.companyLogo,
+    borderRadius: radius.control,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceAlt,
+  },
+  companyName: {
+    flex: 1,
+    fontFamily: type.subtitle.family,
+    fontSize: type.subtitle.size,
+    lineHeight: type.subtitle.lineHeight,
+    color: colors.ink,
+  },
   row: { gap: space.md, marginBottom: space.md },
   pagination: { marginTop: space.lg },
 });

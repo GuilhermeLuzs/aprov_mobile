@@ -1,9 +1,12 @@
 import { useLayoutEffect, useState } from 'react';
-import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import {
   Button,
+  Chip,
   EmptyState,
+  ItemToggles,
+  MediaCarousel,
   Pagination,
   ReviewPost,
   SectionHeader,
@@ -11,17 +14,22 @@ import {
 } from '../../components';
 import { colors, space, type } from '../../theme';
 import { companies, products } from '../../mocks';
+import { CATEGORY_LABEL, PRODUCT_KIND_LABEL } from '../../types';
 import { useAllReviews, usePublishedReviews } from '../../store/publishedReviews';
 import { findUser, useCurrentUser } from '../../store/session';
 import { useReviewDisplay } from '../../store/interactions';
 import { byNewest } from '../../utils/date';
+import { ratingStats } from '../../utils/rating';
 import { formatInt } from '../../utils/format';
 import type { ProductDetailsNavigation, ProductDetailsParamList } from '../../navigation/types';
+import { togglePurchased, toggleSaved, useUserItems } from '../../store/userItems';
+import { CATEGORY_ICON } from '../Onboarding/options';
 import { useOpenProfile } from '../UserProfile/useOpenProfile';
 import { useOpenMedia } from '../Media/useOpenMedia';
 import { useReport } from '../Report/useReport';
 
 const REVIEWS_PER_PAGE = 5;
+const HERO_RATIO = 16 / 10;
 
 export default function ProductDetailsScreen() {
   const route = useRoute<RouteProp<ProductDetailsParamList, 'ProductDetails'>>();
@@ -33,6 +41,7 @@ export default function ProductDetailsScreen() {
   const display = useReviewDisplay(me.id);
   const openMedia = useOpenMedia();
   const report = useReport();
+  const userItems = useUserItems();
   const openProfile = useOpenProfile();
   const [page, setPage] = useState(1);
 
@@ -58,13 +67,7 @@ export default function ProductDetailsScreen() {
   const productReviews = allReviews.filter((r) => r.productId === productId).sort(byNewest);
   const mediaIds = productReviews.map((r) => r.id);
   const publishedIds = new Set(published.map((r) => r.id));
-  const reviewCount = productReviews.length;
-  const average =
-    reviewCount === 0
-      ? 0
-      : Math.round(
-          (productReviews.reduce((sum, r) => sum + r.averageRating, 0) / reviewCount) * 10,
-        ) / 10;
+  const { reviewCount, averageRating: average } = ratingStats(productReviews);
 
   const pageCount = Math.max(1, Math.ceil(reviewCount / REVIEWS_PER_PAGE));
   const safePage = Math.min(page, pageCount);
@@ -77,10 +80,36 @@ export default function ProductDetailsScreen() {
 
   const header = (
     <View>
-      <Image source={{ uri: product.imageUri }} style={styles.hero} resizeMode="cover" />
+      <View>
+        <MediaCarousel
+          media={product.media}
+          rounded={false}
+          aspectRatio={HERO_RATIO}
+          onOpen={(index) => navigation.navigate('ProductMedia', { productId: product.id, index })}
+        />
+        <ItemToggles
+          kind={product.kind}
+          saved={userItems.savedIds.includes(product.id)}
+          purchased={userItems.purchasedIds.includes(product.id)}
+          onToggleSaved={() => toggleSaved(product.id)}
+          onTogglePurchased={() => togglePurchased(product.id)}
+        />
+      </View>
 
       <View style={styles.body}>
         <Text style={styles.title}>{product.title}</Text>
+
+        <View style={styles.classification}>
+          <Chip label={PRODUCT_KIND_LABEL[product.kind]} size="sm" />
+          {product.categories.map((category) => (
+            <Chip
+              key={category}
+              label={CATEGORY_LABEL[category]}
+              icon={CATEGORY_ICON[category]}
+              size="sm"
+            />
+          ))}
+        </View>
 
         <View style={styles.statsRow}>
           {reviewCount > 0 ? (
@@ -176,11 +205,6 @@ const styles = StyleSheet.create({
     padding: space.lg,
     backgroundColor: colors.bg,
   },
-  hero: {
-    width: '100%',
-    aspectRatio: 16 / 10,
-    backgroundColor: colors.surfaceAlt,
-  },
   body: { paddingHorizontal: space.lg },
   title: {
     marginTop: space.lg,
@@ -189,6 +213,7 @@ const styles = StyleSheet.create({
     lineHeight: type.title.lineHeight,
     color: colors.ink,
   },
+  classification: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs, marginTop: space.sm },
   statsRow: {
     marginTop: space.sm,
     flexDirection: 'row',

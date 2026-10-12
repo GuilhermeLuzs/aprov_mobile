@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
-import { reviews } from '../mocks';
-import type { Review } from '../types';
+import { products, reviews } from '../mocks';
+import type { Product, Review } from '../types';
+import { withRatingStats } from '../utils/rating';
 import { useDeactivatedIds } from './deactivated';
 import { reportedIds, useReports } from './reports';
 import { useSession } from './session';
@@ -40,4 +41,9 @@ export function useAllReviews(): Review[] {
   return [...own, ...reviews].filter(
     (r) => !hidden.includes(r.authorId) && !reported.includes(r.id),
   );
+}
+
+export function useProductsWithStats(): Product[] {
+  const all = useAllReviews();
+  return products.map((p) => withRatingStats(p, all));
 }

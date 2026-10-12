@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Award } from 'lucide-react-native';
-import { colors, space, type } from '../theme';
+import { colors, radius, space, type } from '../theme';
 import type { User } from '../types';
 import { formatInt } from '../utils/format';
 import { Avatar } from './Avatar';
@@ -45,14 +45,9 @@ export function ProfileSummary({
 
       {user.bio ? <Text style={styles.bio}>{user.bio}</Text> : null}
 
-      {children}
-
       <View style={styles.stats}>
         <Stat value={reviews} label={reviews === 1 ? 'avaliação' : 'avaliações'} />
-        <Stat
-          value={agreements}
-          label={agreements === 1 ? 'concordância recebida' : 'concordâncias recebidas'}
-        />
+        <Stat value={agreements} label={agreements === 1 ? 'concordância' : 'concordâncias'} />
         <Stat
           value={followers}
           label={followers === 1 ? 'seguidor' : 'seguidores'}
@@ -60,6 +55,9 @@ export function ProfileSummary({
         />
         <Stat value={following} label="seguindo" onPress={onPressFollowing} />
       </View>
+
+      {children}
+
 
       <View style={styles.section}>
         <SectionHeader title="Badges" />
@@ -85,18 +83,26 @@ export function ProfileSummary({
 
 function Stat({ value, label, onPress }: { value: number; label: string; onPress?: () => void }) {
   const content = (
-    <Text style={styles.statText}>
-      <Text style={styles.statNumber}>{formatInt(value)}</Text> {label}
-    </Text>
+    <>
+      <Text style={styles.statNumber}>{formatInt(value)}</Text>
+      <Text style={styles.statLabel} numberOfLines={1}>
+        {label}
+      </Text>
+    </>
   );
-  if (!onPress) return content;
+  if (!onPress) {
+    return (
+      <View style={styles.stat} accessible accessibilityLabel={`${formatInt(value)} ${label}`}>
+        {content}
+      </View>
+    );
+  }
   return (
     <Pressable
       onPress={onPress}
-      hitSlop={space.sm}
       accessibilityRole="button"
       accessibilityLabel={`${formatInt(value)} ${label}, ver lista`}
-      style={({ pressed }) => pressed && styles.statPressed}
+      style={({ pressed }) => [styles.stat, pressed && styles.statPressed]}
     >
       {content}
     </Pressable>
@@ -132,21 +138,32 @@ const styles = StyleSheet.create({
   stats: {
     marginTop: space.lg,
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    columnGap: space.lg,
-    rowGap: space.xs,
+    paddingVertical: space.sm,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: colors.border,
   },
-  statText: {
-    fontFamily: type.body.family,
-    fontSize: type.body.size,
-    lineHeight: type.body.lineHeight,
-    color: colors.inkMuted,
+  stat: {
+    flexGrow: 1,
+    flexShrink: 0,
+    alignItems: 'center',
+    paddingHorizontal: space.xs,
+    paddingVertical: space.xs,
+    borderRadius: radius.control,
   },
   statNumber: {
     fontFamily: type.numeric.family,
+    fontSize: type.title.size,
+    lineHeight: type.title.lineHeight,
     color: colors.ink,
   },
-  statPressed: { opacity: 0.6 },
+  statLabel: {
+    fontFamily: type.caption.family,
+    fontSize: type.caption.size,
+    lineHeight: type.caption.lineHeight,
+    color: colors.inkMuted,
+  },
+  statPressed: { backgroundColor: colors.surfaceAlt },
   section: { marginTop: space.xl },
   badges: {
     flexDirection: 'row',

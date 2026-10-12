@@ -10,6 +10,13 @@ export const size = {
   avatarBorder: 3,
   agreeBurst: 96,
   agreeHalo: 168,
+  pageButton: 32,
+  companyLogo: 64,
+  coinBadge: {
+    sm: { box: 20, icon: 12 },
+    md: { box: 28, icon: 16 },
+    lg: { box: 40, icon: 22 },
+  },
   brandMark: 28,
   tabIndicator: 2,
   sheetMaxHeight: '85%',

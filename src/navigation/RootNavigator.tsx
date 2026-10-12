@@ -10,6 +10,7 @@ import {
   LoginScreen,
   MauricioChatScreen,
   MediaViewerScreen,
+  ProductMediaScreen,
 } from '../screens';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -43,6 +44,11 @@ export function RootNavigator() {
         <Stack.Screen
           name="MediaViewer"
           component={MediaViewerScreen}
+          options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'fade' }}
+        />
+        <Stack.Screen
+          name="ProductMedia"
+          component={ProductMediaScreen}
           options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'fade' }}
         />
       </Stack.Navigator>

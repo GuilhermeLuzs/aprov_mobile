@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { colors, space, type } from '../theme';
-import { CATEGORY_LABEL, type Category, type ProductKind } from '../types';
+import { CATEGORY_LABEL, PRODUCT_KIND_LABEL, type Category, type ProductKind } from '../types';
 import { BottomSheet } from './BottomSheet';
 import { Button } from './Button';
 import { Chip } from './Chip';
@@ -11,8 +11,8 @@ export type CatalogFilters = { kinds: ProductKind[]; categories: Category[] };
 export const EMPTY_CATALOG_FILTERS: CatalogFilters = { kinds: [], categories: [] };
 
 const KIND_OPTIONS: { key: ProductKind; label: string }[] = [
-  { key: 'product', label: 'Produto' },
-  { key: 'service', label: 'Serviço' },
+  { key: 'product', label: PRODUCT_KIND_LABEL.product },
+  { key: 'service', label: PRODUCT_KIND_LABEL.service },
 ];
 
 type Props = {

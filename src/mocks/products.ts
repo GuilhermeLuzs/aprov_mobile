@@ -1,11 +1,13 @@
 import type { Product } from '../types';
 
-export const products: Product[] = [
+export type ProductSeed = Omit<Product, 'media'>;
+
+export const products: ProductSeed[] = [
   {
     id: 'p01',
     companyId: 'c1',
     kind: 'product',
-    category: 'eletronicos',
+    categories: ['eletronicos'],
     title:
       'Notebook Acer Aspire 5 A515-57-52V8 Intel Core i5 12ª Geração 16GB RAM 512GB SSD Tela 15,6" Full HD',
     description:
@@ -25,7 +27,7 @@ export const products: Product[] = [
     id: 'p02',
     companyId: 'c1',
     kind: 'product',
-    category: 'eletronicos',
+    categories: ['eletronicos'],
     title: 'Monitor Acer 27" IPS 165Hz',
     description:
       'Monitor de 27 polegadas, painel IPS, taxa de atualização de 165Hz e tempo de resposta de 1ms. Suporte VESA e ajuste de altura.',
@@ -44,7 +46,7 @@ export const products: Product[] = [
     id: 'p03',
     companyId: 'c1',
     kind: 'product',
-    category: 'eletronicos',
+    categories: ['eletronicos'],
     title: 'Projetor Acer Full HD 4000 lúmens',
     description:
       'Projetor doméstico com resolução Full HD nativa, 4000 lúmens de brilho e entradas HDMI e USB. Vida útil da lâmpada de até 15 mil horas.',
@@ -63,7 +65,7 @@ export const products: Product[] = [
     id: 'p04',
     companyId: 'c1',
     kind: 'product',
-    category: 'casa',
+    categories: ['casa', 'eletronicos', 'saude'],
     title: 'Purificador de ar Acer para ambientes de até 40m²',
     description:
       'Purificador com filtro HEPA de três estágios, sensor de qualidade do ar e modo noturno silencioso. Cobre ambientes de até 40 metros quadrados.',
@@ -82,7 +84,7 @@ export const products: Product[] = [
     id: 'p05',
     companyId: 'c1',
     kind: 'product',
-    category: 'saude',
+    categories: ['saude', 'eletronicos'],
     title: 'Pulseira Acer Health Band com oxímetro',
     description:
       'Pulseira de monitoramento com medição de frequência cardíaca, oximetria de pulso, sono e passos. Bateria de até 12 dias e resistência à água.',
@@ -102,7 +104,7 @@ export const products: Product[] = [
     id: 'p06',
     companyId: 'c2',
     kind: 'product',
-    category: 'alimentacao',
+    categories: ['alimentacao'],
     title: 'Lasanha à bolonhesa da Vó Marlene congelada 800g',
     description:
       'Lasanha caseira em camadas com molho bolonhesa de cozimento lento, presunto, mussarela e massa fresca. Porção para duas a três pessoas.',
@@ -121,7 +123,7 @@ export const products: Product[] = [
     id: 'p07',
     companyId: 'c2',
     kind: 'product',
-    category: 'alimentacao',
+    categories: ['alimentacao'],
     title: 'Brigadeiro gourmet caixa com 12',
     description:
       'Brigadeiros artesanais de chocolate belga 53% cacau, enrolados à mão e finalizados com granulado meio amargo. Caixa com doze unidades.',
@@ -140,7 +142,7 @@ export const products: Product[] = [
     id: 'p08',
     companyId: 'c2',
     kind: 'product',
-    category: 'alimentacao',
+    categories: ['alimentacao'],
     title: 'Pão de queijo mineiro congelado 1kg',
     description:
       'Pão de queijo feito com polvilho azedo e queijo canastra curado. Pacote de um quilo, assa direto do congelador em vinte minutos.',
@@ -159,7 +161,7 @@ export const products: Product[] = [
     id: 'p09',
     companyId: 'c2',
     kind: 'product',
-    category: 'alimentacao',
+    categories: ['alimentacao'],
     title: 'Marmita fit frango com legumes 400g',
     description:
       'Marmita balanceada com peito de frango grelhado, arroz integral, brócolis e cenoura. Sem conservantes, validade de sessenta dias no congelador.',
@@ -178,7 +180,7 @@ export const products: Product[] = [
     id: 'p10',
     companyId: 'c2',
     kind: 'product',
-    category: 'alimentacao',
+    categories: ['alimentacao'],
     title: 'Caldo verde tradicional pote 500ml',
     description:
       'Caldo verde encorpado com batata, couve fatiada fina e rodelas de linguiça calabresa artesanal. Pote de meio litro.',
@@ -198,7 +200,7 @@ export const products: Product[] = [
     id: 'p11',
     companyId: 'c3',
     kind: 'product',
-    category: 'beleza',
+    categories: ['beleza'],
     title: 'Sérum facial de vitamina C 15% Studio Bhering 30ml',
     description:
       'Sérum antioxidante com vitamina C estabilizada a 15%, ácido hialurônico e vitamina E. Textura leve, indicado para uso pela manhã.',
@@ -217,7 +219,7 @@ export const products: Product[] = [
     id: 'p12',
     companyId: 'c3',
     kind: 'product',
-    category: 'beleza',
+    categories: ['beleza'],
     title: 'Batom líquido matte longa duração tom Terracota',
     description:
       'Batom líquido de acabamento matte aveludado, fixação de até oito horas e fórmula com óleo de jojoba para não ressecar.',
@@ -236,7 +238,7 @@ export const products: Product[] = [
     id: 'p13',
     companyId: 'c3',
     kind: 'product',
-    category: 'beleza',
+    categories: ['beleza'],
     title: 'Kit skincare noturno: limpeza, ácido e hidratante',
     description:
       'Rotina noturna em três passos com gel de limpeza, tônico com ácido lático 5% e creme hidratante com ceramidas. Rende cerca de dois meses.',
@@ -255,7 +257,7 @@ export const products: Product[] = [
     id: 'p14',
     companyId: 'c3',
     kind: 'product',
-    category: 'moda',
+    categories: ['moda', 'saude'],
     title: 'Óculos de sol acetato preto com proteção UV400',
     description:
       'Armação de acetato italiano, lentes polarizadas com proteção UV400 e estojo rígido. Modelo unissex de caimento médio.',
@@ -274,7 +276,7 @@ export const products: Product[] = [
     id: 'p15',
     companyId: 'c3',
     kind: 'service',
-    category: 'educacao',
+    categories: ['educacao', 'beleza'],
     title:
       'Curso online de automaquiagem para o dia a dia: técnicas de pele, olhos e boca com produtos acessíveis',
     description:
@@ -295,7 +297,7 @@ export const products: Product[] = [
     id: 'p16',
     companyId: 'c4',
     kind: 'service',
-    category: 'servicos_domesticos',
+    categories: ['servicos_domesticos', 'casa'],
     title: 'Instalação de ar-condicionado split até 12.000 BTUs',
     description:
       'Instalação completa de split hi-wall até 12.000 BTUs, com até três metros de tubulação, vácuo, teste de estanqueidade e start-up. Materiais inclusos.',
@@ -314,7 +316,7 @@ export const products: Product[] = [
     id: 'p17',
     companyId: 'c4',
     kind: 'service',
-    category: 'servicos_domesticos',
+    categories: ['servicos_domesticos'],
     title: 'Limpeza técnica de ar-condicionado split',
     description:
       'Higienização com desmontagem da evaporadora, lavagem da serpentina e da turbina, troca de filtros e aplicação de bactericida. Uma unidade.',
@@ -333,7 +335,7 @@ export const products: Product[] = [
     id: 'p18',
     companyId: 'c4',
     kind: 'service',
-    category: 'servicos_domesticos',
+    categories: ['servicos_domesticos'],
     title: 'Plano anual de manutenção preventiva de climatização',
     description:
       'Quatro visitas ao ano com verificação de gás, pressão, dreno, elétrica e limpeza de filtros. Atendimento prioritário em caso de falha.',
@@ -352,7 +354,7 @@ export const products: Product[] = [
     id: 'p19',
     companyId: 'c4',
     kind: 'service',
-    category: 'servicos_domesticos',
+    categories: ['servicos_domesticos'],
     title: 'Higienização de dutos de ar-condicionado central',
     description:
       'Limpeza de dutos com escovação rotativa, aspiração de alta potência e nebulização sanitizante. Inspeção por câmera antes e depois.',
@@ -371,7 +373,7 @@ export const products: Product[] = [
     id: 'p20',
     companyId: 'c4',
     kind: 'service',
-    category: 'casa',
+    categories: ['casa', 'servicos_domesticos'],
     title: 'Instalação de termostato inteligente com integração ao aplicativo',
     description:
       'Instalação e configuração de termostato inteligente, integração com o aplicativo da casa e treinamento de uso. Compatível com os principais modelos de split.',
@@ -391,7 +393,7 @@ export const products: Product[] = [
     id: 'p21',
     companyId: 'c5',
     kind: 'product',
-    category: 'alimentacao',
+    categories: ['alimentacao'],
     title: 'Café especial Bourbon Amarelo torra média 250g',
     description:
       'Café 100% arábica, notas de caramelo e frutas amarelas, torrado na semana do envio. Disponível em grãos ou moído.',
@@ -410,7 +412,7 @@ export const products: Product[] = [
     id: 'p22',
     companyId: 'c5',
     kind: 'product',
-    category: 'alimentacao',
+    categories: ['alimentacao'],
     title: 'Kit degustação com 4 cafés de 100g',
     description: 'Quatro microlotes de fazendas diferentes, com cartão de notas sensoriais para comparar.',
     imageUri: 'https://picsum.photos/seed/aprov-p22/900/900',
@@ -428,7 +430,7 @@ export const products: Product[] = [
     id: 'p23',
     companyId: 'c6',
     kind: 'product',
-    category: 'moda',
+    categories: ['moda', 'saude'],
     title: 'Armação de grau em acetato modelo redondo',
     description: 'Armação leve em acetato, hastes com mola e plaquetas de silicone. Várias cores.',
     imageUri: 'https://picsum.photos/seed/aprov-p23/900/900',
@@ -446,7 +448,7 @@ export const products: Product[] = [
     id: 'p24',
     companyId: 'c6',
     kind: 'service',
-    category: 'saude',
+    categories: ['saude'],
     title: 'Exame de vista completo com optometrista',
     description: 'Exame de refração, pressão ocular e acuidade visual, com receita na hora.',
     imageUri: 'https://picsum.photos/seed/aprov-p24/900/900',
@@ -464,7 +466,7 @@ export const products: Product[] = [
     id: 'p25',
     companyId: 'c7',
     kind: 'service',
-    category: 'servicos_domesticos',
+    categories: ['servicos_domesticos'],
     title: 'Banho e tosa higiênica para cães de porte pequeno',
     description: 'Banho com shampoo neutro, secagem, corte de unhas, limpeza de ouvidos e tosa higiênica.',
     imageUri: 'https://picsum.photos/seed/aprov-p25/900/900',
@@ -482,7 +484,7 @@ export const products: Product[] = [
     id: 'p26',
     companyId: 'c7',
     kind: 'service',
-    category: 'servicos_domesticos',
+    categories: ['servicos_domesticos'],
     title: 'Leva e traz do pet com acompanhamento por câmera',
     description: 'Busca e entrega do pet em casa, com link da câmera ao vivo durante todo o atendimento.',
     imageUri: 'https://picsum.photos/seed/aprov-p26/900/900',
@@ -500,7 +502,7 @@ export const products: Product[] = [
     id: 'p27',
     companyId: 'c8',
     kind: 'product',
-    category: 'educacao',
+    categories: ['educacao'],
     title: 'Box com os três volumes da trilogia de ficção científica',
     description: 'Edição em capa dura com ilustrações inéditas e marcador de página de tecido.',
     imageUri: 'https://picsum.photos/seed/aprov-p27/900/900',
@@ -518,7 +520,7 @@ export const products: Product[] = [
     id: 'p28',
     companyId: 'c8',
     kind: 'service',
-    category: 'educacao',
+    categories: ['educacao'],
     title: 'Clube de leitura mensal com encontro online',
     description: 'Um livro surpresa por mês e um encontro online para discutir a leitura com o grupo.',
     imageUri: 'https://picsum.photos/seed/aprov-p28/900/900',
@@ -536,7 +538,7 @@ export const products: Product[] = [
     id: 'p29',
     companyId: 'c9',
     kind: 'service',
-    category: 'casa',
+    categories: ['casa', 'servicos_domesticos'],
     title: 'Projeto e montagem de cozinha planejada',
     description: 'Visita técnica, projeto 3D, fabricação em MDF e montagem em até quarenta e cinco dias.',
     imageUri: 'https://picsum.photos/seed/aprov-p29/900/900',
@@ -554,7 +556,7 @@ export const products: Product[] = [
     id: 'p30',
     companyId: 'c9',
     kind: 'product',
-    category: 'casa',
+    categories: ['casa'],
     title: 'Mesa de jantar em madeira maciça para seis lugares',
     description: 'Tampo de 1,80m em madeira de reflorestamento com acabamento em verniz fosco.',
     imageUri: 'https://picsum.photos/seed/aprov-p30/900/900',
@@ -572,7 +574,7 @@ export const products: Product[] = [
     id: 'p31',
     companyId: 'c10',
     kind: 'product',
-    category: 'beleza',
+    categories: ['beleza', 'saude'],
     title: 'Protetor solar facial FPS 60 com cor 50g',
     description: 'Toque seco, resistente à água e com cor universal. Indicado para pele oleosa.',
     imageUri: 'https://picsum.photos/seed/aprov-p31/900/900',
@@ -590,7 +592,7 @@ export const products: Product[] = [
     id: 'p32',
     companyId: 'c10',
     kind: 'service',
-    category: 'saude',
+    categories: ['saude'],
     title: 'Aplicação de vacina da gripe na farmácia',
     description: 'Vacina tetravalente aplicada por farmacêutico, com certificado digital de vacinação.',
     imageUri: 'https://picsum.photos/seed/aprov-p32/900/900',
@@ -608,7 +610,7 @@ export const products: Product[] = [
     id: 'p33',
     companyId: 'c11',
     kind: 'product',
-    category: 'moda',
+    categories: ['moda'],
     title: 'Tênis casual de lona com solado vulcanizado',
     description: 'Lona resistente, palmilha acolchoada e solado de borracha natural. Do 34 ao 44.',
     imageUri: 'https://picsum.photos/seed/aprov-p33/900/900',
@@ -626,7 +628,7 @@ export const products: Product[] = [
     id: 'p34',
     companyId: 'c11',
     kind: 'product',
-    category: 'moda',
+    categories: ['moda'],
     title: 'Moletom oversized com capuz e bolso canguru',
     description: 'Moletom flanelado por dentro, algodão e poliéster, com estampa bordada nas costas.',
     imageUri: 'https://picsum.photos/seed/aprov-p34/900/900',
@@ -644,7 +646,7 @@ export const products: Product[] = [
     id: 'p35',
     companyId: 'c12',
     kind: 'service',
-    category: 'educacao',
+    categories: ['educacao'],
     title: 'Curso de inglês intermediário em turma online',
     description: 'Duas aulas por semana ao vivo, turmas de até oito alunos e material digital incluso.',
     imageUri: 'https://picsum.photos/seed/aprov-p35/900/900',
@@ -662,7 +664,7 @@ export const products: Product[] = [
     id: 'p36',
     companyId: 'c12',
     kind: 'service',
-    category: 'educacao',
+    categories: ['educacao'],
     title: 'Aula experimental de espanhol gratuita',
     description: 'Aula de cinquenta minutos com teste de nivelamento e plano de estudos personalizado.',
     imageUri: 'https://picsum.photos/seed/aprov-p36/900/900',
@@ -678,6 +680,6 @@ export const products: Product[] = [
   },
 ];
 
-export const productById: Record<string, Product> = Object.fromEntries(
+export const productById: Record<string, ProductSeed> = Object.fromEntries(
   products.map((p) => [p.id, p]),
 );

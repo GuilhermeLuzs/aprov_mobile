@@ -1,7 +1,7 @@
-import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { Award } from 'lucide-react-native';
-import { EmptyState, RewardAmount, SectionHeader } from '../../components';
-import { colors, icon, radius, size, space, type } from '../../theme';
+import { CoinBadge, EmptyState, SectionHeader } from '../../components';
+import { colors, icon, radius, space, type } from '../../theme';
 import { companies } from '../../mocks';
 import { useWallet } from '../../store/wallet';
 import { formatInt } from '../../utils/format';
@@ -46,11 +46,7 @@ export default function WalletScreen() {
       renderItem={({ item }) =>
         item.company ? (
           <View style={styles.coinRow}>
-            <Image
-              source={{ uri: item.company.coinIconUri }}
-              style={styles.coinIcon}
-              accessibilityIgnoresInvertColors
-            />
+            <CoinBadge icon={item.company.coinIcon} color={item.company.coinColor} size="lg" />
             <View style={styles.coinText}>
               <Text style={styles.coinName} numberOfLines={1}>
                 {item.company.coinName}
@@ -59,7 +55,7 @@ export default function WalletScreen() {
                 {item.company.name}
               </Text>
             </View>
-            <RewardAmount amount={item.amount} />
+            <Text style={styles.coinAmount}>{formatInt(item.amount)}</Text>
           </View>
         ) : null
       }
@@ -122,13 +118,13 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.surface,
   },
-  coinIcon: {
-    width: size.control,
-    height: size.control,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceAlt,
-  },
   coinText: { flex: 1 },
+  coinAmount: {
+    fontFamily: type.numeric.family,
+    fontSize: type.numeric.size,
+    lineHeight: type.numeric.lineHeight,
+    color: colors.ink,
+  },
   coinName: {
     fontFamily: type.bodyBold.family,
     fontSize: type.bodyBold.size,

@@ -18,6 +18,8 @@ import { slidesOf, type MediaSlide } from '../utils/media';
 type Props = {
   media: Media[];
   onOpen?: (index: number) => void;
+  rounded?: boolean;
+  aspectRatio?: number;
 };
 
 const SIDE_TAP_FLEX = 3;
@@ -38,7 +40,11 @@ function SlideContent({ slide }: { slide: MediaSlide }) {
     <>
       <View style={[StyleSheet.absoluteFill, styles.videoBackdrop]} />
       {slide.thumbnailUri ? (
-        <Image source={{ uri: slide.thumbnailUri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+        <Image
+          source={{ uri: slide.thumbnailUri }}
+          style={StyleSheet.absoluteFill}
+          resizeMode="cover"
+        />
       ) : null}
       <View style={styles.videoCenter} pointerEvents="none">
         <View style={styles.playCircle}>
@@ -52,27 +58,29 @@ function SlideContent({ slide }: { slide: MediaSlide }) {
   );
 }
 
-export function ReviewMedia({ media, onOpen }: Props) {
+export function MediaCarousel({ media, onOpen, rounded = true, aspectRatio }: Props) {
   const window = useWindowDimensions();
   const [width, setWidth] = useState(window.width - space.lg * 2);
   const [index, setIndex] = useState(0);
   const indexRef = useRef(0);
   const listRef = useRef<FlatList>(null);
   const slides = slidesOf(media);
+  const frameStyle = [styles.frame, !rounded && styles.flat];
 
   if (slides.length === 0) return null;
 
   if (slides.length === 1) {
     const slide = slides[0];
     const ratio =
-      slide.kind === 'video'
+      aspectRatio ??
+      (slide.kind === 'video'
         ? styles.videoRatio.aspectRatio
         : slide.width && slide.height
           ? slide.width / slide.height
-          : SINGLE_PHOTO_FALLBACK_RATIO;
+          : SINGLE_PHOTO_FALLBACK_RATIO);
     return (
       <Pressable
-        style={[styles.frame, { aspectRatio: ratio }]}
+        style={[frameStyle, { aspectRatio: ratio }]}
         onPress={() => onOpen?.(0)}
         disabled={!onOpen}
         accessibilityRole={onOpen ? 'button' : 'image'}
@@ -105,7 +113,7 @@ export function ReviewMedia({ media, onOpen }: Props) {
   const step = (delta: number) => goTo(indexRef.current + delta);
 
   return (
-    <View style={styles.frame} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
+    <View style={frameStyle} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
       <FlatList
         ref={listRef}
         horizontal
@@ -120,11 +128,15 @@ export function ReviewMedia({ media, onOpen }: Props) {
         extraData={index}
         renderItem={({ item, index: itemIndex }) => (
           <View
-            style={[styles.carouselSlide, { width }]}
+            style={[styles.carouselSlide, { width }, aspectRatio ? { aspectRatio } : null]}
             accessible
             accessibilityRole="adjustable"
             accessibilityLabel={`Mídia ${itemIndex + 1} de ${slides.length}${item.kind === 'video' ? ', vídeo' : ''}`}
-            accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }, { name: 'activate' }]}
+            accessibilityActions={[
+              { name: 'increment' },
+              { name: 'decrement' },
+              { name: 'activate' },
+            ]}
             onAccessibilityAction={(e) => {
               if (e.nativeEvent.actionName === 'activate') onOpen?.(itemIndex);
               else step(e.nativeEvent.actionName === 'increment' ? 1 : -1);
@@ -168,6 +180,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: colors.surfaceAlt,
   },
+  flat: { borderRadius: 0 },
   videoRatio: { aspectRatio: 16 / 9 },
   videoBackdrop: { backgroundColor: colors.ink },
   videoCenter: {
@@ -186,7 +199,7 @@ const styles = StyleSheet.create({
   durationBadge: {
     position: 'absolute',
     right: space.sm,
-    top: space.sm,
+    bottom: space.sm,
     paddingHorizontal: space.xs,
     borderRadius: radius.pill,
     backgroundColor: colors.scrim,

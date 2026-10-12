@@ -3,7 +3,7 @@ import { FlatList, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { EmptyState, ProductCard } from '../../components';
 import { colors, space } from '../../theme';
-import { products } from '../../mocks';
+import { useProductsWithStats } from '../../store/publishedReviews';
 import { togglePurchased, toggleSaved, useUserItems } from '../../store/userItems';
 import type {
   ItemListKind,
@@ -39,6 +39,7 @@ export default function ItemListScreen() {
   }, [navigation, copy.title]);
 
   const ids = kind === 'saved' ? items.savedIds : items.purchasedIds;
+  const products = useProductsWithStats();
   const list = products.filter((p) => ids.includes(p.id));
   const cardWidth = Math.floor((screenWidth - space.lg * 2 - space.md * (COLUMNS - 1)) / COLUMNS);
 
