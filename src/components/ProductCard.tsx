@@ -2,6 +2,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Bookmark, Receipt, type LucideIcon } from 'lucide-react-native';
 import { colors, icon, radius, space, type } from '../theme';
 import type { Product } from '../types';
+import { formatInt } from '../utils/format';
 import { Button } from './Button';
 import { StarRating } from './StarRating';
 
@@ -59,7 +60,13 @@ export function ProductCard({
 
         <View style={styles.ratingRow}>
           {hasReviews ? (
-            <StarRating value={product.averageRating} size="md" showValue />
+            <>
+              <StarRating value={product.averageRating} size="md" showValue />
+              <Text style={styles.reviewCount}>
+                {formatInt(product.reviewCount)}{' '}
+                {product.reviewCount === 1 ? 'avaliação' : 'avaliações'}
+              </Text>
+            </>
           ) : (
             <Text style={styles.noReviews}>sem avaliações</Text>
           )}
@@ -164,8 +171,14 @@ const styles = StyleSheet.create({
   },
   ratingRow: {
     marginTop: space.sm,
-    minHeight: type.numeric.lineHeight,
+    minHeight: type.numeric.lineHeight + type.caption.lineHeight,
     justifyContent: 'center',
+  },
+  reviewCount: {
+    fontFamily: type.caption.family,
+    fontSize: type.caption.size,
+    lineHeight: type.caption.lineHeight,
+    color: colors.inkMuted,
   },
   noReviews: {
     fontFamily: type.caption.family,
