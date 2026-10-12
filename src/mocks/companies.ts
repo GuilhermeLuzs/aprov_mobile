@@ -1,10 +1,11 @@
 import type { Company } from '../types';
+import { stockPhoto } from './stockPhotos';
 
 export const companies: Company[] = [
   {
     id: 'c1',
     name: 'Acer',
-    logoUri: 'https://picsum.photos/seed/aprov-logo-acer/160/160',
+    logoUri: stockPhoto('aprov-logo-acer', 160, 160),
     description:
       'Notebooks, monitores, projetores e dispositivos conectados para casa e trabalho.',
     categories: ['eletronicos', 'casa', 'saude'],
@@ -19,7 +20,7 @@ export const companies: Company[] = [
   {
     id: 'c2',
     name: 'Cozinha da Vó Marlene Comidas Caseiras e Congelados Artesanais',
-    logoUri: 'https://picsum.photos/seed/aprov-logo-vo/160/160',
+    logoUri: stockPhoto('aprov-logo-vo', 160, 160),
     description:
       'Congelados artesanais feitos em pequenos lotes, do jeito caseiro, entregues na sua casa.',
     categories: ['alimentacao'],
@@ -34,7 +35,7 @@ export const companies: Company[] = [
   {
     id: 'c3',
     name: 'Studio Bhering',
-    logoUri: 'https://picsum.photos/seed/aprov-logo-bhering/160/160',
+    logoUri: stockPhoto('aprov-logo-bhering', 160, 160),
     description:
       'Skincare, maquiagem e acessórios autorais, com curso online de automaquiagem.',
     categories: ['beleza', 'moda', 'educacao', 'saude'],
@@ -49,7 +50,7 @@ export const companies: Company[] = [
   {
     id: 'c4',
     name: 'InstaClima Serviços de Refrigeração e Climatização Residencial',
-    logoUri: 'https://picsum.photos/seed/aprov-logo-instaclima/160/160',
+    logoUri: stockPhoto('aprov-logo-instaclima', 160, 160),
     description:
       'Instalação, limpeza e manutenção de ar-condicionado com técnicos credenciados.',
     categories: ['servicos_domesticos', 'casa'],
@@ -64,7 +65,7 @@ export const companies: Company[] = [
   {
     id: 'c5',
     name: 'Café Serra Alta',
-    logoUri: 'https://picsum.photos/seed/aprov-logo-serra/160/160',
+    logoUri: stockPhoto('aprov-logo-serra', 160, 160),
     description: 'Cafés especiais torrados na semana, direto de pequenos produtores da Mantiqueira.',
     categories: ['alimentacao'],
     coinName: 'GrãosSerra',
@@ -78,7 +79,7 @@ export const companies: Company[] = [
   {
     id: 'c6',
     name: 'Ótica Visão Clara',
-    logoUri: 'https://picsum.photos/seed/aprov-logo-visao/160/160',
+    logoUri: stockPhoto('aprov-logo-visao', 160, 160),
     description: 'Óculos de grau, lentes de contato e exame de vista com optometrista.',
     categories: ['saude', 'moda'],
     coinName: 'VisãoPontos',
@@ -92,7 +93,7 @@ export const companies: Company[] = [
   {
     id: 'c7',
     name: 'Pet Feliz Banho e Tosa',
-    logoUri: 'https://picsum.photos/seed/aprov-logo-pet/160/160',
+    logoUri: stockPhoto('aprov-logo-pet', 160, 160),
     description: 'Banho, tosa e leva e traz para cães e gatos, com câmera ao vivo durante o atendimento.',
     categories: ['servicos_domesticos'],
     coinName: 'PatasCoins',
@@ -106,7 +107,7 @@ export const companies: Company[] = [
   {
     id: 'c8',
     name: 'Livraria Página Dupla',
-    logoUri: 'https://picsum.photos/seed/aprov-logo-pagina/160/160',
+    logoUri: stockPhoto('aprov-logo-pagina', 160, 160),
     description: 'Livros novos e seminovos, clube de leitura mensal e entrega em todo o Brasil.',
     categories: ['educacao'],
     coinName: 'PáginasDupla',
@@ -120,7 +121,7 @@ export const companies: Company[] = [
   {
     id: 'c9',
     name: 'Tora Marcenaria e Móveis Planejados Sob Medida',
-    logoUri: 'https://picsum.photos/seed/aprov-logo-tora/160/160',
+    logoUri: stockPhoto('aprov-logo-tora', 160, 160),
     description: 'Móveis planejados em madeira maciça e MDF, com projeto 3D e montagem inclusos.',
     categories: ['casa', 'servicos_domesticos'],
     coinName: 'ToraCoins',
@@ -134,7 +135,7 @@ export const companies: Company[] = [
   {
     id: 'c10',
     name: 'Farmácia Vida Plena',
-    logoUri: 'https://picsum.photos/seed/aprov-logo-vida/160/160',
+    logoUri: stockPhoto('aprov-logo-vida', 160, 160),
     description: 'Medicamentos, dermocosméticos e manipulação, com entrega em até duas horas.',
     categories: ['saude', 'beleza'],
     coinName: 'VidaPontos',
@@ -148,7 +149,7 @@ export const companies: Company[] = [
   {
     id: 'c11',
     name: 'Urban Kicks',
-    logoUri: 'https://picsum.photos/seed/aprov-logo-kicks/160/160',
+    logoUri: stockPhoto('aprov-logo-kicks', 160, 160),
     description: 'Tênis e roupas de rua de marcas nacionais, com troca grátis em trinta dias.',
     categories: ['moda'],
     coinName: 'KicksCoins',
@@ -162,7 +163,7 @@ export const companies: Company[] = [
   {
     id: 'c12',
     name: 'Fala Mundo Escola de Idiomas',
-    logoUri: 'https://picsum.photos/seed/aprov-logo-fala/160/160',
+    logoUri: stockPhoto('aprov-logo-fala', 160, 160),
     description: 'Inglês e espanhol em turmas pequenas, presencial ou online, com professores nativos.',
     categories: ['educacao'],
     coinName: 'FalaCoins',

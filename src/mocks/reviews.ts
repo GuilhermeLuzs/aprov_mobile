@@ -133,7 +133,7 @@ const seeds: Seed[] = [
     positiveTagIds: ['t01', 't05', 't10'],
     negativeTagIds: ['t16'],
     media: [
-      video('m01', 'aprov-r01-v', 'joyrides'),
+      video('m01', 'aprov-r01-v'),
       photo('m01b', 'aprov-r01-b'),
       photo('m01c', 'aprov-r01-c'),
     ],
@@ -209,7 +209,7 @@ const seeds: Seed[] = [
     negativeTagIds: [],
     media: [
       carousel('m03', ['aprov-r03-a', 'aprov-r03-b', 'aprov-r03-c']),
-      video('m03v', 'aprov-r03-v', 'blazes'),
+      video('m03v', 'aprov-r03-v'),
     ],
     comment:
       'Embalagem caprichada, três camadas de proteção. Liguei e em vinte minutos estava usando. Recomendo.',
@@ -263,7 +263,7 @@ const seeds: Seed[] = [
     ratings: [5, 5, 4, 4.5],
     positiveTagIds: ['t04', 't05'],
     negativeTagIds: [],
-    media: [video('m06', 'aprov-r06-v', 'escapes')],
+    media: [video('m06', 'aprov-r06-v')],
     comment: 'Montagem no braço VESA em cinco minutos. Cores boas de fábrica, só ajustei o brilho.',
     wouldBuyAgain: true,
     agreements: 240,
@@ -391,7 +391,7 @@ const seeds: Seed[] = [
     negativeTagIds: [],
     media: [
       carousel('m12', ['aprov-r12-a', 'aprov-r12-b', 'aprov-r12-c', 'aprov-r12-d']),
-      video('m12v', 'aprov-r12-v', 'meltdowns'),
+      video('m12v', 'aprov-r12-v'),
     ],
     comment:
       'Comprei achando que seria mais uma. Errei. A massa fica al dente mesmo depois do forno, o molho tem sabor de domingo na casa da avó. Serviu três pessoas com fome. Voltou pra lista fixa da semana.',
@@ -465,7 +465,7 @@ const seeds: Seed[] = [
     ratings: [2.5, 3.5, 4, 3],
     positiveTagIds: ['t06'],
     negativeTagIds: ['t14', 't17'],
-    media: [video('m14', 'aprov-r14-v', 'fun')],
+    media: [video('m14', 'aprov-r14-v')],
     comment:
       'O entregador claramente virou a caixa. As camadas desmontaram. O gosto salvou, por isso três estrelas e não menos.',
     wouldBuyAgain: true,
@@ -536,7 +536,7 @@ const seeds: Seed[] = [
     ratings: [4, 3, 3.5, 3.5],
     positiveTagIds: ['t01', 't10'],
     negativeTagIds: ['t16'],
-    media: [video('m19', 'aprov-r19-v', 'joyrides')],
+    media: [video('m19', 'aprov-r19-v')],
     comment:
       'A porção é honesta e o preço fecha. O frango, se você seguir o tempo da embalagem, vira borracha. Tiro um minuto antes e fica ok.',
     wouldBuyAgain: true,
@@ -573,7 +573,7 @@ const seeds: Seed[] = [
     ratings: [4.5, 4.5, 4, 4],
     positiveTagIds: ['t04', 't05', 't12'],
     negativeTagIds: ['t21'],
-    media: [photo('m21p', 'aprov-r21-a'), video('m21v', 'aprov-r21-v', 'blazes')],
+    media: [photo('m21p', 'aprov-r21-a'), video('m21v', 'aprov-r21-v')],
     comment:
       'Fiz foto no primeiro dia e no trigésimo, mesma luz. A diferença nas manchas é sutil mas existe. O que mudou mesmo foi o viço e o tamanho dos poros. Absorve rápido, não gruda. Só acho caro.',
     wouldBuyAgain: true,
@@ -619,7 +619,7 @@ const seeds: Seed[] = [
     ratings: [4.5, 4, 4, 4.5],
     positiveTagIds: ['t05', 't11'],
     negativeTagIds: [],
-    media: [video('m22', 'aprov-r22-v', 'escapes')],
+    media: [video('m22', 'aprov-r22-v')],
     comment: 'Trinta mililitros duraram dois meses e meio com uso diário. Faz o trabalho.',
     wouldBuyAgain: true,
     agreements: 97,
@@ -690,7 +690,7 @@ const seeds: Seed[] = [
     positiveTagIds: ['t07', 't08', 't12'],
     negativeTagIds: [],
     media: [
-      video('m26v', 'aprov-r26-v', 'meltdowns'),
+      video('m26v', 'aprov-r26-v'),
       carousel('m26', ['aprov-r26-a', 'aprov-r26-b']),
     ],
     comment:
@@ -767,7 +767,7 @@ const seeds: Seed[] = [
     ratings: [3, 1.5, 2, 2.5],
     positiveTagIds: ['t09'],
     negativeTagIds: ['t20', 't22'],
-    media: [video('m30', 'aprov-r30-v', 'fun')],
+    media: [video('m30', 'aprov-r30-v')],
     comment:
       'Trabalho com isso, então percebi na hora que o tempo de vácuo foi curto demais. Sete dias depois o aparelho estava gelando pouco, chamei outra empresa e havia perda de gás na conexão. Tive retrabalho e custo dobrado.',
     wouldBuyAgain: false,
