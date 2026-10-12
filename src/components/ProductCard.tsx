@@ -1,9 +1,9 @@
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Bookmark, Receipt, type LucideIcon } from 'lucide-react-native';
-import { colors, icon, radius, space, type } from '../theme';
+import { Image, StyleSheet, Text, View } from 'react-native';
+import { colors, radius, space, type } from '../theme';
 import type { Product } from '../types';
 import { formatInt } from '../utils/format';
 import { Button } from './Button';
+import { ItemToggles } from './ItemToggles';
 import { StarRating } from './StarRating';
 
 type Props = {
@@ -30,27 +30,18 @@ export function ProductCard({
   onTogglePurchased,
 }: Props) {
   const hasReviews = product.reviewCount > 0;
-  const purchaseVerb = product.kind === 'service' ? 'contratei' : 'comprei';
 
   return (
     <View style={[styles.card, width != null && { width }]}>
       <View>
         <Image source={{ uri: product.imageUri }} style={styles.image} resizeMode="cover" />
-        <View style={styles.toggles}>
-          <ToggleIcon
-            Icon={Receipt}
-            active={purchased}
-            label={purchased ? `Desmarcar ${purchaseVerb}` : `Marcar como ${purchaseVerb}`}
-            onPress={onTogglePurchased}
-          />
-          <ToggleIcon
-            Icon={Bookmark}
-            active={saved}
-            fillWhenActive
-            label={saved ? 'Remover dos salvos' : 'Salvar'}
-            onPress={onToggleSaved}
-          />
-        </View>
+        <ItemToggles
+          kind={product.kind}
+          saved={saved}
+          purchased={purchased}
+          onToggleSaved={onToggleSaved}
+          onTogglePurchased={onTogglePurchased}
+        />
       </View>
 
       <View style={styles.body}>
@@ -93,41 +84,6 @@ export function ProductCard({
   );
 }
 
-function ToggleIcon({
-  Icon,
-  active,
-  fillWhenActive = false,
-  label,
-  onPress,
-}: {
-  Icon: LucideIcon;
-  active: boolean;
-  fillWhenActive?: boolean;
-  label: string;
-  onPress?: () => void;
-}) {
-  const tint = active ? colors.primary : colors.ink;
-
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={!onPress}
-      hitSlop={space.xs}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ selected: active }}
-      style={[styles.toggle, active && styles.toggleActive]}
-    >
-      <Icon
-        color={tint}
-        fill={active && fillWhenActive ? tint : 'transparent'}
-        size={icon.size.md}
-        strokeWidth={icon.strokeWidth}
-      />
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   card: {
     borderRadius: radius.card,
@@ -140,24 +96,6 @@ const styles = StyleSheet.create({
     width: '100%',
     aspectRatio: 4 / 3,
     backgroundColor: colors.surfaceAlt,
-  },
-  toggles: {
-    position: 'absolute',
-    top: space.sm,
-    right: space.sm,
-    flexDirection: 'row',
-    gap: space.sm,
-  },
-  toggle: {
-    width: icon.button,
-    height: icon.button,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surface,
-  },
-  toggleActive: {
-    backgroundColor: colors.primaryDim,
   },
   body: {
     padding: space.md,

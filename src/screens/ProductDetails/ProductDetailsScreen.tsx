@@ -4,6 +4,7 @@ import { useNavigation, useRoute, type RouteProp } from '@react-navigation/nativ
 import {
   Button,
   EmptyState,
+  ItemToggles,
   Pagination,
   ReviewPost,
   SectionHeader,
@@ -18,6 +19,7 @@ import { byNewest } from '../../utils/date';
 import { ratingStats } from '../../utils/rating';
 import { formatInt } from '../../utils/format';
 import type { ProductDetailsNavigation, ProductDetailsParamList } from '../../navigation/types';
+import { togglePurchased, toggleSaved, useUserItems } from '../../store/userItems';
 import { useOpenProfile } from '../UserProfile/useOpenProfile';
 import { useOpenMedia } from '../Media/useOpenMedia';
 import { useReport } from '../Report/useReport';
@@ -34,6 +36,7 @@ export default function ProductDetailsScreen() {
   const display = useReviewDisplay(me.id);
   const openMedia = useOpenMedia();
   const report = useReport();
+  const userItems = useUserItems();
   const openProfile = useOpenProfile();
   const [page, setPage] = useState(1);
 
@@ -72,7 +75,16 @@ export default function ProductDetailsScreen() {
 
   const header = (
     <View>
-      <Image source={{ uri: product.imageUri }} style={styles.hero} resizeMode="cover" />
+      <View>
+        <Image source={{ uri: product.imageUri }} style={styles.hero} resizeMode="cover" />
+        <ItemToggles
+          kind={product.kind}
+          saved={userItems.savedIds.includes(product.id)}
+          purchased={userItems.purchasedIds.includes(product.id)}
+          onToggleSaved={() => toggleSaved(product.id)}
+          onTogglePurchased={() => togglePurchased(product.id)}
+        />
+      </View>
 
       <View style={styles.body}>
         <Text style={styles.title}>{product.title}</Text>
