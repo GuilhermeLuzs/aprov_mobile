@@ -14,6 +14,7 @@ export { ProfileSummary } from './ProfileSummary';
 export { PersonRow } from './PersonRow';
 export { MenuRow } from './MenuRow';
 export { TopBar } from './TopBar';
+export { CoinBadge } from './CoinBadge';
 export { ItemToggles } from './ItemToggles';
 export { ReportSheet } from './ReportSheet';
 export { BrandMark } from './BrandMark';

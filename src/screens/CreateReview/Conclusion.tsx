@@ -32,7 +32,12 @@ export function Conclusion({ company, rewards, onViewReview, onReviewAnother }: 
         <Text style={styles.title}>Avaliação publicada!</Text>
 
         <View style={styles.rewards}>
-          <RewardAmount amount={rewards.coins} label={company.coinName} tone="onBrand" />
+          <RewardAmount
+            amount={rewards.coins}
+            label={company.coinName}
+            tone="onBrand"
+            coin={{ icon: company.coinIcon, color: company.coinColor }}
+          />
           <RewardAmount amount={rewards.points} label="pontos APROV" icon={Award} tone="onBrand" />
         </View>
 

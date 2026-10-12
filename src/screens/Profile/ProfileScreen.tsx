@@ -27,7 +27,7 @@ import { useReviewDisplay } from '../../store/interactions';
 import { usePublishedReviews } from '../../store/publishedReviews';
 import { signOut, useCurrentUser } from '../../store/session';
 import { useUserItems } from '../../store/userItems';
-import { useWallet } from '../../store/wallet';
+import { totalCoins, useWallet } from '../../store/wallet';
 import { byNewest } from '../../utils/date';
 import { formatInt } from '../../utils/format';
 import { levelProgress } from '../../utils/level';
@@ -52,6 +52,7 @@ export default function ProfileScreen() {
   const mediaIds = myReviews.map((r) => r.id);
   const agreementsReceived = myReviews.reduce((sum, r) => sum + r.agreements, 0);
   const progress = levelProgress(wallet.xp, xpPerLevel);
+  const coinTotal = totalCoins(wallet);
 
   const openFromMenu = (open: () => void) => {
     setMenuOpen(false);
@@ -163,7 +164,7 @@ export default function ProfileScreen() {
           <MenuRow
             Icon={WalletIcon}
             label="Carteira"
-            detail={`${formatInt(wallet.aprovPoints)} pontos APROV`}
+            detail={`${formatInt(wallet.aprovPoints)} pontos APROV · ${formatInt(coinTotal)} ${coinTotal === 1 ? 'moeda' : 'moedas'}`}
             onPress={() => openFromMenu(() => navigation.navigate('Wallet'))}
           />
           <MenuRow

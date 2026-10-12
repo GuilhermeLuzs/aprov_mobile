@@ -54,3 +54,7 @@ export function resetWallet(next: WalletState): void {
   state = next;
   emit();
 }
+
+export function totalCoins(wallet: WalletState): number {
+  return wallet.coins.reduce((sum, c) => sum + c.amount, 0);
+}

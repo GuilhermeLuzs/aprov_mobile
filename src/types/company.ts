@@ -19,6 +19,26 @@ export const CATEGORY_LABEL: Record<Category, string> = {
   saude: 'Saúde',
 };
 
+export type CoinIcon =
+  | 'coins'
+  | 'cpu'
+  | 'utensils'
+  | 'sparkles'
+  | 'snowflake'
+  | 'coffee'
+  | 'eye'
+  | 'paw-print'
+  | 'book-open'
+  | 'hammer'
+  | 'heart-pulse'
+  | 'zap'
+  | 'graduation-cap'
+  | 'star'
+  | 'heart'
+  | 'leaf'
+  | 'gem'
+  | 'flame';
+
 export interface Company {
   id: string;
   name: string;
@@ -26,7 +46,8 @@ export interface Company {
   description: string;
   categories: Category[];
   coinName: string;
-  coinIconUri: string;
+  coinIcon: CoinIcon;
+  coinColor: string;
   productCount: number;
   reviewCount: number;
   averageRating: number;

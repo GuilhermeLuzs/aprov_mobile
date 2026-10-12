@@ -1,4 +1,4 @@
-export type { Category, Company } from './company';
+export type { Category, CoinIcon, Company } from './company';
 export { CATEGORY_LABEL } from './company';
 export type { Product, ProductKind } from './product';
 export { PRODUCT_KIND_LABEL } from './product';
