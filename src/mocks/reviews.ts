@@ -1,12 +1,5 @@
-import type {
-  CarouselMedia,
-  Comment,
-  CommentReply,
-  PhotoMedia,
-  Review,
-  ReviewCharacteristic,
-  VideoMedia,
-} from '../types';
+import type { Comment, CommentReply, Review, ReviewCharacteristic } from '../types';
+import { carousel, photo, video } from './media';
 import { tagById } from './tags';
 import { productById } from './products';
 
@@ -30,44 +23,6 @@ function chars(
 }
 
 const tag = (...ids: string[]) => ids.map((id) => tagById[id]);
-
-const photo = (id: string, seed: string): PhotoMedia => ({
-  id,
-  type: 'photo',
-  uri: `https://picsum.photos/seed/${seed}/1080/1080`,
-  width: 1080,
-  height: 1080,
-});
-
-const SAMPLE_VIDEO_BASE = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample';
-
-const SAMPLE_CLIPS = {
-  joyrides: { file: 'ForBiggerJoyrides.mp4', durationSeconds: 15 },
-  blazes: { file: 'ForBiggerBlazes.mp4', durationSeconds: 15 },
-  escapes: { file: 'ForBiggerEscapes.mp4', durationSeconds: 15 },
-  meltdowns: { file: 'ForBiggerMeltdowns.mp4', durationSeconds: 15 },
-  fun: { file: 'ForBiggerFun.mp4', durationSeconds: 60 },
-} as const;
-
-type SampleClip = keyof typeof SAMPLE_CLIPS;
-
-const video = (id: string, seed: string, clip: SampleClip): VideoMedia => ({
-  id,
-  type: 'video',
-  uri: `${SAMPLE_VIDEO_BASE}/${SAMPLE_CLIPS[clip].file}`,
-  thumbnailUri: `https://picsum.photos/seed/${seed}/1080/1920`,
-  durationSeconds: SAMPLE_CLIPS[clip].durationSeconds,
-});
-
-const carousel = (id: string, seeds: string[]): CarouselMedia => ({
-  id,
-  type: 'carousel',
-  items: seeds.map((s) => ({
-    uri: `https://picsum.photos/seed/${s}/1080/1080`,
-    width: 1080,
-    height: 1080,
-  })),
-});
 
 const DISAGREEMENT_RATIO = 8;
 

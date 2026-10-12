@@ -41,5 +41,5 @@ export { Avatar } from './Avatar';
 export type { AvatarSize } from './Avatar';
 export { Checkbox } from './Checkbox';
 export { RewardAmount } from './RewardAmount';
-export { ReviewMedia } from './ReviewMedia';
+export { MediaCarousel } from './MediaCarousel';
 export { ReviewPost } from './ReviewPost';

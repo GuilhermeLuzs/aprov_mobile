@@ -1,8 +1,23 @@
 import type { Product } from '../types';
-import { products as baseProducts } from './products';
+import { extraProductMedia, MAX_PRODUCT_MEDIA } from './productMedia';
+import { products as baseProducts, type ProductSeed } from './products';
 import { reviews } from './reviews';
 
-function withReviewStats(product: Product): Product {
+const MAIN_PHOTO_SIZE = 900;
+
+function mediaOf(product: ProductSeed): Product['media'] {
+  const main = {
+    id: `${product.id}-m1`,
+    type: 'photo' as const,
+    uri: product.imageUri,
+    width: MAIN_PHOTO_SIZE,
+    height: MAIN_PHOTO_SIZE,
+  };
+  return [main, ...(extraProductMedia[product.id] ?? [])].slice(0, MAX_PRODUCT_MEDIA);
+}
+
+function withReviewStats(seed: ProductSeed): Product {
+  const product: Product = { ...seed, media: mediaOf(seed) };
   const own = reviews.filter((r) => r.productId === product.id);
   if (own.length === 0) return { ...product, reviewCount: 0, averageRating: 0 };
   const average = own.reduce((sum, r) => sum + r.averageRating, 0) / own.length;

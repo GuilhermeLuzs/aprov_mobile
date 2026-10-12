@@ -1,4 +1,5 @@
 import type { Category } from './company';
+import type { Media } from './media';
 
 export type ProductKind = 'product' | 'service';
 
@@ -15,6 +16,7 @@ export interface Product {
   title: string;
   description: string;
   imageUri: string;
+  media: Media[];
   averageRating: number;
   reviewCount: number;
   agreements: number;

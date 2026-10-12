@@ -72,6 +72,7 @@ export type RootStackParamList = {
     index: number;
     originTab: keyof MainTabParamList;
   };
+  ProductMedia: { productId: string; index: number };
 };
 
 export type HomeStackNavigation<T extends keyof HomeStackParamList> = CompositeNavigationProp<

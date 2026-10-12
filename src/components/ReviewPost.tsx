@@ -5,7 +5,7 @@ import type { Company, Product, Review, User } from '../types';
 import { formatRelativeTime } from '../utils/date';
 import { Avatar } from './Avatar';
 import { Chip } from './Chip';
-import { ReviewMedia } from './ReviewMedia';
+import { MediaCarousel } from './MediaCarousel';
 import { StarRating } from './StarRating';
 import { VoteBar, type VoteState } from './VoteBar';
 
@@ -101,7 +101,7 @@ export function ReviewPost({
         {showAuthor ? null : reportButton}
       </View>
 
-      {review.media.length > 0 ? <ReviewMedia media={review.media} onOpen={onOpenMedia} /> : null}
+      {review.media.length > 0 ? <MediaCarousel media={review.media} onOpen={onOpenMedia} /> : null}
 
       <Pressable
         onPress={onPressBody}

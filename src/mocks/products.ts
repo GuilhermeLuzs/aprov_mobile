@@ -1,6 +1,8 @@
 import type { Product } from '../types';
 
-export const products: Product[] = [
+export type ProductSeed = Omit<Product, 'media'>;
+
+export const products: ProductSeed[] = [
   {
     id: 'p01',
     companyId: 'c1',
@@ -678,6 +680,6 @@ export const products: Product[] = [
   },
 ];
 
-export const productById: Record<string, Product> = Object.fromEntries(
+export const productById: Record<string, ProductSeed> = Object.fromEntries(
   products.map((p) => [p.id, p]),
 );

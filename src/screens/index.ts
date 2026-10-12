@@ -21,4 +21,5 @@ export { default as EditInterestsScreen } from './Profile/EditInterestsScreen';
 export { default as ItemListScreen } from './Profile/ItemListScreen';
 export { default as CreateReviewScreen } from './CreateReview/CreateReviewScreen';
 export { default as MediaViewerScreen } from './Media/MediaViewerScreen';
+export { default as ProductMediaScreen } from './Media/ProductMediaScreen';
 export { default as MauricioChatScreen } from './CreateReview/MauricioChatScreen';

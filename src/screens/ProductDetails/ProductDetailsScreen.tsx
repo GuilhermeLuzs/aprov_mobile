@@ -1,11 +1,12 @@
 import { useLayoutEffect, useState } from 'react';
-import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import {
   Button,
   Chip,
   EmptyState,
   ItemToggles,
+  MediaCarousel,
   Pagination,
   ReviewPost,
   SectionHeader,
@@ -28,6 +29,7 @@ import { useOpenMedia } from '../Media/useOpenMedia';
 import { useReport } from '../Report/useReport';
 
 const REVIEWS_PER_PAGE = 5;
+const HERO_RATIO = 16 / 10;
 
 export default function ProductDetailsScreen() {
   const route = useRoute<RouteProp<ProductDetailsParamList, 'ProductDetails'>>();
@@ -79,7 +81,12 @@ export default function ProductDetailsScreen() {
   const header = (
     <View>
       <View>
-        <Image source={{ uri: product.imageUri }} style={styles.hero} resizeMode="cover" />
+        <MediaCarousel
+          media={product.media}
+          rounded={false}
+          aspectRatio={HERO_RATIO}
+          onOpen={(index) => navigation.navigate('ProductMedia', { productId: product.id, index })}
+        />
         <ItemToggles
           kind={product.kind}
           saved={userItems.savedIds.includes(product.id)}
@@ -194,11 +201,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: space.lg,
     backgroundColor: colors.bg,
-  },
-  hero: {
-    width: '100%',
-    aspectRatio: 16 / 10,
-    backgroundColor: colors.surfaceAlt,
   },
   body: { paddingHorizontal: space.lg },
   title: {
