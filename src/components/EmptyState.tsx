@@ -1,19 +1,20 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { colors, radius, space, type } from '../theme';
 import { Button } from './Button';
-import { MauricioMascot } from './MauricioMascot';
+import { MauricioMascot, type MauricioMood } from './MauricioMascot';
 
 type Props = {
   title: string;
   description?: string;
   action?: { label: string; onPress: () => void };
   compact?: boolean;
+  mood?: MauricioMood;
 };
 
-export function EmptyState({ title, description, action, compact = false }: Props) {
+export function EmptyState({ title, description, action, compact = false, mood = 'neutral' }: Props) {
   return (
     <View style={[styles.box, compact ? styles.boxCompact : styles.boxFull]}>
-      <MauricioMascot size={compact ? 64 : 96} />
+      <MauricioMascot size={compact ? 64 : 96} mood={mood} />
       <Text style={[styles.title, compact ? styles.titleCompact : styles.titleFull]}>
         {title}
       </Text>
