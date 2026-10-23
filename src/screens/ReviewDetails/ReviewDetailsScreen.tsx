@@ -62,6 +62,7 @@ export default function ReviewDetailsScreen() {
     return (
       <View style={styles.notFound}>
         <EmptyState
+          mood="confused"
           title="Avaliação não encontrada"
           description="Ela pode ter sido removida."
           action={{ label: 'Voltar', onPress: () => navigation.goBack() }}

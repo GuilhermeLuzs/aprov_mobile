@@ -50,7 +50,7 @@ export default function UserProfileScreen() {
   if (!user) {
     return (
       <View style={styles.notFound}>
-        <EmptyState title="Perfil não encontrado" description="Não foi possível abrir este perfil." />
+        <EmptyState mood="confused" title="Perfil não encontrado" description="Não foi possível abrir este perfil." />
       </View>
     );
   }

@@ -85,6 +85,7 @@ export default function CompanyCatalogScreen() {
     return (
       <View style={styles.notFound}>
         <EmptyState
+          mood="confused"
           title="Empresa não encontrada"
           description="Ela pode ter saído da plataforma."
           action={{ label: 'Voltar', onPress: () => navigation.goBack() }}
@@ -144,6 +145,7 @@ export default function CompanyCatalogScreen() {
         ListEmptyComponent={
           filtering ? (
             <EmptyState
+              mood={searching ? 'confused' : 'neutral'}
               title={
                 searching ? `Nada encontrado para "${query.trim()}"` : 'Nada com esses filtros'
               }

@@ -111,6 +111,7 @@ export default function HomeScreen() {
         ListEmptyComponent={
           <View style={[styles.gutter, styles.carousel]}>
             <EmptyState
+              mood={searching ? 'confused' : 'neutral'}
               title={searching ? `Nada encontrado para "${query.trim()}"` : 'Nada por aqui com esse filtro'}
               description={
                 searching

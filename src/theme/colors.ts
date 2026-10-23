@@ -23,11 +23,6 @@ export const colors = {
   disagreeDim: '#FBE4EE',
   agreeHalo: 'rgba(14, 143, 110, 0.25)',
 
-  botBody: '#EBEBEB',
-  botJoint: '#4A4F55',
-  botEye: '#5A2D12',
-  botScreen: '#F4B608',
-
   scrim: 'rgba(20, 12, 8, 0.55)',
   mediaBackdrop: '#000000',
   mediaControl: 'rgba(0, 0, 0, 0.45)',

@@ -18,7 +18,7 @@ export default function ReadyScreen() {
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.hero}>
-        <MauricioMascot size={124} />
+        <MauricioMascot size={124} mood="starry" />
         <Text style={styles.title}>Tudo pronto</Text>
         <Text style={styles.body}>
           Agora é só avaliar o que você usou e ganhar moedas, pontos e XP.
