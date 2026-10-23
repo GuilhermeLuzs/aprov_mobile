@@ -28,7 +28,7 @@ export function Conclusion({ company, rewards, onViewReview, onReviewAnother }: 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.hero}>
-        <MauricioMascot size={120} />
+        <MauricioMascot size={120} mood="starry" />
         <Text style={styles.title}>Avaliação publicada!</Text>
 
         <View style={styles.rewards}>

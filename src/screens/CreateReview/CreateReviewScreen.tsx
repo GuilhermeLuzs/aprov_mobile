@@ -59,6 +59,7 @@ export default function CreateReviewScreen() {
     return (
       <View style={[styles.notFound, { paddingTop: insets.top }]}>
         <EmptyState
+          mood="confused"
           title="Item não encontrado"
           description="Não dá para avaliar este item agora."
           action={{ label: 'Fechar', onPress: () => navigation.goBack() }}

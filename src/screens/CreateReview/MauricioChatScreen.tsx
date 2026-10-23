@@ -74,7 +74,7 @@ export default function MauricioChatScreen() {
         >
           <ArrowLeft size={icon.size.lg} color={colors.ink} strokeWidth={icon.strokeWidth} />
         </Pressable>
-        <MauricioMascot size={size.control} />
+        <MauricioMascot size={size.control} mood="talking" />
         <View>
           <Text style={styles.headerTitle}>Maurício</Text>
           <Text style={styles.headerSub}>{typing ? 'digitando...' : 'assistente da APROV'}</Text>

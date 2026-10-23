@@ -56,6 +56,7 @@ export default function ProductDetailsScreen() {
     return (
       <View style={styles.notFound}>
         <EmptyState
+          mood="confused"
           title="Item não encontrado"
           description="Ele pode ter saído do catálogo."
           action={{ label: 'Voltar', onPress: () => navigation.goBack() }}

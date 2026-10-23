@@ -64,6 +64,7 @@ export default function PeopleSearchScreen() {
           searching ? (
             <EmptyState
               compact
+              mood="confused"
               title="Ninguém encontrado"
               description="Confira o nome ou o @ e tente de novo."
             />
