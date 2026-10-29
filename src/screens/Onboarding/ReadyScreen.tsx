@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { apiSavePreferences } from '../../api';
 import { Button, MauricioMascot } from '../../components';
 import { colors, space, type } from '../../theme';
 import { setPreferences } from '../../store/preferences';
@@ -9,9 +11,17 @@ export default function ReadyScreen() {
   const insets = useSafeAreaInsets();
   const leave = useLeaveOnboarding();
   const { categories, companyIds, discovery } = useOnboarding();
+  const [sending, setSending] = useState(false);
 
-  const finish = () => {
+  const finish = async () => {
     setPreferences({ categories, companyIds, discovery });
+    if (discovery) {
+      setSending(true);
+      try {
+        await apiSavePreferences({ categories, companyIds, discoverySource: discovery });
+      } catch {}
+      setSending(false);
+    }
     leave();
   };
 
@@ -26,7 +36,7 @@ export default function ReadyScreen() {
       </View>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + space.md }]}>
-        <Button label="Começar" tone="onBrand" fullWidth onPress={finish} />
+        <Button label={sending ? 'Preparando...' : 'Começar'} tone="onBrand" fullWidth disabled={sending} onPress={finish} />
       </View>
     </View>
   );

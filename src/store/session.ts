@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react';
+import { ApiError, NetworkError, apiLogin, apiLogout, apiRegister, type ApiClient } from '../api';
 import { currentUser as testUser, initialWallet, testAccount, users, xpPerLevel } from '../mocks';
 import type { User } from '../types';
 import { levelProgress } from '../utils/level';
@@ -15,13 +16,19 @@ export type SignUpData = {
   name: string;
   username: string;
   email: string;
+  birthDate: string;
   cpf: string;
   password: string;
 };
 
-export type SignUpResult = 'ok' | 'email-in-use' | 'cpf-in-use' | 'username-in-use';
+export type SignUpResult = 'ok' | 'email-in-use' | 'cpf-in-use' | 'username-in-use' | 'error';
 
-export type SignInResult = 'ok' | 'invalid' | 'deactivated';
+export type SignInResult = 'ok' | 'invalid' | 'deactivated' | 'network-error';
+
+function toIsoDate(brDate: string): string {
+  const [day, month, year] = brDate.split('/');
+  return `${year}-${month}-${day}`;
+}
 
 export type ProfileChanges = {
   name: string;
@@ -90,42 +97,76 @@ function startSession(account: StoredAccount, isNew: boolean): void {
   emit();
 }
 
-export function signIn(email: string, password: string): SignInResult {
-  const account = accounts.find(
-    (a) => a.email === normalizeEmail(email) && a.password === password,
-  );
-  if (!account) return 'invalid';
-  if (getDeactivatedIds().includes(account.user.id)) return 'deactivated';
-  startSession(account, account.user.id !== testUser.id);
+function userFromApiClient(client: ApiClient): User {
+  if (client.username === normalizeUsername(testUser.handle)) {
+    return accounts.find((a) => a.user.id === testUser.id)?.user ?? testUser;
+  }
+  const id = `client-${client.id}`;
+  const existing = accounts.find((a) => a.user.id === id)?.user;
+  return {
+    id,
+    name: client.name,
+    handle: handleOf(client.username),
+    avatarUri: existing?.avatarUri ?? '',
+    bio: existing?.bio ?? '',
+    level: 1,
+    xp: existing?.xp ?? 0,
+    xpLevelFloor: 0,
+    xpLevelCeiling: xpPerLevel,
+    badges: existing?.badges ?? [],
+    reviewCount: existing?.reviewCount ?? 0,
+    agreementsReceived: existing?.agreementsReceived ?? 0,
+    joinedAt: client.createdAt,
+  };
+}
+
+function rememberAccount(email: string, cpf: string, password: string, user: User): StoredAccount {
+  const account: StoredAccount = { email: normalizeEmail(email), cpf: onlyDigits(cpf), password, user };
+  const index = accounts.findIndex((a) => a.user.id === user.id);
+  if (index >= 0) accounts[index] = account;
+  else accounts.push(account);
+  return account;
+}
+
+export async function signIn(email: string, password: string): Promise<SignInResult> {
+  let client: ApiClient;
+  try {
+    client = await apiLogin(email, password);
+  } catch (error) {
+    if (error instanceof NetworkError) return 'network-error';
+    return 'invalid';
+  }
+  const user = userFromApiClient(client);
+  if (getDeactivatedIds().includes(user.id)) return 'deactivated';
+  const account = rememberAccount(email, '', password, user);
+  startSession(account, false);
   return 'ok';
 }
 
-export function signUp(data: SignUpData): SignUpResult {
+export async function signUp(data: SignUpData): Promise<SignUpResult> {
   if (isEmailInUse(data.email)) return 'email-in-use';
   if (isCpfInUse(data.cpf)) return 'cpf-in-use';
   if (isUsernameInUse(data.username)) return 'username-in-use';
-  const user: User = {
-    id: `user-${Date.now()}`,
-    name: data.name.trim(),
-    handle: handleOf(data.username),
-    avatarUri: '',
-    bio: '',
-    level: 1,
-    xp: 0,
-    xpLevelFloor: 0,
-    xpLevelCeiling: xpPerLevel,
-    badges: [],
-    reviewCount: 0,
-    agreementsReceived: 0,
-    joinedAt: new Date().toISOString(),
-  };
-  const account: StoredAccount = {
-    email: normalizeEmail(data.email),
-    cpf: onlyDigits(data.cpf),
-    password: data.password,
-    user,
-  };
-  accounts.push(account);
+  let client: ApiClient;
+  try {
+    client = await apiRegister({
+      name: data.name.trim(),
+      username: normalizeUsername(data.username),
+      email: data.email,
+      birthDate: toIsoDate(data.birthDate),
+      cpf: onlyDigits(data.cpf),
+      password: data.password,
+    });
+  } catch (error) {
+    if (error instanceof ApiError) {
+      if (error.errors.email) return 'email-in-use';
+      if (error.errors.cpf) return 'cpf-in-use';
+      if (error.errors.username) return 'username-in-use';
+    }
+    return 'error';
+  }
+  const user = userFromApiClient(client);
+  const account = rememberAccount(data.email, data.cpf, data.password, user);
   startSession(account, true);
   return 'ok';
 }
@@ -147,6 +188,7 @@ export function updateProfile(changes: ProfileChanges): ProfileUpdateResult {
 }
 
 export function signOut(): void {
+  apiLogout().catch(() => undefined);
   session = null;
   emit();
 }
