@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { apiSavePreferences } from '../../api';
+import { realCompanyIds } from '../../api/catalogBridge';
 import { Button, MauricioMascot } from '../../components';
 import { colors, space, type } from '../../theme';
 import { setPreferences } from '../../store/preferences';
@@ -18,7 +19,7 @@ export default function ReadyScreen() {
     if (discovery) {
       setSending(true);
       try {
-        await apiSavePreferences({ categories, companyIds, discoverySource: discovery });
+        await apiSavePreferences({ categories, companyIds: realCompanyIds(companyIds), discoverySource: discovery });
       } catch {}
       setSending(false);
     }
