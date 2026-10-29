@@ -15,6 +15,7 @@ const SIGN_UP_ERROR = {
   'email-in-use': 'Já existe uma conta com este e-mail. Volte e use outro.',
   'cpf-in-use': 'Já existe uma conta com este CPF. Volte e confira.',
   'username-in-use': 'Este nome de usuário acabou de ser usado. Volte e escolha outro.',
+  error: 'Não deu para criar a conta agora. Confira a internet e tente de novo.',
 } as const;
 
 export default function PasswordScreen() {
@@ -25,20 +26,24 @@ export default function PasswordScreen() {
   const [confirmation, setConfirmation] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [signUpError, setSignUpError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const rules = passwordRules(password);
   const mismatch = confirmation !== '' && confirmation !== password;
 
-  const create = () => {
+  const create = async () => {
     setSubmitted(true);
     if (!isValidPassword(password) || confirmation !== password) return;
-    const result = signUp({
+    setSubmitting(true);
+    const result = await signUp({
       name: personalData.name,
       username: personalData.username,
       email: personalData.email,
+      birthDate: personalData.birthDate,
       cpf: personalData.cpf,
       password,
     });
+    setSubmitting(false);
     if (result !== 'ok') {
       setSignUpError(SIGN_UP_ERROR[result]);
       return;
@@ -52,7 +57,8 @@ export default function PasswordScreen() {
       title="Crie uma senha"
       subtitle={`Ela vai proteger a conta de ${personalData.email}.`}
       onBack={() => navigation.goBack()}
-      primaryLabel="Criar conta"
+      primaryLabel={submitting ? 'Criando...' : 'Criar conta'}
+      primaryDisabled={submitting}
       onPrimary={create}
     >
       <TextField

@@ -34,7 +34,8 @@
           "microphonePermission": "A APROV usa o microfone para gravar o som dos vídeos da sua avaliação."
         }
       ],
-      "expo-video"
+      "expo-video",
+      "expo-secure-store"
     ]
   }
 }

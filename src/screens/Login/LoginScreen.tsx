@@ -11,6 +11,7 @@ import type { RootStackParamList } from '../../navigation/types';
 const SIGN_IN_ERROR: Record<Exclude<SignInResult, 'ok'>, string> = {
   invalid: 'E-mail ou senha incorretos.',
   deactivated: 'Esta conta foi desativada.',
+  'network-error': 'Não deu para conectar com a APROV. Confira a internet e tente de novo.',
 };
 
 export default function LoginScreen() {
@@ -19,12 +20,15 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  const canSubmit = email.trim() !== '' && password !== '';
+  const canSubmit = email.trim() !== '' && password !== '' && !submitting;
 
-  const submit = () => {
+  const submit = async () => {
     if (!canSubmit) return;
-    const result = signIn(email, password);
+    setSubmitting(true);
+    const result = await signIn(email, password);
+    setSubmitting(false);
     if (result !== 'ok') {
       setError(SIGN_IN_ERROR[result]);
       return;
@@ -82,7 +86,7 @@ export default function LoginScreen() {
           {error ? <Text style={styles.error}>{error}</Text> : null}
         </View>
 
-        <Button label="Entrar" fullWidth disabled={!canSubmit} onPress={submit} />
+        <Button label={submitting ? 'Entrando...' : 'Entrar'} fullWidth disabled={!canSubmit} onPress={submit} />
 
         <View style={styles.signUp}>
           <Text style={styles.signUpText}>Ainda não tem conta?</Text>

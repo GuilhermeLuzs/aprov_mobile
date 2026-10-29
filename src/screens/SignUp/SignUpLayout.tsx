@@ -11,6 +11,7 @@ type Props = {
   subtitle?: string;
   onBack: () => void;
   primaryLabel: string;
+  primaryDisabled?: boolean;
   onPrimary: () => void;
   children: ReactNode;
 };
@@ -21,6 +22,7 @@ export function SignUpLayout({
   subtitle,
   onBack,
   primaryLabel,
+  primaryDisabled = false,
   onPrimary,
   children,
 }: Props) {
@@ -47,7 +49,7 @@ export function SignUpLayout({
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + space.md }]}>
-        <Button label={primaryLabel} fullWidth onPress={onPrimary} />
+        <Button label={primaryLabel} fullWidth disabled={primaryDisabled} onPress={onPrimary} />
       </View>
     </KeyboardAvoidingView>
   );

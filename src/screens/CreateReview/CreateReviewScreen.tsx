@@ -12,6 +12,8 @@ import { useNavigation, useRoute, type RouteProp } from '@react-navigation/nativ
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
+import { ApiError, apiCreateReview } from '../../api';
+import { realItemId, realTagIds } from '../../api/catalogBridge';
 import { BottomSheet, Button, EmptyState, RewardAmount, Stepper } from '../../components';
 import { colors, icon, size, space, type } from '../../theme';
 import { aprovPointsPerReview, companies, products } from '../../mocks';
@@ -54,6 +56,8 @@ export default function CreateReviewScreen() {
   const [draft, setDraft] = useState<Draft>(() => loadDraft(productId));
   const [published, setPublished] = useState<Rewards | null>(null);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
 
   if (!product || !company) {
     return (
@@ -111,13 +115,33 @@ export default function CreateReviewScreen() {
 
   const skippable = step === 3 && !mediaDone(draft);
   const primaryLabel =
-    step === TOTAL_STEPS ? 'Publicar avaliação' : skippable && canAdvance ? 'Pular' : 'Continuar';
+    step === TOTAL_STEPS ? (publishing ? 'Publicando...' : 'Publicar avaliação') : skippable && canAdvance ? 'Pular' : 'Continuar';
 
-  const advance = () => {
+  const advance = async () => {
     if (step < TOTAL_STEPS) {
       update({ step: step + 1 });
       return;
     }
+    setPublishError(null);
+    setPublishing(true);
+    try {
+      await apiCreateReview({
+        itemId: realItemId(productId),
+        deliveryRating: draft.characteristics.entrega,
+        qualityRating: draft.characteristics.qualidade,
+        conformityRating: draft.characteristics.conformidade,
+        valueRating: draft.characteristics.custo_beneficio,
+        tagIds: realTagIds([...draft.positiveTagIds, ...draft.negativeTagIds]),
+        comment: draft.comment.trim(),
+        wouldBuyAgain: draft.wouldBuyAgain ?? false,
+        media: draft.media.map((item) => ({ uri: item.uri, kind: item.kind })),
+      });
+    } catch (error) {
+      setPublishing(false);
+      setPublishError(error instanceof ApiError ? error.message : 'Não deu para publicar agora. Tente de novo.');
+      return;
+    }
+    setPublishing(false);
     publishReview(buildReview(draft, product, `published-${Date.now()}`, me.id));
     creditRewards({ companyId: product.companyId, ...earned });
     clearDraft(productId);
@@ -200,11 +224,14 @@ export default function CreateReviewScreen() {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + space.md }]}>
-        {step > 1 ? (
-          <Button label="Voltar" variant="text" onPress={() => update({ step: step - 1 })} />
-        ) : null}
-        <View style={styles.footerPrimary}>
-          <Button label={primaryLabel} fullWidth disabled={!canAdvance} onPress={advance} />
+        {publishError ? <Text style={styles.publishError}>{publishError}</Text> : null}
+        <View style={styles.footerRow}>
+          {step > 1 ? (
+            <Button label="Voltar" variant="text" disabled={publishing} onPress={() => update({ step: step - 1 })} />
+          ) : null}
+          <View style={styles.footerPrimary}>
+            <Button label={primaryLabel} fullWidth disabled={!canAdvance || publishing} onPress={advance} />
+          </View>
         </View>
       </View>
 
@@ -274,8 +301,6 @@ const styles = StyleSheet.create({
   body: { flex: 1 },
   bodyContent: { padding: space.lg, paddingBottom: space.xxl },
   footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: space.sm,
     paddingHorizontal: space.lg,
     paddingTop: space.md,
@@ -283,7 +308,14 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
     backgroundColor: colors.surface,
   },
+  footerRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   footerPrimary: { flex: 1 },
+  publishError: {
+    fontFamily: type.bodyBold.family,
+    fontSize: type.body.size,
+    lineHeight: type.body.lineHeight,
+    color: colors.disagree,
+  },
   sheetText: {
     paddingHorizontal: space.lg,
     paddingVertical: space.md,
