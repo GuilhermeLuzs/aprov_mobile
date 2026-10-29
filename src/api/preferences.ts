@@ -3,7 +3,7 @@ import type { ApiClient } from './auth';
 
 export type SavePreferencesPayload = {
   categories: string[];
-  companyIds: string[];
+  companyIds: number[];
   discoverySource: string;
 };
 

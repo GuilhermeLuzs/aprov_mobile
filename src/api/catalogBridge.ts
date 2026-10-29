@@ -4,6 +4,11 @@ import { tags } from '../mocks/tags';
 
 const ITEM_ID_BY_MOCK: Record<string, number> = Object.fromEntries(products.map((p, i) => [p.id, i + 1]));
 const TAG_ID_BY_MOCK: Record<string, number> = Object.fromEntries(tags.map((t, i) => [t.id, i + 1]));
+const COMPANY_ID_BY_MOCK: Record<string, number> = Object.fromEntries(companies.map((c, i) => [c.id, i + 1]));
+
+export function realCompanyIds(mockIds: string[]): number[] {
+  return mockIds.map((id) => COMPANY_ID_BY_MOCK[id]).filter((id) => id !== undefined);
+}
 
 export function realItemId(mockId: string): number {
   return ITEM_ID_BY_MOCK[mockId];

@@ -9,7 +9,7 @@ export type ApiClient = {
   birthDate: string;
   preferredCategories: string[] | null;
   discoverySource: string | null;
-  followedCompanyIds: string[] | null;
+  followedCompanyIds: number[];
   pointsBalance: number;
   xp: number;
   level: number;
