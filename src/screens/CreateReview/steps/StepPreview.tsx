@@ -4,6 +4,7 @@ import { colors, space, type } from '../../../theme';
 import { useCurrentUser } from '../../../store/session';
 import type { Company, Product } from '../../../types';
 import { buildReview, mediaDone, type Draft } from '../draft';
+import type { StepReward } from '../rewards';
 import { StepHeading } from './StepHeading';
 
 type Props = {
@@ -11,15 +12,20 @@ type Props = {
   update: (patch: Partial<Draft>) => void;
   product: Product;
   company: Company;
+  rewards: StepReward[];
 };
 
-export function StepPreview({ draft, update, product, company }: Props) {
+export function StepPreview({ draft, update, product, company, rewards }: Props) {
   const me = useCurrentUser();
   const question = product.kind === 'service' ? 'Contrataria novamente?' : 'Compraria novamente?';
 
   return (
     <View style={styles.wrap}>
-      <StepHeading title="Prévia da avaliação" hint="É assim que ela vai aparecer para todos." />
+      <StepHeading
+        title="Prévia da avaliação"
+        hint="É assim que ela vai aparecer para todos."
+        rewards={rewards}
+      />
 
       <ReviewPost
         review={buildReview(draft, product, 'preview', me.id)}

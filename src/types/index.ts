@@ -21,3 +21,4 @@ export type {
 } from './media';
 export type { Report, ReportReason, ReportTarget } from './report';
 export { REPORT_REASONS, REPORT_REASON_LABEL } from './report';
+export type { DraftRewardFacts, EarnedRewards, RewardPreview, RewardTopicStatus } from './reward';

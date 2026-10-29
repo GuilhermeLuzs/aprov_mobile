@@ -1,3 +1,4 @@
+import { companies } from '../mocks/companies';
 import { products } from '../mocks/products';
 import { tags } from '../mocks/tags';
 
@@ -10,4 +11,16 @@ export function realItemId(mockId: string): number {
 
 export function realTagIds(mockIds: string[]): number[] {
   return mockIds.map((id) => TAG_ID_BY_MOCK[id]);
+}
+
+export function mockItemId(realId: number): string | undefined {
+  return products[realId - 1]?.id;
+}
+
+export function mockTagId(realId: number): string | undefined {
+  return tags[realId - 1]?.id;
+}
+
+export function mockCompanyId(realId: number): string | undefined {
+  return companies[realId - 1]?.id;
 }

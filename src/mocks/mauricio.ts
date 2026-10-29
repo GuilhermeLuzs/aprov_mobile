@@ -20,7 +20,7 @@ export const mauricioReplies: MauricioReply[] = [
   {
     keywords: ['moeda', 'ganh', 'ponto', 'xp', 'recompensa', 'nivel'],
     answer:
-      'Cada passo vale uma parte: estrelas 30%, tags 20%, mídia 30% e comentário 20%. Completando tudo, você leva o valor cheio.',
+      'Cada coisa que você faz rende moedas, pontos APROV e XP à parte: marcar tags, mandar foto ou vídeo, e escrever um comentário completo. Quanto mais você completa, mais você leva.',
   },
   {
     keywords: ['foto', 'video', 'imagem', 'midia', 'quem ve', 'privacidade', 'lgpd'],

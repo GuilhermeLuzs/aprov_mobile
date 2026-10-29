@@ -14,16 +14,12 @@ type Props = {
   draft: Draft;
   update: (patch: Partial<Draft>) => void;
   product: Product;
-  bonus: string;
 };
 
-export function StepStars({ draft, update, product, bonus }: Props) {
+export function StepStars({ draft, update, product }: Props) {
   return (
     <View style={styles.wrap}>
-      <StepHeading
-        title={product.kind === 'service' ? 'Avalie o serviço' : 'Avalie o produto'}
-        bonus={bonus}
-      />
+      <StepHeading title={product.kind === 'service' ? 'Avalie o serviço' : 'Avalie o produto'} />
 
       {REVIEW_CHARACTERISTIC_KEYS.map((key) => (
         <View key={key} style={styles.row}>

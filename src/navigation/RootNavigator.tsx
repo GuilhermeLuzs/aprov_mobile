@@ -15,10 +15,12 @@ import {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-export function RootNavigator() {
+type Props = { initialRoute: 'Login' | 'MainTabs' };
+
+export function RootNavigator({ initialRoute }: Props) {
   return (
     <NavigationContainer theme={navTheme}>
-      <Stack.Navigator screenOptions={stackScreenOptions} initialRouteName="Login">
+      <Stack.Navigator screenOptions={stackScreenOptions} initialRouteName={initialRoute}>
         <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
         <Stack.Screen name="SignUp" component={SignUpNavigator} options={{ headerShown: false }} />
         <Stack.Screen

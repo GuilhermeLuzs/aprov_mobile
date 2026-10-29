@@ -16,47 +16,56 @@ import { ArrowLeft, SendHorizontal } from 'lucide-react-native';
 import { Chip, MauricioMascot } from '../../components';
 import { colors, icon, mauricioVoice, noFocusOutline, radius, size, space, type } from '../../theme';
 import { mauricioSuggestions } from '../../mocks';
+import { apiMauricioChat } from '../../api';
+import { realItemId } from '../../api/catalogBridge';
 import type { RootStackParamList } from '../../navigation/types';
-import { loadDraft } from './draft';
+import { draftRewardFacts, loadChat, loadDraft, saveChat, type ChatMessage } from './draft';
 import { greeting, replyTo } from './mauricio';
 
-type Message = { id: string; author: 'mauricio' | 'user'; text: string };
-
-const TYPING_DELAY_MS = 700;
 const MESSAGE_MAX_LENGTH = 300;
 
 export default function MauricioChatScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RootStackParamList, 'MauricioChat'>>();
-  const draft = loadDraft(route.params.productId);
+  const { productId } = route.params;
+  const draft = loadDraft(productId);
 
-  const [messages, setMessages] = useState<Message[]>(() => [
-    { id: 'm0', author: 'mauricio', text: greeting(draft) },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>(
+    () => loadChat(productId) ?? [{ id: 'm0', author: 'mauricio', text: greeting(draft) }],
+  );
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
-  const listRef = useRef<FlatList<Message>>(null);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const listRef = useRef<FlatList<ChatMessage>>(null);
 
-  useEffect(() => () => {
-    if (timer.current) clearTimeout(timer.current);
-  }, []);
+  useEffect(() => {
+    saveChat(productId, messages);
+  }, [productId, messages]);
 
   const send = (raw: string) => {
     const text = raw.trim();
     if (text === '' || typing) return;
     const turn = messages.filter((m) => m.author === 'user').length;
-    setMessages((prev) => [...prev, { id: `u${prev.length}`, author: 'user', text }]);
+    const history = [...messages, { id: `u${messages.length}`, author: 'user' as const, text }];
+    setMessages(history);
     setInput('');
     setTyping(true);
-    timer.current = setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        { id: `m${prev.length}`, author: 'mauricio', text: replyTo(text, draft, turn) },
-      ]);
-      setTyping(false);
-    }, TYPING_DELAY_MS);
+
+    apiMauricioChat(
+      realItemId(productId),
+      history.map(({ author, text: messageText }) => ({ author, text: messageText })),
+      draftRewardFacts(draft)
+    )
+      .then((reply) => {
+        setMessages((prev) => [...prev, { id: `m${prev.length}`, author: 'mauricio', text: reply }]);
+      })
+      .catch(() => {
+        setMessages((prev) => [
+          ...prev,
+          { id: `m${prev.length}`, author: 'mauricio', text: replyTo(text, draft, turn) },
+        ]);
+      })
+      .finally(() => setTyping(false));
   };
 
   return (
