@@ -1,32 +1,40 @@
-import { commentDone, mediaDone, starsDone, tagsDone, type Draft } from './draft';
-
-export const STEP_SHARE = {
-  stars: 0.3,
-  tags: 0.2,
-  media: 0.3,
-  comment: 0.2,
-} as const;
+import type { RewardTopicStatus } from '../../types';
 
 export type Rewards = { coins: number; points: number; xp: number };
 
-export function earnedShare(draft: Draft): number {
-  return (
-    (starsDone(draft) ? STEP_SHARE.stars : 0) +
-    (tagsDone(draft) ? STEP_SHARE.tags : 0) +
-    (mediaDone(draft) ? STEP_SHARE.media : 0) +
-    (commentDone(draft) ? STEP_SHARE.comment : 0)
-  );
+export type StepReward = { id: string; rule: string; amount: string; done: boolean };
+
+const STEP_TOPICS: Record<number, string[]> = {
+  2: ['min_tags'],
+  3: ['min_valid_photos', 'sent_video'],
+  4: ['min_comment_length', 'coherent_comment'],
+  5: ['completed_review'],
+};
+
+function ruleText(topic: RewardTopicStatus): string {
+  const n = topic.threshold ?? 1;
+  switch (topic.topic) {
+    case 'min_tags':
+      return n > 1 ? `Marque ${n} tags ou mais` : 'Marque uma tag';
+    case 'min_valid_photos':
+      return n > 1 ? `Mande ${n} fotos ou mais` : 'Mande uma foto';
+    case 'sent_video':
+      return 'Mande um vídeo';
+    case 'min_comment_length':
+      return `Escreva ${n} caracteres ou mais`;
+    case 'coherent_comment':
+      return 'Fale sobre as tags que marcou (conferido ao publicar)';
+    case 'completed_review':
+      return 'Preencha estrelas, tags e comentário';
+    default:
+      return topic.topic;
+  }
 }
 
-export function earnedRewards(draft: Draft, full: Rewards): Rewards {
-  const share = earnedShare(draft);
-  return {
-    coins: Math.round(full.coins * share),
-    points: Math.round(full.points * share),
-    xp: Math.round(full.xp * share),
-  };
-}
-
-export function stepBonus(full: number, share: number): number {
-  return Math.round(full * share);
+export function stepRewards(topics: RewardTopicStatus[], step: number, coinName: string): StepReward[] {
+  const keys = STEP_TOPICS[step] ?? [];
+  return keys
+    .map((key) => topics.find((t) => t.topic === key))
+    .filter((t): t is RewardTopicStatus => t !== undefined && t.coins > 0)
+    .map((t) => ({ id: t.topic, rule: ruleText(t), amount: `+${t.coins} ${coinName}`, done: t.satisfied }));
 }

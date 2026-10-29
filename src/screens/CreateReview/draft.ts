@@ -1,6 +1,7 @@
 import { tagById } from '../../mocks';
 import {
   REVIEW_CHARACTERISTIC_KEYS,
+  type DraftRewardFacts,
   type Media,
   type Product,
   type ProductKind,
@@ -63,6 +64,16 @@ export function commentDone(draft: Draft): boolean {
 
 export function mediaRequired(kind: ProductKind): boolean {
   return kind === 'product';
+}
+
+export function draftRewardFacts(draft: Draft): DraftRewardFacts {
+  return {
+    completed: starsDone(draft) && tagsDone(draft) && commentDone(draft),
+    tagCount: draft.positiveTagIds.length + draft.negativeTagIds.length,
+    hasVideo: draft.media.some((m) => m.kind === 'video'),
+    photoCount: draft.media.filter((m) => m.kind === 'photo').length,
+    commentLength: draft.comment.trim().length,
+  };
 }
 
 export function averageRating(draft: Draft): number {
@@ -139,7 +150,10 @@ export function buildReview(draft: Draft, product: Product, id: string, authorId
   };
 }
 
+export type ChatMessage = { id: string; author: 'mauricio' | 'user'; text: string };
+
 const drafts = new Map<string, Draft>();
+const chats = new Map<string, ChatMessage[]>();
 
 export function loadDraft(productId: string): Draft {
   return drafts.get(productId) ?? emptyDraft();
@@ -149,6 +163,15 @@ export function saveDraft(productId: string, draft: Draft): void {
   drafts.set(productId, draft);
 }
 
+export function loadChat(productId: string): ChatMessage[] | undefined {
+  return chats.get(productId);
+}
+
+export function saveChat(productId: string, messages: ChatMessage[]): void {
+  chats.set(productId, messages);
+}
+
 export function clearDraft(productId: string): void {
   drafts.delete(productId);
+  chats.delete(productId);
 }

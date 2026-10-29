@@ -10,6 +10,9 @@ export type ApiClient = {
   preferredCategories: string[] | null;
   discoverySource: string | null;
   followedCompanyIds: string[] | null;
+  pointsBalance: number;
+  xp: number;
+  level: number;
   createdAt: string;
 };
 

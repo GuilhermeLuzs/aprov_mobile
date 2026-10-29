@@ -6,13 +6,14 @@ import { Button } from '../../../components';
 import { colors, icon, radius, space, type } from '../../../theme';
 import type { Product } from '../../../types';
 import { MAX_MEDIA, mediaRequired, type Draft, type DraftMedia } from '../draft';
+import type { StepReward } from '../rewards';
 import { StepHeading } from './StepHeading';
 
 type Props = {
   draft: Draft;
   update: (patch: Partial<Draft>) => void;
   product: Product;
-  bonus: string;
+  rewards: StepReward[];
 };
 
 const COLUMNS = 3;
@@ -30,7 +31,7 @@ function toDraftMedia(asset: ImagePicker.ImagePickerAsset, index: number): Draft
   };
 }
 
-export function StepMedia({ draft, update, product, bonus }: Props) {
+export function StepMedia({ draft, update, product, rewards }: Props) {
   const { width: screenWidth } = useWindowDimensions();
   const [permissionDenied, setPermissionDenied] = useState(false);
 
@@ -80,7 +81,7 @@ export function StepMedia({ draft, update, product, bonus }: Props) {
     <View style={styles.wrap}>
       <StepHeading
         title={`Foto ou vídeo ${noun}`}
-        bonus={bonus}
+        rewards={rewards}
         hint={
           required
             ? 'Obrigatório para produtos: a foto mostra que a compra aconteceu.'

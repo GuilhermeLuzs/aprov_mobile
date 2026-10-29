@@ -5,22 +5,23 @@ import { colors, icon, noFocusOutline, radius, size, space, type } from '../../.
 import type { Product } from '../../../types';
 import { COMMENT_MAX_LENGTH, type Draft } from '../draft';
 import { contextualQuestion } from '../mauricio';
+import type { StepReward } from '../rewards';
 import { StepHeading } from './StepHeading';
 
 type Props = {
   draft: Draft;
   update: (patch: Partial<Draft>) => void;
   product: Product;
-  bonus: string;
+  rewards: StepReward[];
   onOpenChat: () => void;
 };
 
-export function StepComment({ draft, update, product, bonus, onOpenChat }: Props) {
+export function StepComment({ draft, update, product, rewards, onOpenChat }: Props) {
   const noun = product.kind === 'service' ? 'contratar esse serviço' : 'comprar esse produto';
 
   return (
     <View style={styles.wrap}>
-      <StepHeading title="Conte com suas palavras" bonus={bonus} />
+      <StepHeading title="Conte com suas palavras" rewards={rewards} />
 
       <View>
         <MauricioBubble text={contextualQuestion(draft)} mascotSize={56} />

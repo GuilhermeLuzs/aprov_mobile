@@ -7,18 +7,24 @@ import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { fontMap } from './src/theme';
 import { RootNavigator } from './src/navigation';
+import { restoreSession } from './src/store/session';
 
 void SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const [fontsLoaded, fontError] = useFonts(fontMap);
+  const [restored, setRestored] = useState<boolean | null>(null);
   const [navReady, setNavReady] = useState(false);
 
   useEffect(() => {
-    if (fontsLoaded || fontError) {
+    restoreSession().then(setRestored, () => setRestored(false));
+  }, []);
+
+  useEffect(() => {
+    if ((fontsLoaded || fontError) && restored !== null) {
       setNavReady(true);
     }
-  }, [fontsLoaded, fontError]);
+  }, [fontsLoaded, fontError, restored]);
 
   const onLayout = useCallback(() => {
     if (navReady) {
@@ -35,7 +41,7 @@ export default function App() {
       <SafeAreaProvider>
         <View style={{ flex: 1 }}>
           <StatusBar style="dark" />
-          <RootNavigator />
+          <RootNavigator initialRoute={restored ? 'MainTabs' : 'Login'} />
         </View>
       </SafeAreaProvider>
     </GestureHandlerRootView>

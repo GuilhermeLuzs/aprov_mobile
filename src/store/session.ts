@@ -1,12 +1,33 @@
 import { useSyncExternalStore } from 'react';
-import { ApiError, NetworkError, apiLogin, apiLogout, apiRegister, type ApiClient } from '../api';
-import { currentUser as testUser, initialWallet, testAccount, users, xpPerLevel } from '../mocks';
-import type { User } from '../types';
+import {
+  ApiError,
+  NetworkError,
+  apiLogin,
+  apiLogout,
+  apiMe,
+  apiMyReviews,
+  apiRegister,
+  apiWallet,
+  clearToken,
+  getToken,
+  type ApiClient,
+} from '../api';
+import { mockCompanyId } from '../api/catalogBridge';
+import {
+  currentUser as testUser,
+  initialWallet,
+  testAccount,
+  users,
+  xpPerLevel,
+  type CoinBalance,
+} from '../mocks';
+import type { Review, User } from '../types';
 import { levelProgress } from '../utils/level';
 import { normalizeUsername, onlyDigits } from '../utils/validation';
 import { getDeactivatedIds, markDeactivated } from './deactivated';
 import { dropDeactivatedFollows, resetFollows } from './follows';
 import { resetPreferences } from './preferences';
+import { resetPublishedReviews, reviewFromApi } from './publishedReviews';
 import { EMPTY_USER_ITEMS, resetUserItems, seededUserItems } from './userItems';
 import { EMPTY_WALLET, resetWallet, useWallet } from './wallet';
 
@@ -128,6 +149,35 @@ function rememberAccount(email: string, cpf: string, password: string, user: Use
   return account;
 }
 
+async function loadFromApi(client: ApiClient, user: User): Promise<void> {
+  const [mine, wallet] = await Promise.all([apiMyReviews(), apiWallet()]);
+  resetPublishedReviews(
+    mine.map((r) => reviewFromApi(r, user.id)).filter((r): r is Review => r !== null),
+  );
+  resetWallet({
+    aprovPoints: wallet.aprovPoints,
+    xp: client.xp,
+    coins: wallet.coins
+      .map((c) => ({ companyId: mockCompanyId(c.companyId), amount: c.amount }))
+      .filter((c): c is CoinBalance => c.companyId !== undefined),
+  });
+}
+
+export async function restoreSession(): Promise<boolean> {
+  if (!(await getToken())) return false;
+  let client: ApiClient;
+  try {
+    client = await apiMe();
+  } catch (error) {
+    if (!(error instanceof NetworkError)) await clearToken();
+    return false;
+  }
+  const user = userFromApiClient(client);
+  startSession(rememberAccount(client.email, '', '', user), false);
+  await loadFromApi(client, user).catch(() => undefined);
+  return true;
+}
+
 export async function signIn(email: string, password: string): Promise<SignInResult> {
   let client: ApiClient;
   try {
@@ -140,6 +190,7 @@ export async function signIn(email: string, password: string): Promise<SignInRes
   if (getDeactivatedIds().includes(user.id)) return 'deactivated';
   const account = rememberAccount(email, '', password, user);
   startSession(account, false);
+  await loadFromApi(client, user).catch(() => undefined);
   return 'ok';
 }
 
@@ -168,6 +219,7 @@ export async function signUp(data: SignUpData): Promise<SignUpResult> {
   const user = userFromApiClient(client);
   const account = rememberAccount(data.email, data.cpf, data.password, user);
   startSession(account, true);
+  resetPublishedReviews([]);
   return 'ok';
 }
 
@@ -189,6 +241,7 @@ export function updateProfile(changes: ProfileChanges): ProfileUpdateResult {
 
 export function signOut(): void {
   apiLogout().catch(() => undefined);
+  resetPublishedReviews([]);
   session = null;
   emit();
 }

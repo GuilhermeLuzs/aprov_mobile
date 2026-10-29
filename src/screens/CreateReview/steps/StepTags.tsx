@@ -4,13 +4,14 @@ import { space } from '../../../theme';
 import { tags as allTags } from '../../../mocks';
 import type { Product, Tag } from '../../../types';
 import type { Draft } from '../draft';
+import type { StepReward } from '../rewards';
 import { StepHeading } from './StepHeading';
 
 type Props = {
   draft: Draft;
   update: (patch: Partial<Draft>) => void;
   product: Product;
-  bonus: string;
+  rewards: StepReward[];
 };
 
 const NEUTRAL_RATING = 3;
@@ -19,7 +20,7 @@ function toggled(list: string[], id: string): string[] {
   return list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
 }
 
-export function StepTags({ draft, update, product, bonus }: Props) {
+export function StepTags({ draft, update, product, rewards }: Props) {
   const ratingFor = (tag: Tag) => draft.characteristics[tag.characteristic] || NEUTRAL_RATING;
 
   const forCategory = allTags.filter(
@@ -34,7 +35,7 @@ export function StepTags({ draft, update, product, bonus }: Props) {
 
   return (
     <View style={styles.wrap}>
-      <StepHeading title="Destaque o que marcou" bonus={bonus} hint="Marque pelo menos uma tag." />
+      <StepHeading title="Destaque o que marcou" hint="Marque pelo menos uma tag." rewards={rewards} />
 
       <View>
         <SectionHeader title="O que foi bom?" />

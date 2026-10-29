@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -12,13 +12,14 @@ import { useNavigation, useRoute, type RouteProp } from '@react-navigation/nativ
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
-import { ApiError, apiCreateReview } from '../../api';
+import { ApiError, apiCreateReview, apiRewardPreview } from '../../api';
 import { realItemId, realTagIds } from '../../api/catalogBridge';
 import { BottomSheet, Button, EmptyState, RewardAmount, Stepper } from '../../components';
 import { colors, icon, size, space, type } from '../../theme';
-import { aprovPointsPerReview, companies, products } from '../../mocks';
+import { companies, products } from '../../mocks';
+import type { Review, RewardPreview } from '../../types';
 import type { RootStackParamList } from '../../navigation/types';
-import { publishReview } from '../../store/publishedReviews';
+import { publishReview, reviewFromApi } from '../../store/publishedReviews';
 import { creditRewards } from '../../store/wallet';
 import { useCurrentUser } from '../../store/session';
 import {
@@ -26,6 +27,7 @@ import {
   buildReview,
   clearDraft,
   commentDone,
+  draftRewardFacts,
   isDirty,
   loadDraft,
   mediaDone,
@@ -35,7 +37,7 @@ import {
   tagsDone,
   type Draft,
 } from './draft';
-import { STEP_SHARE, earnedRewards, stepBonus, type Rewards } from './rewards';
+import { stepRewards, type Rewards } from './rewards';
 import { StepStars } from './steps/StepStars';
 import { StepTags } from './steps/StepTags';
 import { StepMedia } from './steps/StepMedia';
@@ -58,6 +60,25 @@ export default function CreateReviewScreen() {
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
+  const [preview, setPreview] = useState<RewardPreview | null>(null);
+
+  const factsKey = JSON.stringify(draftRewardFacts(draft));
+
+  useEffect(() => {
+    if (!product) return;
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      apiRewardPreview(realItemId(productId), draftRewardFacts(draft))
+        .then((result) => {
+          if (!cancelled) setPreview(result);
+        })
+        .catch(() => {});
+    }, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [productId, factsKey]);
 
   if (!product || !company) {
     return (
@@ -77,7 +98,12 @@ export default function CreateReviewScreen() {
       <Conclusion
         company={company}
         rewards={published}
-        onViewReview={() => navigation.goBack()}
+        onViewReview={() =>
+          navigation.navigate('MainTabs', {
+            screen: 'HomeTab',
+            params: { screen: 'ProductDetails', params: { productId } },
+          })
+        }
         onReviewAnother={() => navigation.goBack()}
       />
     );
@@ -91,13 +117,9 @@ export default function CreateReviewScreen() {
     });
   };
 
-  const full: Rewards = {
-    coins: product.coinsReward,
-    points: aprovPointsPerReview,
-    xp: product.xpReward,
-  };
-  const earned = earnedRewards(draft, full);
-  const bonusLabel = (share: number) => `+${stepBonus(full.coins, share)} ${company.coinName}`;
+  const topics = preview?.topics ?? [];
+  const earnedCoins = preview?.earned.coins ?? 0;
+  const rewardsFor = (n: number) => stepRewards(topics, n, company.coinName);
 
   const step = draft.step;
   const canAdvance =
@@ -124,8 +146,10 @@ export default function CreateReviewScreen() {
     }
     setPublishError(null);
     setPublishing(true);
+    let rewards: Rewards;
+    let saved: Review | null;
     try {
-      await apiCreateReview({
+      const created = await apiCreateReview({
         itemId: realItemId(productId),
         deliveryRating: draft.characteristics.entrega,
         qualityRating: draft.characteristics.qualidade,
@@ -136,16 +160,19 @@ export default function CreateReviewScreen() {
         wouldBuyAgain: draft.wouldBuyAgain ?? false,
         media: draft.media.map((item) => ({ uri: item.uri, kind: item.kind })),
       });
+      const earned = created.rewards ?? { coins: 0, aprovPoints: 0, xp: 0 };
+      rewards = { coins: earned.coins, points: earned.aprovPoints, xp: earned.xp };
+      saved = reviewFromApi(created, me.id);
     } catch (error) {
       setPublishing(false);
       setPublishError(error instanceof ApiError ? error.message : 'Não deu para publicar agora. Tente de novo.');
       return;
     }
     setPublishing(false);
-    publishReview(buildReview(draft, product, `published-${Date.now()}`, me.id));
-    creditRewards({ companyId: product.companyId, ...earned });
+    publishReview(saved ?? buildReview(draft, product, `published-${Date.now()}`, me.id));
+    creditRewards({ companyId: product.companyId, ...rewards });
     clearDraft(productId);
-    setPublished(earned);
+    setPublished(rewards);
   };
 
   const requestClose = () => {
@@ -170,7 +197,7 @@ export default function CreateReviewScreen() {
       <View style={[styles.top, { paddingTop: insets.top + space.sm }]}>
         <View style={styles.topRow}>
           <RewardAmount
-            amount={earned.coins}
+            amount={earnedCoins}
             label={company.coinName}
             size="sm"
             coin={{ icon: company.coinIcon, color: company.coinColor }}
@@ -198,20 +225,20 @@ export default function CreateReviewScreen() {
         showsVerticalScrollIndicator={false}
       >
         {step === 1 ? (
-          <StepStars draft={draft} update={update} product={product} bonus={bonusLabel(STEP_SHARE.stars)} />
+          <StepStars draft={draft} update={update} product={product} />
         ) : null}
         {step === 2 ? (
-          <StepTags draft={draft} update={update} product={product} bonus={bonusLabel(STEP_SHARE.tags)} />
+          <StepTags draft={draft} update={update} product={product} rewards={rewardsFor(2)} />
         ) : null}
         {step === 3 ? (
-          <StepMedia draft={draft} update={update} product={product} bonus={bonusLabel(STEP_SHARE.media)} />
+          <StepMedia draft={draft} update={update} product={product} rewards={rewardsFor(3)} />
         ) : null}
         {step === 4 ? (
           <StepComment
             draft={draft}
             update={update}
             product={product}
-            bonus={bonusLabel(STEP_SHARE.comment)}
+            rewards={rewardsFor(4)}
             onOpenChat={() => {
               saveDraft(productId, draft);
               navigation.navigate('MauricioChat', { productId });
@@ -219,7 +246,13 @@ export default function CreateReviewScreen() {
           />
         ) : null}
         {step === 5 ? (
-          <StepPreview draft={draft} update={update} product={product} company={company} />
+          <StepPreview
+            draft={draft}
+            update={update}
+            product={product}
+            company={company}
+            rewards={rewardsFor(5)}
+          />
         ) : null}
       </ScrollView>
 
