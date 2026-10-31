@@ -1,7 +1,7 @@
 import { apiRequest } from './client';
 import { clearToken, setToken } from './token';
 
-export type ApiClient = {
+export type ApiCustomer = {
   id: number;
   name: string;
   username: string;
@@ -16,7 +16,7 @@ export type ApiClient = {
   createdAt: string;
 };
 
-type SessionResponse = { token: string; client: ApiClient };
+type SessionResponse = { token: string; customer: ApiCustomer };
 
 export type RegisterPayload = {
   name: string;
@@ -27,19 +27,19 @@ export type RegisterPayload = {
   password: string;
 };
 
-export async function apiRegister(payload: RegisterPayload): Promise<ApiClient> {
-  const { token, client } = await apiRequest<SessionResponse>('register', { method: 'POST', body: payload });
+export async function apiRegister(payload: RegisterPayload): Promise<ApiCustomer> {
+  const { token, customer } = await apiRequest<SessionResponse>('register', { method: 'POST', body: payload });
   await setToken(token);
-  return client;
+  return customer;
 }
 
-export async function apiLogin(email: string, password: string): Promise<ApiClient> {
-  const { token, client } = await apiRequest<SessionResponse>('login', {
+export async function apiLogin(email: string, password: string): Promise<ApiCustomer> {
+  const { token, customer } = await apiRequest<SessionResponse>('login', {
     method: 'POST',
     body: { email, password },
   });
   await setToken(token);
-  return client;
+  return customer;
 }
 
 export async function apiLogout(): Promise<void> {
@@ -50,6 +50,6 @@ export async function apiLogout(): Promise<void> {
   }
 }
 
-export async function apiMe(): Promise<ApiClient> {
-  return apiRequest<ApiClient>('me', { auth: true });
+export async function apiMe(): Promise<ApiCustomer> {
+  return apiRequest<ApiCustomer>('me', { auth: true });
 }
