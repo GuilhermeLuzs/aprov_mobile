@@ -1,5 +1,5 @@
 import { apiRequest } from './client';
-import type { ApiClient } from './auth';
+import type { ApiCustomer } from './auth';
 
 export type SavePreferencesPayload = {
   categories: string[];
@@ -7,6 +7,6 @@ export type SavePreferencesPayload = {
   discoverySource: string;
 };
 
-export async function apiSavePreferences(payload: SavePreferencesPayload): Promise<ApiClient> {
-  return apiRequest<ApiClient>('me/preferences', { method: 'PUT', body: payload, auth: true });
+export async function apiSavePreferences(payload: SavePreferencesPayload): Promise<ApiCustomer> {
+  return apiRequest<ApiCustomer>('me/preferences', { method: 'PUT', body: payload, auth: true });
 }

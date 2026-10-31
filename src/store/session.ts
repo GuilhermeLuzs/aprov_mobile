@@ -10,7 +10,7 @@ import {
   apiWallet,
   clearToken,
   getToken,
-  type ApiClient,
+  type ApiCustomer,
 } from '../api';
 import { mockCompanyId } from '../api/catalogBridge';
 import {
@@ -118,16 +118,16 @@ function startSession(account: StoredAccount, isNew: boolean): void {
   emit();
 }
 
-function userFromApiClient(client: ApiClient): User {
-  if (client.username === normalizeUsername(testUser.handle)) {
+function userFromApiCustomer(customer: ApiCustomer): User {
+  if (customer.username === normalizeUsername(testUser.handle)) {
     return accounts.find((a) => a.user.id === testUser.id)?.user ?? testUser;
   }
-  const id = `client-${client.id}`;
+  const id = `customer-${customer.id}`;
   const existing = accounts.find((a) => a.user.id === id)?.user;
   return {
     id,
-    name: client.name,
-    handle: handleOf(client.username),
+    name: customer.name,
+    handle: handleOf(customer.username),
     avatarUri: existing?.avatarUri ?? '',
     bio: existing?.bio ?? '',
     level: 1,
@@ -137,7 +137,7 @@ function userFromApiClient(client: ApiClient): User {
     badges: existing?.badges ?? [],
     reviewCount: existing?.reviewCount ?? 0,
     agreementsReceived: existing?.agreementsReceived ?? 0,
-    joinedAt: client.createdAt,
+    joinedAt: customer.createdAt,
   };
 }
 
@@ -149,14 +149,14 @@ function rememberAccount(email: string, cpf: string, password: string, user: Use
   return account;
 }
 
-async function loadFromApi(client: ApiClient, user: User): Promise<void> {
+async function loadFromApi(customer: ApiCustomer, user: User): Promise<void> {
   const [mine, wallet] = await Promise.all([apiMyReviews(), apiWallet()]);
   resetPublishedReviews(
     mine.map((r) => reviewFromApi(r, user.id)).filter((r): r is Review => r !== null),
   );
   resetWallet({
     aprovPoints: wallet.aprovPoints,
-    xp: client.xp,
+    xp: customer.xp,
     coins: wallet.coins
       .map((c) => ({ companyId: mockCompanyId(c.companyId), amount: c.amount }))
       .filter((c): c is CoinBalance => c.companyId !== undefined),
@@ -165,32 +165,32 @@ async function loadFromApi(client: ApiClient, user: User): Promise<void> {
 
 export async function restoreSession(): Promise<boolean> {
   if (!(await getToken())) return false;
-  let client: ApiClient;
+  let customer: ApiCustomer;
   try {
-    client = await apiMe();
+    customer = await apiMe();
   } catch (error) {
     if (!(error instanceof NetworkError)) await clearToken();
     return false;
   }
-  const user = userFromApiClient(client);
-  startSession(rememberAccount(client.email, '', '', user), false);
-  await loadFromApi(client, user).catch(() => undefined);
+  const user = userFromApiCustomer(customer);
+  startSession(rememberAccount(customer.email, '', '', user), false);
+  await loadFromApi(customer, user).catch(() => undefined);
   return true;
 }
 
 export async function signIn(email: string, password: string): Promise<SignInResult> {
-  let client: ApiClient;
+  let customer: ApiCustomer;
   try {
-    client = await apiLogin(email, password);
+    customer = await apiLogin(email, password);
   } catch (error) {
     if (error instanceof NetworkError) return 'network-error';
     return 'invalid';
   }
-  const user = userFromApiClient(client);
+  const user = userFromApiCustomer(customer);
   if (getDeactivatedIds().includes(user.id)) return 'deactivated';
   const account = rememberAccount(email, '', password, user);
   startSession(account, false);
-  await loadFromApi(client, user).catch(() => undefined);
+  await loadFromApi(customer, user).catch(() => undefined);
   return 'ok';
 }
 
@@ -198,9 +198,9 @@ export async function signUp(data: SignUpData): Promise<SignUpResult> {
   if (isEmailInUse(data.email)) return 'email-in-use';
   if (isCpfInUse(data.cpf)) return 'cpf-in-use';
   if (isUsernameInUse(data.username)) return 'username-in-use';
-  let client: ApiClient;
+  let customer: ApiCustomer;
   try {
-    client = await apiRegister({
+    customer = await apiRegister({
       name: data.name.trim(),
       username: normalizeUsername(data.username),
       email: data.email,
@@ -216,7 +216,7 @@ export async function signUp(data: SignUpData): Promise<SignUpResult> {
     }
     return 'error';
   }
-  const user = userFromApiClient(client);
+  const user = userFromApiCustomer(customer);
   const account = rememberAccount(data.email, data.cpf, data.password, user);
   startSession(account, true);
   resetPublishedReviews([]);
