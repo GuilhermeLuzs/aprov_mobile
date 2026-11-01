@@ -1,10 +1,11 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { CircleUserRound, House, Newspaper } from 'lucide-react-native';
+import { CircleUserRound, House, Newspaper, Store } from 'lucide-react-native';
 import { colors, icon, type } from '../theme';
 import type { MainTabParamList } from './types';
 import { FeedStackNavigator } from './FeedStackNavigator';
 import { HomeStackNavigator } from './HomeStackNavigator';
 import { ProfileStackNavigator } from './ProfileStackNavigator';
+import { ShopStackNavigator } from './ShopStackNavigator';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -42,6 +43,16 @@ export function MainTabNavigator() {
           title: 'Feed',
           tabBarIcon: ({ color }) => (
             <Newspaper color={color} size={icon.size.lg} strokeWidth={icon.strokeWidth} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="ShopTab"
+        component={ShopStackNavigator}
+        options={{
+          title: 'Loja',
+          tabBarIcon: ({ color }) => (
+            <Store color={color} size={icon.size.lg} strokeWidth={icon.strokeWidth} />
           ),
         }}
       />

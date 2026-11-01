@@ -19,6 +19,16 @@ export type {
   CarouselMedia,
   CarouselItem,
 } from './media';
+export type {
+  AvatarFrame,
+  Accessory,
+  AccessoryKind,
+  FrameAccessory,
+  MauricioSkin,
+  SkinAccessory,
+} from './accessory';
+export { ACCESSORY_KIND_LABEL } from './accessory';
+export type { Coupon, CouponRedemption } from './coupon';
 export type { Report, ReportReason, ReportTarget } from './report';
 export { REPORT_REASONS, REPORT_REASON_LABEL } from './report';
 export type { DraftRewardFacts, EarnedRewards, RewardPreview, RewardTopicStatus } from './reward';

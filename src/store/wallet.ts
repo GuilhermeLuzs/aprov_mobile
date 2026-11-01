@@ -33,6 +33,28 @@ export function creditRewards({ companyId, coins, points, xp }: Credit): void {
   emit();
 }
 
+export function spendPoints(amount: number): boolean {
+  if (state.aprovPoints < amount) return false;
+  state = { ...state, aprovPoints: state.aprovPoints - amount };
+  emit();
+  return true;
+}
+
+export function spendCoins(companyId: string, amount: number): boolean {
+  const balance = state.coins.find((c) => c.companyId === companyId)?.amount ?? 0;
+  if (balance < amount) return false;
+  state = {
+    ...state,
+    coins: state.coins.map((c) => (c.companyId === companyId ? { ...c, amount: c.amount - amount } : c)),
+  };
+  emit();
+  return true;
+}
+
+export function coinBalance(wallet: WalletState, companyId: string): number {
+  return wallet.coins.find((c) => c.companyId === companyId)?.amount ?? 0;
+}
+
 export function getWallet(): WalletState {
   return state;
 }

@@ -25,6 +25,8 @@ import type { Review, User } from '../types';
 import { levelProgress } from '../utils/level';
 import { normalizeUsername, onlyDigits } from '../utils/validation';
 import { getDeactivatedIds, markDeactivated } from './deactivated';
+import { EMPTY_ACCESSORIES, resetAccessories } from './accessories';
+import { resetRedemptions } from './coupons';
 import { dropDeactivatedFollows, resetFollows } from './follows';
 import { resetPreferences } from './preferences';
 import { resetPublishedReviews, reviewFromApi } from './publishedReviews';
@@ -112,6 +114,8 @@ function startSession(account: StoredAccount, isNew: boolean): void {
     resetWallet({ ...initialWallet, xp: account.user.xp });
     resetUserItems(seededUserItems());
   }
+  resetAccessories(EMPTY_ACCESSORIES);
+  resetRedemptions([]);
   resetFollows();
   resetPreferences();
   session = account.user;
@@ -242,6 +246,8 @@ export function updateProfile(changes: ProfileChanges): ProfileUpdateResult {
 export function signOut(): void {
   apiLogout().catch(() => undefined);
   resetPublishedReviews([]);
+  resetAccessories(EMPTY_ACCESSORIES);
+  resetRedemptions([]);
   session = null;
   emit();
 }

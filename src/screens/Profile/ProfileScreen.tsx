@@ -23,6 +23,7 @@ import {
 import { colors, icon, radius, size, space, type } from '../../theme';
 import { companies, products, reviews, xpPerLevel } from '../../mocks';
 import { followersOf, followingOf, useFollows } from '../../store/follows';
+import { useEquippedFrame } from '../../store/accessories';
 import { useReviewDisplay } from '../../store/interactions';
 import { usePublishedReviews } from '../../store/publishedReviews';
 import { signOut, useCurrentUser } from '../../store/session';
@@ -43,6 +44,7 @@ export default function ProfileScreen() {
   const items = useUserItems();
   const published = usePublishedReviews();
   const follows = useFollows();
+  const frame = useEquippedFrame();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const myReviews = [
@@ -63,6 +65,7 @@ export default function ProfileScreen() {
     <View style={styles.header}>
       <ProfileSummary
         user={user}
+        frame={frame}
         level={progress.level}
         reviews={myReviews.length}
         agreements={agreementsReceived}

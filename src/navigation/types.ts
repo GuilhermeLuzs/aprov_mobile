@@ -1,5 +1,6 @@
 import type { CompositeNavigationProp, NavigatorScreenParams } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { AccessoryKind } from '../types';
 
 export type SignUpStackParamList = {
   PersonalData: undefined;
@@ -53,11 +54,21 @@ export type ProfileStackParamList = ProductDetailsParamList & PeopleParamList & 
   EditInterests: undefined;
 };
 
+export type ShopStackParamList = {
+  Shop: undefined;
+  CompanyCoupons: { companyId: string };
+  CouponSearch: undefined;
+  AccessoryList: { kind: AccessoryKind };
+};
+
 export type MainTabParamList = {
   HomeTab: NavigatorScreenParams<HomeStackParamList>;
   FeedTab: NavigatorScreenParams<FeedStackParamList>;
+  ShopTab: NavigatorScreenParams<ShopStackParamList> | undefined;
   ProfileTab: NavigatorScreenParams<ProfileStackParamList>;
 };
+
+export type ReviewTab = Exclude<keyof MainTabParamList, 'ShopTab'>;
 
 export type RootStackParamList = {
   Login: undefined;
@@ -70,7 +81,7 @@ export type RootStackParamList = {
     reviewIds: string[];
     reviewId: string;
     index: number;
-    originTab: keyof MainTabParamList;
+    originTab: ReviewTab;
   };
   ProductMedia: { productId: string; index: number };
 };
@@ -87,6 +98,11 @@ export type FeedStackNavigation<T extends keyof FeedStackParamList> = CompositeN
 
 export type ProfileStackNavigation<T extends keyof ProfileStackParamList> = CompositeNavigationProp<
   NativeStackNavigationProp<ProfileStackParamList, T>,
+  NativeStackNavigationProp<RootStackParamList>
+>;
+
+export type ShopStackNavigation<T extends keyof ShopStackParamList> = CompositeNavigationProp<
+  NativeStackNavigationProp<ShopStackParamList, T>,
   NativeStackNavigationProp<RootStackParamList>
 >;
 

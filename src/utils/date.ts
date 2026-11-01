@@ -26,6 +26,11 @@ export function formatRelativeTime(iso: string, now: Date = new Date()): string 
   return years <= 1 ? 'há 1 ano' : `há ${years} anos`;
 }
 
+export function formatDayMonth(isoDay: string): string {
+  const [, month, day] = isoDay.slice(0, 10).split('-');
+  return `${day}/${month}`;
+}
+
 export function byNewest(a: { createdAt: string }, b: { createdAt: string }): number {
   return Date.parse(b.createdAt) - Date.parse(a.createdAt);
 }

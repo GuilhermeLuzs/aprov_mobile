@@ -1,29 +1,25 @@
-import { Image, type ImageSourcePropType, type StyleProp, type ImageStyle } from 'react-native';
+import { Image, type StyleProp, type ImageStyle } from 'react-native';
+import { useEquippedSkin } from '../store/accessories';
+import type { MauricioSkin } from '../types';
+import { mauricioArt, type MauricioMood } from './mauricioArt';
 
-export type MauricioMood = 'neutral' | 'talking' | 'starry' | 'angry' | 'serious' | 'confused' | 'sad';
-
-const ART: Record<MauricioMood, ImageSourcePropType> = {
-  neutral: require('../../assets/mauricios/icon-mauricio.png'),
-  talking: require('../../assets/mauricios/icon-mau-fala.png'),
-  starry: require('../../assets/mauricios/icon-mau-estrela.png'),
-  angry: require('../../assets/mauricios/icon-mau-mau.png'),
-  serious: require('../../assets/mauricios/icon-mau-serio.png'),
-  confused: require('../../assets/mauricios/icon-mau-confuso.png'),
-  sad: require('../../assets/mauricios/icon-mau-triste.png'),
-};
+export type { MauricioMood } from './mauricioArt';
 
 const ART_WIDTH_PER_HEIGHT = 827 / 768;
 
 type Props = {
   size?: number;
   mood?: MauricioMood;
+  skin?: MauricioSkin;
   style?: StyleProp<ImageStyle>;
 };
 
-export function MauricioMascot({ size = 96, mood = 'neutral', style }: Props) {
+export function MauricioMascot({ size = 96, mood = 'neutral', skin, style }: Props) {
+  const equippedSkin = useEquippedSkin();
+
   return (
     <Image
-      source={ART[mood]}
+      source={mauricioArt(skin ?? equippedSkin, mood)}
       style={[{ width: size * ART_WIDTH_PER_HEIGHT, height: size }, style]}
       resizeMode="contain"
       accessible

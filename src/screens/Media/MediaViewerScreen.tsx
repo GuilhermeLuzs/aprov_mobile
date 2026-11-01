@@ -21,7 +21,7 @@ import { useReviewDisplay } from '../../store/interactions';
 import { useAllReviews } from '../../store/publishedReviews';
 import { findUser, useCurrentUser } from '../../store/session';
 import { slidesOf } from '../../utils/media';
-import type { MainTabParamList, RootStackParamList } from '../../navigation/types';
+import type { MainTabParamList, ReviewTab, RootStackParamList } from '../../navigation/types';
 import { CommentsSheet } from './CommentsSheet';
 import { useReport } from '../Report/useReport';
 import { MediaPost } from './MediaPost';
@@ -34,7 +34,7 @@ type TabTarget =
   | { screen: 'ProductDetails'; params: { productId: string } };
 
 function inTab(
-  tab: keyof MainTabParamList,
+  tab: ReviewTab,
   target: TabTarget,
 ): NavigatorScreenParams<MainTabParamList> {
   switch (tab) {
