@@ -30,4 +30,12 @@ export const colors = {
 
 export const brandGradient = ['#E8840E', '#FACE04', '#CC0C5F'] as const;
 
+export const framePalette = {
+  laranja: '#E06014',
+  grafite: '#2A211C',
+  oceano: '#1F6F8B',
+  ameixa: '#7A3E8C',
+  musgo: '#4F7A3A',
+} as const;
+
 export type ColorToken = keyof typeof colors;

@@ -1,5 +1,8 @@
-import { Image, Text, View } from 'react-native';
+import { useId } from 'react';
+import { Image, StyleSheet, Text, View } from 'react-native';
+import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { colors, radius, size as sizeToken, type } from '../theme';
+import type { AvatarFrame } from '../types';
 
 export type AvatarSize = keyof typeof sizeToken.avatar;
 
@@ -8,25 +11,27 @@ type Props = {
   name: string;
   size?: AvatarSize;
   bordered?: boolean;
+  frame?: AvatarFrame;
 };
 
 const INITIAL_TEXT: Record<AvatarSize, { size: number; lineHeight: number }> = {
   sm: type.caption,
   md: type.subtitle,
   lg: type.display,
+  xl: type.display,
 };
 
-export function Avatar({ uri, name, size = 'md', bordered = false }: Props) {
+export function Avatar({ uri, name, size = 'md', bordered = false, frame }: Props) {
   const px = sizeToken.avatar[size];
   const initial = name.trim().charAt(0).toUpperCase();
 
-  return (
+  const face = (
     <View
       style={{
         width: px,
         height: px,
         borderRadius: radius.pill,
-        borderWidth: bordered ? sizeToken.avatarBorder : 0,
+        borderWidth: bordered && !frame ? sizeToken.avatarBorder : 0,
         borderColor: colors.primary,
         overflow: 'hidden',
         alignItems: 'center',
@@ -52,4 +57,48 @@ export function Avatar({ uri, name, size = 'md', bordered = false }: Props) {
       )}
     </View>
   );
+
+  if (!frame) return face;
+
+  const outer = px + 2 * (sizeToken.avatarFrame.width + sizeToken.avatarFrame.gap);
+
+  return (
+    <View style={[styles.framed, { width: outer, height: outer }]}>
+      <FrameRing outer={outer} frame={frame} />
+      {face}
+    </View>
+  );
 }
+
+function FrameRing({ outer, frame }: { outer: number; frame: AvatarFrame }) {
+  const gradientId = `frame${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
+  const ringWidth = sizeToken.avatarFrame.width;
+  const isGradient = frame.colors.length > 1;
+  const lastStop = frame.colors.length - 1;
+
+  return (
+    <Svg width={outer} height={outer} style={StyleSheet.absoluteFill}>
+      {isGradient ? (
+        <Defs>
+          <LinearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
+            {frame.colors.map((color, index) => (
+              <Stop key={color} offset={index / lastStop} stopColor={color} />
+            ))}
+          </LinearGradient>
+        </Defs>
+      ) : null}
+      <Circle
+        cx={outer / 2}
+        cy={outer / 2}
+        r={(outer - ringWidth) / 2}
+        stroke={isGradient ? `url(#${gradientId})` : frame.colors[0]}
+        strokeWidth={ringWidth}
+        fill="none"
+      />
+    </Svg>
+  );
+}
+
+const styles = StyleSheet.create({
+  framed: { alignItems: 'center', justifyContent: 'center' },
+});

@@ -1,4 +1,4 @@
-export { colors, brandGradient } from './colors';
+export { colors, brandGradient, framePalette } from './colors';
 export type { ColorToken } from './colors';
 export { type, mauricioVoice } from './typography';
 export type { TypeToken } from './typography';

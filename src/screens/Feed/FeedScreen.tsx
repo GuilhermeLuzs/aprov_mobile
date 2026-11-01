@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Search } from 'lucide-react-native';
-import { BrandMark, EmptyState, ReviewPost, TopBar } from '../../components';
+import { BrandMark, EmptyState, ReviewPost, TabButton, TopBar } from '../../components';
 import { colors, icon, size, space, type } from '../../theme';
 import { companies, products } from '../../mocks';
 import type { Review } from '../../types';
@@ -175,28 +175,6 @@ function Separator() {
   return <View style={styles.separator} />;
 }
 
-function TabButton({
-  label,
-  active,
-  onPress,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={styles.tab}
-      accessibilityRole="tab"
-      accessibilityState={{ selected: active }}
-    >
-      <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>{label}</Text>
-      <View style={[styles.tabIndicator, active && styles.tabIndicatorActive]} />
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   tabs: {
@@ -215,24 +193,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     justifyContent: 'center',
   },
-  tab: {
-    minHeight: size.control,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    gap: space.xs,
-  },
-  tabLabel: {
-    fontFamily: type.subtitle.family,
-    fontSize: type.subtitle.size,
-    lineHeight: type.subtitle.lineHeight,
-    color: colors.inkMuted,
-  },
-  tabLabelActive: { color: colors.ink },
-  tabIndicator: {
-    height: size.tabIndicator,
-    alignSelf: 'stretch',
-  },
-  tabIndicatorActive: { backgroundColor: colors.primary },
   content: {
     padding: space.lg,
     paddingBottom: space.xl,

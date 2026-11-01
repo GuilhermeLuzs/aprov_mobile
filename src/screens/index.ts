@@ -22,4 +22,8 @@ export { default as ItemListScreen } from './Profile/ItemListScreen';
 export { default as CreateReviewScreen } from './CreateReview/CreateReviewScreen';
 export { default as MediaViewerScreen } from './Media/MediaViewerScreen';
 export { default as ProductMediaScreen } from './Media/ProductMediaScreen';
+export { default as ShopScreen } from './Shop/ShopScreen';
+export { default as CompanyCouponsScreen } from './Shop/CompanyCouponsScreen';
+export { default as AccessoryListScreen } from './Shop/AccessoryListScreen';
+export { default as CouponSearchScreen } from './Shop/CouponSearchScreen';
 export { default as MauricioChatScreen } from './CreateReview/MauricioChatScreen';

@@ -6,6 +6,8 @@ export { currentUser, users } from './users';
 export { follows } from './follows';
 export { aprovPointsPerReview, xpPerLevel } from './rewards';
 export { initialWallet } from './wallet';
+export { accessories } from './accessories';
+export { coupons, couponById } from './coupons';
 export { testAccount } from './accounts';
 export type { Account } from './accounts';
 export type { CoinBalance, Wallet } from './wallet';

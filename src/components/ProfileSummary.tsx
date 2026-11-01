@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Award } from 'lucide-react-native';
 import { colors, radius, space, type } from '../theme';
-import type { User } from '../types';
+import type { AvatarFrame, User } from '../types';
 import { formatInt } from '../utils/format';
 import { Avatar } from './Avatar';
 import { Chip } from './Chip';
@@ -18,6 +18,7 @@ type Props = {
   onPressFollowers: () => void;
   onPressFollowing: () => void;
   emptyBadgesText: string;
+  frame?: AvatarFrame;
   children?: ReactNode;
 };
 
@@ -31,12 +32,13 @@ export function ProfileSummary({
   onPressFollowers,
   onPressFollowing,
   emptyBadgesText,
+  frame,
   children,
 }: Props) {
   return (
     <View>
       <View style={styles.identity}>
-        <Avatar uri={user.avatarUri} name={user.name} size="lg" bordered />
+        <Avatar uri={user.avatarUri} name={user.name} size="lg" bordered frame={frame} />
         <View style={styles.identityText}>
           <Text style={styles.name}>{user.name}</Text>
           <Text style={styles.levelLabel}>Nível {level}</Text>
