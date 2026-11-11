@@ -30,6 +30,14 @@ export interface ReviewCharacteristic {
   rating: number;
 }
 
+export interface ReviewVersion {
+  id: string;
+  publishedAt: string;
+  characteristics: ReviewCharacteristic[];
+  averageRating: number;
+  comment: string;
+}
+
 export interface Review {
   id: string;
   productId: string;
@@ -37,6 +45,7 @@ export interface Review {
   authorId: string;
   createdAt: string;
   editedAt: string | null;
+  versions: ReviewVersion[];
   title: string;
   characteristics: ReviewCharacteristic[];
   averageRating: number;

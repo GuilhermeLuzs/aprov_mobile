@@ -6,13 +6,25 @@ import { reportedIds, useReports } from './reports';
 export type VoteChoice = 'agree' | 'disagree';
 export type VoteTarget = 'review' | 'comment';
 
+type CommentEdit = { text: string; editedAt: string; previousTexts: string[] };
+
 type Interactions = {
   votes: Record<string, Record<string, VoteChoice>>;
+  votedAt: Record<string, Record<string, string>>;
   comments: Record<string, Comment[]>;
   replies: Record<string, CommentReply[]>;
+  edits: Record<string, CommentEdit>;
+  deletedIds: string[];
 };
 
-let state: Interactions = { votes: {}, comments: {}, replies: {} };
+let state: Interactions = {
+  votes: {},
+  votedAt: {},
+  comments: {},
+  replies: {},
+  edits: {},
+  deletedIds: [],
+};
 const listeners = new Set<() => void>();
 
 function emit() {
@@ -23,10 +35,42 @@ const voteKey = (target: VoteTarget, id: string) => `${target}:${id}`;
 
 export function toggleVote(userId: string, target: VoteTarget, id: string, choice: VoteChoice): void {
   const mine = { ...(state.votes[userId] ?? {}) };
+  const mineAt = { ...(state.votedAt[userId] ?? {}) };
   const key = voteKey(target, id);
-  if (mine[key] === choice) delete mine[key];
-  else mine[key] = choice;
-  state = { ...state, votes: { ...state.votes, [userId]: mine } };
+  if (mine[key] === choice) {
+    delete mine[key];
+    delete mineAt[key];
+  } else {
+    mine[key] = choice;
+    mineAt[key] = new Date().toISOString();
+  }
+  state = {
+    ...state,
+    votes: { ...state.votes, [userId]: mine },
+    votedAt: { ...state.votedAt, [userId]: mineAt },
+  };
+  emit();
+}
+
+export function editComment(id: string, currentText: string, text: string): void {
+  const previous = state.edits[id];
+  state = {
+    ...state,
+    edits: {
+      ...state.edits,
+      [id]: {
+        text: text.trim(),
+        editedAt: new Date().toISOString(),
+        previousTexts: [...(previous?.previousTexts ?? []), currentText],
+      },
+    },
+  };
+  emit();
+}
+
+export function deleteComment(id: string): void {
+  if (state.deletedIds.includes(id)) return;
+  state = { ...state, deletedIds: [...state.deletedIds, id] };
   emit();
 }
 
@@ -106,18 +150,47 @@ export function threadOf(
   hiddenAuthorIds: string[],
   hiddenEntryIds: string[],
 ): Comment[] {
-  const visible = (entry: { id: string; authorId: string }) =>
-    !hiddenAuthorIds.includes(entry.authorId) && !hiddenEntryIds.includes(entry.id);
+  const removed = (entry: { id: string; authorId: string }) =>
+    hiddenAuthorIds.includes(entry.authorId) || interactions.deletedIds.includes(entry.id);
+  const withEdit = <T extends Comment | CommentReply>(entry: T): T => {
+    const edit = interactions.edits[entry.id];
+    return edit ? { ...entry, text: edit.text, editedAt: edit.editedAt } : entry;
+  };
   return [...review.comments, ...(interactions.comments[review.id] ?? [])]
-    .filter(visible)
-    .map((comment) => ({
-      ...comment,
-      replies: [...comment.replies, ...(interactions.replies[comment.id] ?? [])].filter(visible),
-    }));
+    .filter((comment) => !hiddenEntryIds.includes(comment.id))
+    .map((comment) => {
+      const replies = [...comment.replies, ...(interactions.replies[comment.id] ?? [])]
+        .filter((reply) => !hiddenEntryIds.includes(reply.id) && !removed(reply))
+        .map(withEdit);
+      const shown = { ...withEdit(comment), replies };
+      return removed(comment) ? { ...shown, text: '', deleted: true } : shown;
+    })
+    .filter((comment) => !comment.deleted || comment.replies.length > 0);
 }
 
 export function commentTotal(thread: Comment[]): number {
-  return thread.reduce((sum, comment) => sum + 1 + comment.replies.length, 0);
+  return thread.reduce((sum, comment) => sum + (comment.deleted ? 0 : 1) + comment.replies.length, 0);
+}
+
+export type VoteTally = { agreements: number; disagreements: number };
+
+export function votesAroundEdit(
+  interactions: Interactions,
+  userId: string,
+  review: Review,
+): { before: VoteTally; after: VoteTally } | null {
+  if (!review.editedAt) return null;
+  const before = { agreements: review.agreements, disagreements: review.disagreements };
+  const after = { agreements: 0, disagreements: 0 };
+  const key = voteKey('review', review.id);
+  const vote = interactions.votes[userId]?.[key];
+  const votedAt = interactions.votedAt[userId]?.[key];
+  if (vote && votedAt) {
+    const side = Date.parse(votedAt) >= Date.parse(review.editedAt) ? after : before;
+    if (vote === 'agree') side.agreements += 1;
+    else side.disagreements += 1;
+  }
+  return { before, after };
 }
 
 export type ReviewDisplay = {

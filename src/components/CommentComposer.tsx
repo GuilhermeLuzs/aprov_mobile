@@ -9,6 +9,8 @@ type Props = {
   onSend: () => void;
   replyingTo?: string;
   onCancelReply?: () => void;
+  editing?: boolean;
+  onCancelEdit?: () => void;
   maxLength: number;
 };
 
@@ -18,6 +20,8 @@ export function CommentComposer({
   onSend,
   replyingTo,
   onCancelReply,
+  editing = false,
+  onCancelEdit,
   maxLength,
 }: Props) {
   const insets = useSafeAreaInsets();
@@ -25,7 +29,21 @@ export function CommentComposer({
 
   return (
     <View style={[styles.wrap, { paddingBottom: insets.bottom + space.sm }]}>
-      {replyingTo ? (
+      {editing ? (
+        <View style={styles.replying}>
+          <Text style={styles.replyingText} numberOfLines={1}>
+            Editando seu comentário
+          </Text>
+          <Pressable
+            onPress={onCancelEdit}
+            hitSlop={space.sm}
+            accessibilityRole="button"
+            accessibilityLabel="Cancelar edição"
+          >
+            <X size={icon.size.md} color={colors.inkMuted} strokeWidth={icon.strokeWidth} />
+          </Pressable>
+        </View>
+      ) : replyingTo ? (
         <View style={styles.replying}>
           <Text style={styles.replyingText} numberOfLines={1}>
             Respondendo a <Text style={styles.replyingName}>{replyingTo}</Text>
@@ -56,7 +74,9 @@ export function CommentComposer({
           onPress={onSend}
           disabled={!canSend}
           accessibilityRole="button"
-          accessibilityLabel={replyingTo ? 'Enviar resposta' : 'Enviar comentário'}
+          accessibilityLabel={
+            editing ? 'Salvar comentário' : replyingTo ? 'Enviar resposta' : 'Enviar comentário'
+          }
           style={[styles.send, !canSend && styles.sendDisabled]}
         >
           <SendHorizontal size={icon.size.md} color={colors.surface} strokeWidth={icon.strokeWidth} />

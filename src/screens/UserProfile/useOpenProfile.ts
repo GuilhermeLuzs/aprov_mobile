@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { useCurrentUser } from '../../store/session';
+import { isAnonymousAuthor, useCurrentUser } from '../../store/session';
 import type { PeopleNavigation } from '../../navigation/types';
 
 export function useOpenProfile(): (userId: string) => void {
@@ -7,6 +7,7 @@ export function useOpenProfile(): (userId: string) => void {
   const me = useCurrentUser();
 
   return (userId: string) => {
+    if (isAnonymousAuthor(userId)) return;
     if (userId === me.id) {
       navigation.navigate('MainTabs', {
         screen: 'ProfileTab',

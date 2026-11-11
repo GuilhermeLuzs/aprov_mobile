@@ -75,8 +75,8 @@ export type RootStackParamList = {
   SignUp: NavigatorScreenParams<SignUpStackParamList> | undefined;
   Onboarding: NavigatorScreenParams<OnboardingStackParamList> | undefined;
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
-  CreateReview: { productId: string };
-  MauricioChat: { productId: string };
+  CreateReview: { productId: string; reviewId?: string };
+  MauricioChat: { productId: string; draftKey?: string };
   MediaViewer: {
     reviewIds: string[];
     reviewId: string;

@@ -4,6 +4,8 @@ export interface CommentReply {
   authorId: string;
   createdAt: string;
   text: string;
+  editedAt?: string | null;
+  deleted?: boolean;
   agreements: number;
   disagreements: number;
 }
@@ -14,6 +16,8 @@ export interface Comment {
   authorId: string;
   createdAt: string;
   text: string;
+  editedAt?: string | null;
+  deleted?: boolean;
   agreements: number;
   disagreements: number;
   replies: CommentReply[];
