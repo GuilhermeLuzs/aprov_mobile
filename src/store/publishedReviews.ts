@@ -3,7 +3,7 @@ import type { ApiReview } from '../api';
 import { mockItemId, mockTagId } from '../api/catalogBridge';
 import { products, reviews, tagById } from '../mocks';
 import { toReviewMedia } from '../screens/CreateReview/draft';
-import type { Product, Review, Tag } from '../types';
+import type { Product, Review, ReviewCharacteristic, Tag } from '../types';
 import { withRatingStats } from '../utils/rating';
 import { useDeactivatedIds } from './deactivated';
 import { reportedIds, useReports } from './reports';
@@ -11,7 +11,10 @@ import { useSession } from './session';
 
 const MEDIA_FALLBACK_SIDE = 1080;
 
+export const ANONYMOUS_AUTHOR_ID = 'autor-anonimo';
+
 let published: Review[] = [];
+const apiSources = new Map<string, ApiReview>();
 const listeners = new Set<() => void>();
 
 function emit() {
@@ -25,24 +28,42 @@ function tagsFrom(apiTags: { id: number }[]): Tag[] {
     .filter((t): t is Tag => t !== undefined);
 }
 
+function characteristicsFrom(ratings: {
+  deliveryRating: number;
+  qualityRating: number;
+  conformityRating: number;
+  valueRating: number;
+}): ReviewCharacteristic[] {
+  return [
+    { key: 'entrega', rating: ratings.deliveryRating },
+    { key: 'qualidade', rating: ratings.qualityRating },
+    { key: 'conformidade', rating: ratings.conformityRating },
+    { key: 'custo_beneficio', rating: ratings.valueRating },
+  ];
+}
+
 export function reviewFromApi(api: ApiReview, authorId: string): Review | null {
   const productId = mockItemId(api.itemId);
   const product = products.find((p) => p.id === productId);
   if (!product) return null;
+  const id = `api-${api.id}`;
+  apiSources.set(id, api);
   return {
-    id: `api-${api.id}`,
+    id,
     productId: product.id,
     companyId: product.companyId,
     authorId,
     createdAt: api.createdAt,
-    editedAt: null,
+    editedAt: api.editedAt,
+    versions: (api.versions ?? []).map((version) => ({
+      id: `api-version-${version.id}`,
+      publishedAt: version.publishedAt,
+      characteristics: characteristicsFrom(version),
+      averageRating: version.averageRating,
+      comment: version.comment,
+    })),
     title: '',
-    characteristics: [
-      { key: 'entrega', rating: api.deliveryRating },
-      { key: 'qualidade', rating: api.qualityRating },
-      { key: 'conformidade', rating: api.conformityRating },
-      { key: 'custo_beneficio', rating: api.valueRating },
-    ],
+    characteristics: characteristicsFrom(api),
     averageRating: api.averageRating,
     positiveTags: tagsFrom(api.positiveTags),
     negativeTags: tagsFrom(api.negativeTags),
@@ -73,9 +94,28 @@ export function publishReview(review: Review): void {
   emit();
 }
 
+export function replacePublishedReview(review: Review): void {
+  published = published.map((r) => (r.id === review.id ? review : r));
+  emit();
+}
+
+export function dropPublishedReview(reviewId: string): void {
+  published = published.filter((r) => r.id !== reviewId);
+  apiSources.delete(reviewId);
+  emit();
+}
+
+export function apiSourceOf(reviewId: string): ApiReview | undefined {
+  return apiSources.get(reviewId);
+}
+
 export function resetPublishedReviews(next: Review[]): void {
   published = next;
   emit();
+}
+
+function withoutAuthor(review: Review): Review {
+  return { ...review, authorId: ANONYMOUS_AUTHOR_ID, media: [] };
 }
 
 export function getPublishedReviews(): Review[] {
@@ -98,9 +138,9 @@ export function useAllReviews(): Review[] {
   const hidden = useDeactivatedIds();
   const session = useSession();
   const reported = reportedIds(useReports(), session?.id ?? '', 'review');
-  return [...own, ...reviews].filter(
-    (r) => !hidden.includes(r.authorId) && !reported.includes(r.id),
-  );
+  return [...own, ...reviews]
+    .filter((r) => !reported.includes(r.id))
+    .map((r) => (hidden.includes(r.authorId) ? withoutAuthor(r) : r));
 }
 
 export function useProductsWithStats(): Product[] {

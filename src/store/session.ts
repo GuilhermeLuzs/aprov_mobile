@@ -29,7 +29,7 @@ import { EMPTY_ACCESSORIES, resetAccessories } from './accessories';
 import { resetRedemptions } from './coupons';
 import { dropDeactivatedFollows, resetFollows } from './follows';
 import { resetPreferences } from './preferences';
-import { resetPublishedReviews, reviewFromApi } from './publishedReviews';
+import { ANONYMOUS_AUTHOR_ID, resetPublishedReviews, reviewFromApi } from './publishedReviews';
 import { EMPTY_USER_ITEMS, resetUserItems, seededUserItems } from './userItems';
 import { EMPTY_WALLET, resetWallet, useWallet } from './wallet';
 
@@ -259,8 +259,29 @@ export function deactivateAccount(): void {
   signOut();
 }
 
+const anonymousAuthor: User = {
+  id: ANONYMOUS_AUTHOR_ID,
+  name: 'Autor anônimo',
+  handle: '',
+  avatarUri: '',
+  bio: '',
+  level: 1,
+  xp: 0,
+  xpLevelFloor: 0,
+  xpLevelCeiling: xpPerLevel,
+  badges: [],
+  reviewCount: 0,
+  agreementsReceived: 0,
+  joinedAt: '',
+};
+
 export function findUser(id: string): User | undefined {
+  if (id === ANONYMOUS_AUTHOR_ID) return anonymousAuthor;
   return allUsers().find((u) => u.id === id);
+}
+
+export function isAnonymousAuthor(id: string): boolean {
+  return id === ANONYMOUS_AUTHOR_ID;
 }
 
 function getSession(): User | null {

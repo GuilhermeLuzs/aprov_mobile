@@ -129,6 +129,7 @@ export function buildReview(draft: Draft, product: Product, id: string, authorId
     authorId,
     createdAt: new Date().toISOString(),
     editedAt: null,
+    versions: [],
     title: '',
     characteristics: REVIEW_CHARACTERISTIC_KEYS.map((key) => ({
       key,
@@ -155,12 +156,20 @@ export type ChatMessage = { id: string; author: 'mauricio' | 'user'; text: strin
 const drafts = new Map<string, Draft>();
 const chats = new Map<string, ChatMessage[]>();
 
-export function loadDraft(productId: string): Draft {
-  return drafts.get(productId) ?? emptyDraft();
+export function loadDraft(key: string, fallback: () => Draft = emptyDraft): Draft {
+  return drafts.get(key) ?? fallback();
 }
 
-export function saveDraft(productId: string, draft: Draft): void {
-  drafts.set(productId, draft);
+export const EXISTING_MEDIA_PREFIX = 'api-media-';
+
+export function existingMediaId(media: DraftMedia): number | null {
+  return media.id.startsWith(EXISTING_MEDIA_PREFIX)
+    ? Number(media.id.slice(EXISTING_MEDIA_PREFIX.length))
+    : null;
+}
+
+export function saveDraft(key: string, draft: Draft): void {
+  drafts.set(key, draft);
 }
 
 export function loadChat(productId: string): ChatMessage[] | undefined {
@@ -171,7 +180,7 @@ export function saveChat(productId: string, messages: ChatMessage[]): void {
   chats.set(productId, messages);
 }
 
-export function clearDraft(productId: string): void {
-  drafts.delete(productId);
-  chats.delete(productId);
+export function clearDraft(key: string): void {
+  drafts.delete(key);
+  chats.delete(key);
 }

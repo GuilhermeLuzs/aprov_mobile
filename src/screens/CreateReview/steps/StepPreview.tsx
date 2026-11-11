@@ -63,6 +63,11 @@ export function StepPreview({ draft, update, product, company, rewards }: Props)
           </View>
         </View>
       </View>
+
+      <Text style={styles.notice}>
+        Depois de publicada, a avaliação fica na APROV. Você pode editar quando quiser, com as
+        versões anteriores à vista, ou tirar seu nome dela.
+      </Text>
     </View>
   );
 }
@@ -75,6 +80,12 @@ const styles = StyleSheet.create({
     fontSize: type.subtitle.size,
     lineHeight: type.subtitle.lineHeight,
     color: colors.ink,
+  },
+  notice: {
+    fontFamily: type.caption.family,
+    fontSize: type.caption.size,
+    lineHeight: type.caption.lineHeight,
+    color: colors.inkMuted,
   },
   answers: { flexDirection: 'row', gap: space.sm },
   answer: { flex: 1 },

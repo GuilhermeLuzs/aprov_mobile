@@ -11,8 +11,10 @@ import {
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Check, Flag, X } from 'lucide-react-native';
+import { ApiError, apiRemoveReviewAuthor } from '../../api';
 import {
   Avatar,
+  BottomSheet,
   Button,
   Chip,
   CommentComposer,
@@ -25,12 +27,12 @@ import {
 } from '../../components';
 import { colors, icon, radius, size, space, type } from '../../theme';
 import { products } from '../../mocks';
-import { useAllReviews } from '../../store/publishedReviews';
-import { findUser, useCurrentUser } from '../../store/session';
-import { useReviewDisplay } from '../../store/interactions';
-import { REVIEW_CHARACTERISTIC_LABEL } from '../../types';
+import { apiSourceOf, dropPublishedReview, useAllReviews } from '../../store/publishedReviews';
+import { findUser, isAnonymousAuthor, useCurrentUser } from '../../store/session';
+import { useInteractions, useReviewDisplay, votesAroundEdit } from '../../store/interactions';
+import { REVIEW_CHARACTERISTIC_LABEL, type Comment, type CommentReply } from '../../types';
 import { formatInt, formatRating } from '../../utils/format';
-import { formatRelativeTime } from '../../utils/date';
+import { formatDayMonth, formatRelativeTime } from '../../utils/date';
 import type { ReviewDetailsNavigation, ReviewDetailsParamList } from '../../navigation/types';
 import { useOpenProfile } from '../UserProfile/useOpenProfile';
 import { useOpenMedia } from '../Media/useOpenMedia';
@@ -49,7 +51,13 @@ export default function ReviewDetailsScreen() {
   const display = useReviewDisplay(me.id);
   const openMedia = useOpenMedia();
   const openProfile = useOpenProfile();
+  const interactions = useInteractions();
   const [visibleCount, setVisibleCount] = useState(COMMENTS_STEP);
+  const [managing, setManaging] = useState<Comment | CommentReply | null>(null);
+  const [showVersions, setShowVersions] = useState(false);
+  const [confirmRemoveName, setConfirmRemoveName] = useState(false);
+  const [removingName, setRemovingName] = useState(false);
+  const [removeNameError, setRemoveNameError] = useState<string | null>(null);
 
   const base = allReviews.find((r) => r.id === reviewId);
   const comments = useReviewComments(base);
@@ -76,6 +84,28 @@ export default function ReviewDetailsScreen() {
   const { thread, total } = comments;
   const visible = thread.slice(0, visibleCount);
   const question = product.kind === 'service' ? 'Contrataria novamente?' : 'Compraria novamente?';
+  const anonymous = isAnonymousAuthor(base.authorId);
+  const source = base.authorId === me.id ? apiSourceOf(base.id) : undefined;
+  const aroundEdit = votesAroundEdit(interactions, me.id, review);
+
+  const removeName = async () => {
+    if (!source) return;
+    setRemoveNameError(null);
+    setRemovingName(true);
+    try {
+      await apiRemoveReviewAuthor(source.id);
+    } catch (error) {
+      setRemovingName(false);
+      setRemoveNameError(
+        error instanceof ApiError ? error.message : 'Não deu para tirar seu nome agora. Tente de novo.',
+      );
+      return;
+    }
+    setRemovingName(false);
+    setConfirmRemoveName(false);
+    navigation.goBack();
+    dropPublishedReview(base.id);
+  };
 
   const header = (
     <View style={styles.body}>
@@ -83,8 +113,9 @@ export default function ReviewDetailsScreen() {
         <Pressable
           style={styles.authorRow}
           onPress={() => openProfile(base.authorId)}
-          accessibilityRole="link"
-          accessibilityLabel={`Ver perfil de ${author?.name ?? 'Usuário'}`}
+          disabled={anonymous}
+          accessibilityRole={anonymous ? undefined : 'link'}
+          accessibilityLabel={anonymous ? undefined : `Ver perfil de ${author?.name ?? 'Usuário'}`}
         >
           <Avatar
             uri={author?.avatarUri ?? ''}
@@ -97,7 +128,9 @@ export default function ReviewDetailsScreen() {
               {author?.name ?? 'Usuário'}
             </Text>
             <Text style={styles.muted} numberOfLines={1}>
-              Nível {author?.level ?? 1} · {formatRelativeTime(review.createdAt)}
+              {anonymous ? '' : `Nível ${author?.level ?? 1} · `}
+              {formatRelativeTime(review.createdAt)}
+              {review.editedAt ? ' · editada' : ''}
             </Text>
           </View>
         </Pressable>
@@ -175,6 +208,19 @@ export default function ReviewDetailsScreen() {
         <Text style={styles.reviewText}>{review.comment}</Text>
       ) : null}
 
+      {review.editedAt && review.versions.length > 0 ? (
+        <Pressable
+          onPress={() => setShowVersions(true)}
+          hitSlop={space.sm}
+          accessibilityRole="button"
+          style={styles.versionsLink}
+        >
+          <Text style={styles.link}>
+            Editada em {formatDayMonth(review.editedAt)} · ver versões anteriores
+          </Text>
+        </Pressable>
+      ) : null}
+
       <View style={styles.buyRow}>
         <Text style={styles.buyLabel}>{question}</Text>
         {review.wouldBuyAgain === true ? (
@@ -201,8 +247,32 @@ export default function ReviewDetailsScreen() {
           onAgree={onVote && (() => onVote('agree'))}
           onDisagree={onVote && (() => onVote('disagree'))}
         />
+        {aroundEdit ? (
+          <Text style={styles.ownNote}>
+            {`Antes da edição: ${formatInt(aroundEdit.before.agreements)} concordâncias e ${formatInt(aroundEdit.before.disagreements)} discordâncias. Depois: ${formatInt(aroundEdit.after.agreements)} e ${formatInt(aroundEdit.after.disagreements)}.`}
+          </Text>
+        ) : null}
         {!onVote ? <Text style={styles.ownNote}>Esta avaliação é sua.</Text> : null}
       </View>
+
+      {source ? (
+        <View style={styles.ownActions}>
+          <Button
+            label="Editar"
+            variant="secondary"
+            onPress={() =>
+              navigation.navigate('CreateReview', { productId: product.id, reviewId: base.id })
+            }
+            style={styles.ownAction}
+          />
+          <Button
+            label="Tirar meu nome"
+            variant="secondary"
+            onPress={() => setConfirmRemoveName(true)}
+            style={styles.ownAction}
+          />
+        </View>
+      ) : null}
 
       <View style={styles.divider} />
 
@@ -235,6 +305,9 @@ export default function ReviewDetailsScreen() {
               onReply={comments.setReplyingTo}
               canReport={report.canReport}
               onReport={(id) => report.open('comment', id)}
+              canManage={comments.canManage}
+              onManage={setManaging}
+              reviewEditedAt={review.editedAt}
             />
           </View>
         )}
@@ -269,9 +342,96 @@ export default function ReviewDetailsScreen() {
         onSend={comments.send}
         replyingTo={comments.replyingToName}
         onCancelReply={() => comments.setReplyingTo(null)}
+        editing={comments.editing}
+        onCancelEdit={comments.cancelEditing}
         maxLength={COMMENT_MAX_LENGTH}
       />
       {report.sheet}
+
+      <BottomSheet
+        visible={managing !== null}
+        title="Seu comentário"
+        closeLabel="Fechar"
+        onClose={() => setManaging(null)}
+        footer={
+          <>
+            <Button
+              label="Excluir"
+              variant="secondary"
+              onPress={() => {
+                if (managing) comments.remove(managing);
+                setManaging(null);
+              }}
+              style={styles.sheetButton}
+            />
+            <Button
+              label="Editar"
+              onPress={() => {
+                if (managing) comments.startEditing(managing);
+                setManaging(null);
+              }}
+              style={styles.sheetButton}
+            />
+          </>
+        }
+      >
+        <Text style={styles.sheetText}>
+          Ao editar, o comentário fica marcado como editado. Ao excluir, ele some; se já tiver
+          respostas, fica "Comentário excluído" no lugar e as respostas continuam.
+        </Text>
+      </BottomSheet>
+
+      <BottomSheet
+        visible={confirmRemoveName}
+        title="Tirar seu nome da avaliação?"
+        closeLabel="Cancelar"
+        onClose={() => setConfirmRemoveName(false)}
+        footer={
+          <>
+            <Button
+              label="Cancelar"
+              variant="secondary"
+              disabled={removingName}
+              onPress={() => setConfirmRemoveName(false)}
+              style={styles.sheetButton}
+            />
+            <Button
+              label={removingName ? 'Tirando...' : 'Tirar meu nome'}
+              disabled={removingName}
+              onPress={removeName}
+              style={styles.sheetButton}
+            />
+          </>
+        }
+      >
+        <Text style={styles.sheetText}>
+          A avaliação continua na APROV, como de um autor anônimo, com as notas, as tags, o texto e
+          a conversa. Saem seu nome, sua foto e as fotos e vídeos dela. Ela some do seu perfil e não
+          dá para desfazer. O que você ganhou fica, mas avaliar este item de novo não rende moedas,
+          pontos nem XP.
+        </Text>
+        {removeNameError ? <Text style={styles.sheetError}>{removeNameError}</Text> : null}
+      </BottomSheet>
+
+      <BottomSheet
+        visible={showVersions}
+        title="Versões anteriores"
+        closeLabel="Fechar"
+        onClose={() => setShowVersions(false)}
+        tall
+      >
+        <View style={styles.versions}>
+          {review.versions.map((version) => (
+            <View key={version.id} style={styles.version}>
+              <View style={styles.versionHead}>
+                <Text style={styles.authorName}>{formatDayMonth(version.publishedAt)}</Text>
+                <StarRating value={version.averageRating} size="sm" showValue />
+              </View>
+              <Text style={styles.versionText}>{version.comment}</Text>
+            </View>
+          ))}
+        </View>
+      </BottomSheet>
     </KeyboardAvoidingView>
   );
 }
@@ -378,6 +538,41 @@ const styles = StyleSheet.create({
     fontSize: type.caption.size,
     lineHeight: type.caption.lineHeight,
     color: colors.inkMuted,
+  },
+  versionsLink: { marginTop: space.md, alignSelf: 'flex-start' },
+  link: {
+    fontFamily: type.bodyBold.family,
+    fontSize: type.caption.size,
+    lineHeight: type.caption.lineHeight,
+    color: colors.primary,
+  },
+  ownActions: { marginTop: space.md, flexDirection: 'row', gap: space.sm },
+  ownAction: { flex: 1 },
+  sheetText: {
+    paddingHorizontal: space.lg,
+    paddingVertical: space.md,
+    fontFamily: type.body.family,
+    fontSize: type.body.size,
+    lineHeight: type.body.lineHeight,
+    color: colors.inkMuted,
+  },
+  sheetError: {
+    paddingHorizontal: space.lg,
+    paddingBottom: space.md,
+    fontFamily: type.bodyBold.family,
+    fontSize: type.body.size,
+    lineHeight: type.body.lineHeight,
+    color: colors.disagree,
+  },
+  sheetButton: { flex: 1 },
+  versions: { paddingHorizontal: space.lg, paddingVertical: space.md, gap: space.lg },
+  version: { gap: space.xs },
+  versionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  versionText: {
+    fontFamily: type.body.family,
+    fontSize: type.body.size,
+    lineHeight: type.body.lineHeight,
+    color: colors.ink,
   },
   divider: { height: 1, marginVertical: space.lg, backgroundColor: colors.border },
   separator: { height: space.md },

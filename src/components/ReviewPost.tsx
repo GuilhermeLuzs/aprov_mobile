@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Flag } from 'lucide-react-native';
 import { colors, icon, radius, size, space, type } from '../theme';
 import type { Company, Product, Review, User } from '../types';
+import { isAnonymousAuthor } from '../store/session';
 import { formatRelativeTime } from '../utils/date';
 import { Avatar } from './Avatar';
 import { Chip } from './Chip';
@@ -74,7 +75,9 @@ export function ReviewPost({
                 {author.name}
               </Text>
               <Text style={styles.sub} numberOfLines={1}>
-                Nível {author.level} · {formatRelativeTime(review.createdAt)}
+                {isAnonymousAuthor(author.id) ? '' : `Nível ${author.level} · `}
+                {formatRelativeTime(review.createdAt)}
+                {review.editedAt ? ' · editada' : ''}
               </Text>
             </View>
           </Pressable>

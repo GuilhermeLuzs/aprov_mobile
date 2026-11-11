@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import type { Comment, Review, User } from '../../types';
+import type { Comment, CommentReply, Review, User } from '../../types';
 import { useDeactivatedIds } from '../../store/deactivated';
 import {
   addComment,
   addReply,
   commentTotal,
+  deleteComment,
+  editComment,
   myVote,
   threadOf,
   toggleVote,
@@ -28,6 +30,7 @@ export function useReviewComments(review: Review | undefined) {
   const reportedComments = reportedIds(useReports(), me.id, 'comment');
   const [draft, setDraft] = useState('');
   const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
+  const [editing, setEditing] = useState<Comment | CommentReply | null>(null);
 
   const authorFor = (id: string): User | undefined => (id === me.id ? me : findUser(id));
   const voteFor = (id: string) => myVote(interactions, me.id, 'comment', id);
@@ -44,6 +47,12 @@ export function useReviewComments(review: Review | undefined) {
   const send = () => {
     const text = draft.trim();
     if (!review || text === '') return;
+    if (editing) {
+      if (text !== editing.text) editComment(editing.id, editing.text, text);
+      setEditing(null);
+      setDraft('');
+      return;
+    }
     if (replyingTo) addReply(replyingTo.id, me.id, text);
     else addComment(review.id, me.id, text);
     setDraft('');
@@ -56,7 +65,28 @@ export function useReviewComments(review: Review | undefined) {
     draft,
     setDraft,
     replyingTo,
-    setReplyingTo,
+    setReplyingTo: (comment: Comment | null) => {
+      setEditing(null);
+      setReplyingTo(comment);
+    },
+    editing: editing !== null,
+    startEditing: (entry: Comment | CommentReply) => {
+      setReplyingTo(null);
+      setEditing(entry);
+      setDraft(entry.text);
+    },
+    cancelEditing: () => {
+      setEditing(null);
+      setDraft('');
+    },
+    remove: (entry: Comment | CommentReply) => {
+      if (editing?.id === entry.id) {
+        setEditing(null);
+        setDraft('');
+      }
+      deleteComment(entry.id);
+    },
+    canManage: (authorId: string) => authorId === me.id,
     replyingToName: replyingTo ? authorFor(replyingTo.authorId)?.name ?? 'Usuário' : undefined,
     send,
     authorFor,

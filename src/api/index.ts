@@ -1,6 +1,14 @@
 export { ApiError, NetworkError, apiRequest } from './client';
 export { apiLogin, apiLogout, apiMe, apiRegister, type ApiCustomer, type RegisterPayload } from './auth';
-export { apiCreateReview, apiMyReviews, type ApiReview, type CreateReviewPayload } from './reviews';
+export {
+  apiCreateReview,
+  apiMyReviews,
+  apiRemoveReviewAuthor,
+  apiUpdateReview,
+  type ApiReview,
+  type CreateReviewPayload,
+  type UpdateReviewPayload,
+} from './reviews';
 export { apiWallet, type ApiWallet } from './wallet';
 export { apiMauricioChat, type MauricioMessage } from './mauricio';
 export { apiRewardPreview } from './rewards';

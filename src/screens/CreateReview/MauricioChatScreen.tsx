@@ -28,19 +28,19 @@ export default function MauricioChatScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RootStackParamList, 'MauricioChat'>>();
-  const { productId } = route.params;
-  const draft = loadDraft(productId);
+  const { productId, draftKey = productId } = route.params;
+  const draft = loadDraft(draftKey);
 
   const [messages, setMessages] = useState<ChatMessage[]>(
-    () => loadChat(productId) ?? [{ id: 'm0', author: 'mauricio', text: greeting(draft) }],
+    () => loadChat(draftKey) ?? [{ id: 'm0', author: 'mauricio', text: greeting(draft) }],
   );
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
   const listRef = useRef<FlatList<ChatMessage>>(null);
 
   useEffect(() => {
-    saveChat(productId, messages);
-  }, [productId, messages]);
+    saveChat(draftKey, messages);
+  }, [draftKey, messages]);
 
   const send = (raw: string) => {
     const text = raw.trim();

@@ -11,6 +11,18 @@ export type ApiReviewTag = { id: number };
 
 export type ApiReviewMedia = { id: number; type: 'photo' | 'video'; url: string };
 
+export type ApiReviewVersion = {
+  id: number;
+  deliveryRating: number;
+  qualityRating: number;
+  conformityRating: number;
+  valueRating: number;
+  averageRating: number;
+  comment: string;
+  wouldBuyAgain: boolean;
+  publishedAt: string;
+};
+
 export type ApiReview = {
   id: number;
   itemId: number;
@@ -21,11 +33,14 @@ export type ApiReview = {
   averageRating: number;
   comment: string;
   wouldBuyAgain: boolean;
+  mediaConsent: boolean;
   positiveTags: ApiReviewTag[];
   negativeTags: ApiReviewTag[];
   media: ApiReviewMedia[];
   rewards?: EarnedRewards;
+  versions?: ApiReviewVersion[];
   createdAt: string;
+  editedAt: string | null;
 };
 
 export type CreateReviewPayload = {
@@ -38,6 +53,11 @@ export type CreateReviewPayload = {
   comment: string;
   wouldBuyAgain: boolean;
   media: ReviewMediaUpload[];
+};
+
+export type UpdateReviewPayload = Omit<CreateReviewPayload, 'itemId'> & {
+  keepMediaIds: number[];
+  mediaConsent: boolean;
 };
 
 async function appendMedia(form: FormData, item: ReviewMediaUpload, index: number): Promise<void> {
@@ -58,9 +78,8 @@ export async function apiMyReviews(): Promise<ApiReview[]> {
   return apiRequest<ApiReview[]>('me/reviews', { auth: true });
 }
 
-export async function apiCreateReview(payload: CreateReviewPayload): Promise<ApiReview> {
+async function reviewForm(payload: Omit<CreateReviewPayload, 'itemId'>): Promise<FormData> {
   const form = new FormData();
-  form.append('itemId', String(payload.itemId));
   form.append('deliveryRating', String(payload.deliveryRating));
   form.append('qualityRating', String(payload.qualityRating));
   form.append('conformityRating', String(payload.conformityRating));
@@ -71,6 +90,23 @@ export async function apiCreateReview(payload: CreateReviewPayload): Promise<Api
   for (const [index, item] of payload.media.entries()) {
     await appendMedia(form, item, index);
   }
+  return form;
+}
 
+export async function apiCreateReview(payload: CreateReviewPayload): Promise<ApiReview> {
+  const form = await reviewForm(payload);
+  form.append('itemId', String(payload.itemId));
   return apiRequest<ApiReview>('reviews', { method: 'POST', body: form, auth: true });
+}
+
+export async function apiUpdateReview(reviewId: number, payload: UpdateReviewPayload): Promise<ApiReview> {
+  const form = await reviewForm(payload);
+  form.append('_method', 'PATCH');
+  form.append('mediaConsent', payload.mediaConsent ? '1' : '0');
+  payload.keepMediaIds.forEach((id) => form.append('keepMediaIds[]', String(id)));
+  return apiRequest<ApiReview>(`reviews/${reviewId}`, { method: 'POST', body: form, auth: true });
+}
+
+export async function apiRemoveReviewAuthor(reviewId: number): Promise<void> {
+  await apiRequest<null>(`reviews/${reviewId}/author`, { method: 'DELETE', auth: true });
 }

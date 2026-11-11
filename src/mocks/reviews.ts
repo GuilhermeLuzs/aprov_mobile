@@ -68,6 +68,7 @@ type Seed = {
   authorId: string;
   createdAt: string;
   editedAt?: string | null;
+  previousVersions?: { publishedAt: string; ratings: [number, number, number, number]; comment: string }[];
   title: string;
   ratings: [number, number, number, number];
   positiveTagIds: string[];
@@ -93,6 +94,12 @@ function makeReview(seed: Seed): Review {
     authorId: seed.authorId,
     createdAt: seed.createdAt,
     editedAt: seed.editedAt ?? null,
+    versions: (seed.previousVersions ?? []).map((version, index) => ({
+      id: `${seed.id}-v${index}`,
+      publishedAt: version.publishedAt,
+      ...chars(...version.ratings),
+      comment: version.comment,
+    })),
     title: seed.title,
     characteristics: c.characteristics,
     averageRating: c.averageRating,
@@ -346,6 +353,14 @@ const seeds: Seed[] = [
     authorId: 'u1',
     createdAt: '2026-08-05T07:45:00.000Z',
     editedAt: '2026-08-06T10:00:00.000Z',
+    previousVersions: [
+      {
+        publishedAt: '2026-08-05T07:45:00.000Z',
+        ratings: [4, 3.5, 3, 3.5],
+        comment:
+          'Acordei sem o nariz entupido pela primeira vez em meses. O app poderia mostrar o histórico, hoje só mostra o número do momento.',
+      },
+    ],
     title: 'A diferença na crise de rinite foi real no primeiro fim de semana',
     ratings: [4, 4.5, 3.5, 4],
     positiveTagIds: ['t05', 't10'],
