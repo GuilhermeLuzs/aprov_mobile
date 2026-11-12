@@ -6,6 +6,8 @@ import {
   CompanyFilterSheet,
   EmptyState,
   FilterButton,
+  LoadError,
+  LoadingState,
   Pagination,
   ProductCard,
   SearchBar,
@@ -13,22 +15,13 @@ import {
   TopBar,
 } from '../../components';
 import { colors, space } from '../../theme';
-import { companies } from '../../mocks';
-import { useProductsWithStats } from '../../store/publishedReviews';
 import type { Company, Product } from '../../types';
 import type { HomeStackNavigation } from '../../navigation/types';
-import { matchesSearch } from '../../utils/search';
-import { togglePurchased, toggleSaved, useUserItems } from '../../store/userItems';
+import { togglePurchased, toggleSaved, useCompanies, useHome } from '../../queries/catalog';
+import { useDebouncedValue } from '../../utils/useDebouncedValue';
 
-const COMPANIES_PER_PAGE = 5;
-const PRODUCTS_PER_CAROUSEL = 6;
 const CARD_WIDTH = 232;
-
-type CompanyRow = { company: Company; products: Product[] };
-
-function byRating(a: Product, b: Product): number {
-  return b.averageRating - a.averageRating || b.reviewCount - a.reviewCount;
-}
+const SEARCH_DELAY_MS = 300;
 
 export default function HomeScreen() {
   const navigation = useNavigation<HomeStackNavigation<'Home'>>();
@@ -36,22 +29,13 @@ export default function HomeScreen() {
   const [selectedCompanyIds, setSelectedCompanyIds] = useState<string[]>([]);
   const [filterOpen, setFilterOpen] = useState(false);
   const [page, setPage] = useState(1);
-  const products = useProductsWithStats();
+  const search = useDebouncedValue(query.trim(), SEARCH_DELAY_MS);
+  const home = useHome({ page, search, companyIds: selectedCompanyIds });
+  const companies = useCompanies(filterOpen);
 
-  const rows: CompanyRow[] = companies
-    .filter((c) => selectedCompanyIds.length === 0 || selectedCompanyIds.includes(c.id))
-    .map((company) => {
-      const own = products.filter((p) => p.companyId === company.id).sort(byRating);
-      const shown = matchesSearch(company.name, query)
-        ? own
-        : own.filter((p) => matchesSearch(p.title, query));
-      return { company, products: shown.slice(0, PRODUCTS_PER_CAROUSEL) };
-    })
-    .filter((row) => row.products.length > 0);
-
-  const pageCount = Math.max(1, Math.ceil(rows.length / COMPANIES_PER_PAGE));
-  const safePage = Math.min(page, pageCount);
-  const pagedRows = rows.slice((safePage - 1) * COMPANIES_PER_PAGE, safePage * COMPANIES_PER_PAGE);
+  const rows = home.data?.rows ?? [];
+  const pageCount = home.data?.pageCount ?? 1;
+  const currentPage = home.data?.page ?? page;
 
   const changeQuery = (text: string) => {
     setPage(1);
@@ -90,7 +74,7 @@ export default function HomeScreen() {
       </TopBar>
       <FlatList
         style={styles.list}
-        data={pagedRows}
+        data={rows}
         keyExtractor={(row) => row.company.id}
         renderItem={({ item }) => (
           <CompanyCarousel
@@ -104,23 +88,31 @@ export default function HomeScreen() {
         ListFooterComponent={
           rows.length > 0 ? (
             <View style={styles.pagination}>
-              <Pagination page={safePage} pageCount={pageCount} onChange={setPage} />
+              <Pagination page={currentPage} pageCount={pageCount} onChange={setPage} />
             </View>
           ) : null
         }
         ListEmptyComponent={
-          <View style={[styles.gutter, styles.carousel]}>
-            <EmptyState
-              mood={searching ? 'confused' : 'neutral'}
-              title={searching ? `Nada encontrado para "${query.trim()}"` : 'Nada por aqui com esse filtro'}
-              description={
-                searching
-                  ? 'Confira a escrita ou busque por outro nome.'
-                  : 'Tire uma empresa da seleção para ver mais.'
-              }
-              action={{ label: 'Limpar busca e filtro', onPress: clearAll }}
-            />
-          </View>
+          home.isPending ? (
+            <LoadingState />
+          ) : home.isError ? (
+            <View style={[styles.gutter, styles.carousel]}>
+              <LoadError onRetry={() => void home.refetch()} />
+            </View>
+          ) : (
+            <View style={[styles.gutter, styles.carousel]}>
+              <EmptyState
+                mood={searching ? 'confused' : 'neutral'}
+                title={searching ? `Nada encontrado para "${query.trim()}"` : 'Nada por aqui com esse filtro'}
+                description={
+                  searching
+                    ? 'Confira a escrita ou busque por outro nome.'
+                    : 'Tire uma empresa da seleção para ver mais.'
+                }
+                action={{ label: 'Limpar busca e filtro', onPress: clearAll }}
+              />
+            </View>
+          )
         }
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
@@ -130,7 +122,7 @@ export default function HomeScreen() {
 
       <CompanyFilterSheet
         visible={filterOpen}
-        companies={companies}
+        companies={companies.data ?? []}
         selectedIds={selectedCompanyIds}
         onApply={applyCompanies}
         onClose={() => setFilterOpen(false)}
@@ -152,7 +144,6 @@ function CompanyCarousel({
   onReview: (productId: string) => void;
   onDetails: (productId: string) => void;
 }) {
-  const userItems = useUserItems();
   return (
     <View style={styles.carousel}>
       <View style={styles.gutter}>
@@ -172,10 +163,10 @@ function CompanyCarousel({
             width={CARD_WIDTH}
             onAvaliar={() => onReview(item.id)}
             onSecondary={() => onDetails(item.id)}
-            saved={userItems.savedIds.includes(item.id)}
-            purchased={userItems.purchasedIds.includes(item.id)}
-            onToggleSaved={() => toggleSaved(item.id)}
-            onTogglePurchased={() => togglePurchased(item.id)}
+            saved={item.savedByCurrentUser}
+            purchased={item.purchasedByCurrentUser}
+            onToggleSaved={() => toggleSaved(item)}
+            onTogglePurchased={() => togglePurchased(item)}
           />
         )}
       />

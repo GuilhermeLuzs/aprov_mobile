@@ -1,5 +1,6 @@
 export const size = {
   control: 44,
+  historyThumb: 56,
   badge: 18,
   checkbox: 22,
   dot: 6,

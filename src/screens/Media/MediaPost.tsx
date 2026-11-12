@@ -49,7 +49,7 @@ type Props = {
   vote: VoteState;
   onVote?: (choice: 'agree' | 'disagree') => void;
   onOpenComments: () => void;
-  onOpenAuthor: () => void;
+  onOpenAuthor?: () => void;
   onOpenDetails: () => void;
   onOpenProduct: () => void;
   infoCollapsed: boolean;
@@ -232,8 +232,9 @@ export function MediaPost({
             <Pressable
               style={styles.authorRow}
               onPress={onOpenAuthor}
-              accessibilityRole="link"
-              accessibilityLabel={`Ver perfil de ${author?.name ?? 'Usuário'}`}
+              disabled={!onOpenAuthor}
+              accessibilityRole={onOpenAuthor ? 'link' : undefined}
+              accessibilityLabel={onOpenAuthor ? `Ver perfil de ${author?.name ?? 'Usuário'}` : undefined}
             >
               <Avatar
                 uri={author?.avatarUri ?? ''}

@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import type { Coupon, CouponRedemption } from '../types';
-import { spendCoins } from './wallet';
+import { spendCoins } from '../queries/wallet';
 
 let redemptions: CouponRedemption[] = [];
 const listeners = new Set<() => void>();

@@ -2,34 +2,30 @@ import { useRef, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Search } from 'lucide-react-native';
-import { BrandMark, EmptyState, ReviewPost, TabButton, TopBar } from '../../components';
+import {
+  BrandMark,
+  EmptyState,
+  LoadError,
+  LoadingState,
+  ReviewPost,
+  TabButton,
+  TopBar,
+} from '../../components';
 import { colors, icon, size, space, type } from '../../theme';
-import { companies, products } from '../../mocks';
-import type { Review } from '../../types';
-import { followingOf, useFollows } from '../../store/follows';
-import { useReviewDisplay } from '../../store/interactions';
-import { usePreferences } from '../../store/preferences';
-import { useAllReviews } from '../../store/publishedReviews';
-import { findUser, useCurrentUser } from '../../store/session';
-import { sortFeed, spaceAuthors } from '../../utils/feed';
+import type { FeedTab } from '../../api';
+import { useFeed, useReviewDisplay, type ReviewEntry } from '../../queries/reviews';
 import type { FeedStackNavigation } from '../../navigation/types';
 import { useOpenProfile } from '../UserProfile/useOpenProfile';
 import { useOpenMedia } from '../Media/useOpenMedia';
 import { useReport } from '../Report/useReport';
 
-const BATCH_SIZE = 10;
-const AUTHOR_GAP = 5;
-const REFRESH_DELAY_MS = 400;
-
-type FeedTab = 'forYou' | 'following';
-
 const TABS: { key: FeedTab; label: string }[] = [
-  { key: 'forYou', label: 'Para você' },
+  { key: 'for_you', label: 'Para você' },
   { key: 'following', label: 'Seguindo' },
 ];
 
 const EMPTY_COPY: Record<FeedTab, { title: string; description: string }> = {
-  forYou: {
+  for_you: {
     title: 'Nada por aqui ainda',
     description: 'Quando alguém publicar uma avaliação, ela aparece aqui.',
   },
@@ -39,61 +35,34 @@ const EMPTY_COPY: Record<FeedTab, { title: string; description: string }> = {
   },
 };
 
-const noPreference = () => false;
-
 export default function FeedScreen() {
   const navigation = useNavigation<FeedStackNavigation<'Feed'>>();
-  const listRef = useRef<FlatList<Review>>(null);
-  const me = useCurrentUser();
-  const display = useReviewDisplay(me.id);
+  const listRef = useRef<FlatList<ReviewEntry>>(null);
+  const display = useReviewDisplay();
   const openMedia = useOpenMedia();
   const report = useReport();
   const openProfile = useOpenProfile();
-  const allReviews = useAllReviews();
-  const preferences = usePreferences();
-  const following = followingOf(useFollows(), me.id);
-  const [tab, setTab] = useState<FeedTab>('forYou');
-  const [loaded, setLoaded] = useState(BATCH_SIZE);
+  const [tab, setTab] = useState<FeedTab>('for_you');
+  const feed = useFeed(tab);
   const [refreshing, setRefreshing] = useState(false);
 
-  const productOf = (review: Review) => products.find((p) => p.id === review.productId);
-
-  const isPreferred = (review: Review) => {
-    const product = productOf(review);
-    if (!product) return false;
-    return (
-      preferences.companyIds.includes(product.companyId) ||
-      product.categories.some((c) => preferences.categories.includes(c))
-    );
-  };
-
-  const all = allReviews.filter((r) => productOf(r) !== undefined);
-  const scoped = tab === 'following' ? all.filter((r) => following.includes(r.authorId)) : all;
-  const feed = spaceAuthors(
-    sortFeed(scoped, tab === 'forYou' ? isPreferred : noPreference),
-    AUTHOR_GAP,
-  );
-  const mediaIds = feed.map((r) => r.id);
-  const visible = feed.slice(0, loaded);
-  const exhausted = loaded >= feed.length;
+  const mediaIds = feed.entries.map((entry) => entry.review.id);
+  const exhausted = !feed.hasNextPage;
 
   const switchTab = (next: FeedTab) => {
     if (next === tab) return;
     setTab(next);
-    setLoaded(BATCH_SIZE);
     listRef.current?.scrollToOffset({ offset: 0, animated: false });
   };
 
   const loadMore = () => {
-    if (!exhausted) setLoaded((n) => n + BATCH_SIZE);
+    if (feed.hasNextPage && !feed.isFetchingNextPage) void feed.fetchNextPage();
   };
 
-  const refresh = () => {
+  const refresh = async () => {
     setRefreshing(true);
-    setTimeout(() => {
-      setLoaded(BATCH_SIZE);
-      setRefreshing(false);
-    }, REFRESH_DELAY_MS);
+    await feed.refetch();
+    setRefreshing(false);
   };
 
   return (
@@ -123,42 +92,49 @@ export default function FeedScreen() {
 
       <FlatList
         ref={listRef}
-        data={visible}
-        keyExtractor={(r) => r.id}
-        renderItem={({ item }) => {
-          const author = findUser(item.authorId);
-          const product = productOf(item);
-          const company = product ? companies.find((c) => c.id === product.companyId) : undefined;
-          if (!author || !product || !company) return null;
+        data={feed.entries}
+        keyExtractor={(entry) => entry.review.id}
+        renderItem={({ item: { review, author, product, company } }) => {
+          if (!company) return null;
           return (
             <ReviewPost
-              {...display(item)}
+              {...display(review)}
               author={author}
               product={product}
               company={company}
               onPressAuthor={() => openProfile(author.id)}
               onPressProduct={() => navigation.navigate('ProductDetails', { productId: product.id })}
-              onPressBody={() => navigation.navigate('ReviewDetails', { reviewId: item.id })}
-              onOpenMedia={(index) => openMedia(mediaIds, item.id, index)}
+              onPressBody={() => navigation.navigate('ReviewDetails', { reviewId: review.id })}
+              onOpenMedia={(index) => openMedia(mediaIds, review.id, index)}
               onReport={
-                report.canReport(item.authorId) ? () => report.open('review', item.id) : undefined
+                report.canReport(review.authorId) ? () => report.open('review', review.id) : undefined
               }
             />
           );
         }}
         ItemSeparatorComponent={Separator}
         ListEmptyComponent={
-          <EmptyState title={EMPTY_COPY[tab].title} description={EMPTY_COPY[tab].description} />
+          feed.isPending ? (
+            <LoadingState />
+          ) : feed.isError ? (
+            <LoadError onRetry={() => void feed.refetch()} />
+          ) : (
+            <EmptyState title={EMPTY_COPY[tab].title} description={EMPTY_COPY[tab].description} />
+          )
         }
         ListFooterComponent={
-          visible.length > 0 && exhausted ? <Text style={styles.end}>Você chegou ao fim</Text> : null
+          feed.isFetchingNextPage ? (
+            <LoadingState />
+          ) : feed.entries.length > 0 && exhausted ? (
+            <Text style={styles.end}>Você chegou ao fim</Text>
+          ) : null
         }
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={refresh}
+            onRefresh={() => void refresh()}
             tintColor={colors.primary}
             colors={[colors.primary]}
           />

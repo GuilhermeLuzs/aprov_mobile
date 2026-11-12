@@ -10,17 +10,17 @@ import {
   RewardAmount,
   SectionHeader,
 } from '../../components';
-import { companies, couponById, coupons } from '../../mocks';
+import { couponById, coupons } from '../../mocks';
+import { useCompanies } from '../../queries/catalog';
 import type { ShopStackNavigation } from '../../navigation/types';
 import { useRedemptions } from '../../store/coupons';
-import { coinBalance, useWallet } from '../../store/wallet';
+import { coinBalance, useWallet } from '../../queries/wallet';
 import { colors, size, space, type } from '../../theme';
 import { useCouponSheet } from './useCouponSheet';
 
 const COMPANIES_PER_PAGE = 5;
 const COUPONS_PER_CAROUSEL = 6;
 
-const companyOf = (companyId: string) => companies.find((c) => c.id === companyId);
 const couponOf = (couponId: string) => couponById[couponId];
 
 function redeemedLabel(count: number): string {
@@ -35,6 +35,8 @@ export function CouponsTab() {
   const { openCoupon, sheet } = useCouponSheet();
   const [historyOpen, setHistoryOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const companies = useCompanies().data ?? [];
+  const companyOf = (companyId: string) => companies.find((c) => c.id === companyId);
 
   const shelves = companies
     .map((company) => ({

@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { accessories } from '../mocks';
 import type { AvatarFrame, Accessory, MauricioSkin } from '../types';
-import { spendPoints } from './wallet';
+import { spendPoints } from '../queries/wallet';
 
 export type AccessoriesState = {
   ownedIds: string[];

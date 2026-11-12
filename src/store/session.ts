@@ -5,35 +5,20 @@ import {
   apiLogin,
   apiLogout,
   apiMe,
-  apiMyReviews,
   apiRegister,
-  apiWallet,
   clearToken,
   getToken,
   type ApiCustomer,
 } from '../api';
-import { mockCompanyId } from '../api/catalogBridge';
-import {
-  currentUser as testUser,
-  initialWallet,
-  testAccount,
-  users,
-  xpPerLevel,
-  type CoinBalance,
-} from '../mocks';
-import type { Review, User } from '../types';
-import { levelProgress } from '../utils/level';
+import { queryClient } from '../queries/client';
+import { ANONYMOUS_AUTHOR_ID, anonymousAuthor } from '../queries/mappers';
+import type { User } from '../types';
 import { normalizeUsername, onlyDigits } from '../utils/validation';
 import { getDeactivatedIds, markDeactivated } from './deactivated';
 import { EMPTY_ACCESSORIES, resetAccessories } from './accessories';
 import { resetRedemptions } from './coupons';
-import { dropDeactivatedFollows, resetFollows } from './follows';
-import { resetPreferences } from './preferences';
-import { ANONYMOUS_AUTHOR_ID, resetPublishedReviews, reviewFromApi } from './publishedReviews';
-import { EMPTY_USER_ITEMS, resetUserItems, seededUserItems } from './userItems';
-import { EMPTY_WALLET, resetWallet, useWallet } from './wallet';
 
-type StoredAccount = { email: string; cpf: string; password: string; user: User };
+type StoredAccount = { email: string; cpf: string; user: User };
 
 export type SignUpData = {
   name: string;
@@ -48,11 +33,6 @@ export type SignUpResult = 'ok' | 'email-in-use' | 'cpf-in-use' | 'username-in-u
 
 export type SignInResult = 'ok' | 'invalid' | 'deactivated' | 'network-error';
 
-function toIsoDate(brDate: string): string {
-  const [day, month, year] = brDate.split('/');
-  return `${year}-${month}-${day}`;
-}
-
 export type ProfileChanges = {
   name: string;
   username: string;
@@ -62,14 +42,12 @@ export type ProfileChanges = {
 
 export type ProfileUpdateResult = 'ok' | 'username-in-use';
 
-const accounts: StoredAccount[] = [
-  {
-    email: testAccount.email,
-    cpf: onlyDigits(testAccount.cpf),
-    password: testAccount.password,
-    user: testUser,
-  },
-];
+function toIsoDate(brDate: string): string {
+  const [day, month, year] = brDate.split('/');
+  return `${year}-${month}-${day}`;
+}
+
+const accounts: StoredAccount[] = [];
 
 let session: User | null = null;
 const listeners = new Set<() => void>();
@@ -80,6 +58,8 @@ function emit() {
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
+const handleOf = (username: string) => `@${normalizeUsername(username)}`;
+
 export function isEmailInUse(email: string): boolean {
   return accounts.some((a) => a.email === normalizeEmail(email));
 }
@@ -88,83 +68,40 @@ export function isCpfInUse(cpf: string): boolean {
   return accounts.some((a) => a.cpf === onlyDigits(cpf));
 }
 
-function everyUser(): User[] {
-  const fromMocks = users.map((u) => accounts.find((a) => a.user.id === u.id)?.user ?? u);
-  const created = accounts.map((a) => a.user).filter((u) => !users.some((m) => m.id === u.id));
-  return [...fromMocks, ...created];
-}
-
-export function allUsers(): User[] {
-  const hidden = getDeactivatedIds();
-  return everyUser().filter((u) => !hidden.includes(u.id));
-}
-
-const handleOf = (username: string) => `@${normalizeUsername(username)}`;
-
 export function isUsernameInUse(username: string, exceptUserId?: string): boolean {
   const handle = handleOf(username);
-  return everyUser().some((u) => u.handle === handle && u.id !== exceptUserId);
-}
-
-function startSession(account: StoredAccount, isNew: boolean): void {
-  if (isNew) {
-    resetWallet(EMPTY_WALLET);
-    resetUserItems(EMPTY_USER_ITEMS);
-  } else {
-    resetWallet({ ...initialWallet, xp: account.user.xp });
-    resetUserItems(seededUserItems());
-  }
-  resetAccessories(EMPTY_ACCESSORIES);
-  resetRedemptions([]);
-  resetFollows();
-  resetPreferences();
-  session = account.user;
-  emit();
+  return accounts.some((a) => a.user.handle === handle && a.user.id !== exceptUserId);
 }
 
 function userFromApiCustomer(customer: ApiCustomer): User {
-  if (customer.username === normalizeUsername(testUser.handle)) {
-    return accounts.find((a) => a.user.id === testUser.id)?.user ?? testUser;
-  }
-  const id = `customer-${customer.id}`;
+  const id = String(customer.id);
   const existing = accounts.find((a) => a.user.id === id)?.user;
   return {
+    ...anonymousAuthor,
     id,
     name: customer.name,
     handle: handleOf(customer.username),
-    avatarUri: existing?.avatarUri ?? '',
-    bio: existing?.bio ?? '',
-    level: 1,
-    xp: existing?.xp ?? 0,
-    xpLevelFloor: 0,
-    xpLevelCeiling: xpPerLevel,
-    badges: existing?.badges ?? [],
-    reviewCount: existing?.reviewCount ?? 0,
-    agreementsReceived: existing?.agreementsReceived ?? 0,
+    avatarUri: existing?.avatarUri ?? customer.avatarUrl ?? '',
+    bio: existing?.bio ?? customer.bio,
+    level: customer.level,
+    xp: customer.xp,
     joinedAt: customer.createdAt,
   };
 }
 
-function rememberAccount(email: string, cpf: string, password: string, user: User): StoredAccount {
-  const account: StoredAccount = { email: normalizeEmail(email), cpf: onlyDigits(cpf), password, user };
+function rememberAccount(email: string, cpf: string, user: User): void {
+  const account: StoredAccount = { email: normalizeEmail(email), cpf: onlyDigits(cpf), user };
   const index = accounts.findIndex((a) => a.user.id === user.id);
   if (index >= 0) accounts[index] = account;
   else accounts.push(account);
-  return account;
 }
 
-async function loadFromApi(customer: ApiCustomer, user: User): Promise<void> {
-  const [mine, wallet] = await Promise.all([apiMyReviews(), apiWallet()]);
-  resetPublishedReviews(
-    mine.map((r) => reviewFromApi(r, user.id)).filter((r): r is Review => r !== null),
-  );
-  resetWallet({
-    aprovPoints: wallet.aprovPoints,
-    xp: customer.xp,
-    coins: wallet.coins
-      .map((c) => ({ companyId: mockCompanyId(c.companyId), amount: c.amount }))
-      .filter((c): c is CoinBalance => c.companyId !== undefined),
-  });
+function startSession(user: User): void {
+  queryClient.clear();
+  resetAccessories(EMPTY_ACCESSORIES);
+  resetRedemptions([]);
+  session = user;
+  emit();
 }
 
 export async function restoreSession(): Promise<boolean> {
@@ -177,8 +114,8 @@ export async function restoreSession(): Promise<boolean> {
     return false;
   }
   const user = userFromApiCustomer(customer);
-  startSession(rememberAccount(customer.email, '', '', user), false);
-  await loadFromApi(customer, user).catch(() => undefined);
+  rememberAccount(customer.email, '', user);
+  startSession(user);
   return true;
 }
 
@@ -192,16 +129,12 @@ export async function signIn(email: string, password: string): Promise<SignInRes
   }
   const user = userFromApiCustomer(customer);
   if (getDeactivatedIds().includes(user.id)) return 'deactivated';
-  const account = rememberAccount(email, '', password, user);
-  startSession(account, false);
-  await loadFromApi(customer, user).catch(() => undefined);
+  rememberAccount(email, '', user);
+  startSession(user);
   return 'ok';
 }
 
 export async function signUp(data: SignUpData): Promise<SignUpResult> {
-  if (isEmailInUse(data.email)) return 'email-in-use';
-  if (isCpfInUse(data.cpf)) return 'cpf-in-use';
-  if (isUsernameInUse(data.username)) return 'username-in-use';
   let customer: ApiCustomer;
   try {
     customer = await apiRegister({
@@ -221,31 +154,30 @@ export async function signUp(data: SignUpData): Promise<SignUpResult> {
     return 'error';
   }
   const user = userFromApiCustomer(customer);
-  const account = rememberAccount(data.email, data.cpf, data.password, user);
-  startSession(account, true);
-  resetPublishedReviews([]);
+  rememberAccount(data.email, data.cpf, user);
+  startSession(user);
   return 'ok';
 }
 
 export function updateProfile(changes: ProfileChanges): ProfileUpdateResult {
-  const account = accounts.find((a) => a.user.id === session?.id);
-  if (!account) return 'ok';
-  if (isUsernameInUse(changes.username, account.user.id)) return 'username-in-use';
-  account.user = {
-    ...account.user,
+  if (!session) return 'ok';
+  if (isUsernameInUse(changes.username, session.id)) return 'username-in-use';
+  session = {
+    ...session,
     name: changes.name.trim(),
     handle: handleOf(changes.username),
     bio: changes.bio.trim(),
     avatarUri: changes.avatarUri,
   };
-  session = account.user;
+  const account = accounts.find((a) => a.user.id === session?.id);
+  if (account) account.user = session;
   emit();
   return 'ok';
 }
 
 export function signOut(): void {
   apiLogout().catch(() => undefined);
-  resetPublishedReviews([]);
+  queryClient.clear();
   resetAccessories(EMPTY_ACCESSORIES);
   resetRedemptions([]);
   session = null;
@@ -255,29 +187,7 @@ export function signOut(): void {
 export function deactivateAccount(): void {
   if (!session) return;
   markDeactivated(session.id);
-  dropDeactivatedFollows();
   signOut();
-}
-
-const anonymousAuthor: User = {
-  id: ANONYMOUS_AUTHOR_ID,
-  name: 'Autor anônimo',
-  handle: '',
-  avatarUri: '',
-  bio: '',
-  level: 1,
-  xp: 0,
-  xpLevelFloor: 0,
-  xpLevelCeiling: xpPerLevel,
-  badges: [],
-  reviewCount: 0,
-  agreementsReceived: 0,
-  joinedAt: '',
-};
-
-export function findUser(id: string): User | undefined {
-  if (id === ANONYMOUS_AUTHOR_ID) return anonymousAuthor;
-  return allUsers().find((u) => u.id === id);
 }
 
 export function isAnonymousAuthor(id: string): boolean {
@@ -300,8 +210,5 @@ export function useSession(): User | null {
 }
 
 export function useCurrentUser(): User {
-  const user = useSession() ?? testUser;
-  const { xp } = useWallet();
-  const { level } = levelProgress(xp, xpPerLevel);
-  return { ...user, xp, level };
+  return useSession() ?? anonymousAuthor;
 }

@@ -1,3 +1,5 @@
+import type { Vote } from './review';
+
 export interface CommentReply {
   id: string;
   parentId: string;
@@ -8,6 +10,7 @@ export interface CommentReply {
   deleted?: boolean;
   agreements: number;
   disagreements: number;
+  myVote: Vote | null;
 }
 
 export interface Comment {
@@ -20,5 +23,6 @@ export interface Comment {
   deleted?: boolean;
   agreements: number;
   disagreements: number;
+  myVote: Vote | null;
   replies: CommentReply[];
 }

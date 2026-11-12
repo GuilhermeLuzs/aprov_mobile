@@ -5,6 +5,8 @@ export type ApiCustomer = {
   id: number;
   name: string;
   username: string;
+  avatarUrl: string | null;
+  bio: string;
   email: string;
   birthDate: string;
   preferredCategories: string[] | null;

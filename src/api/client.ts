@@ -3,10 +3,12 @@ import { getToken } from './token';
 
 export class ApiError extends Error {
   errors: Record<string, string[]>;
+  status: number;
 
-  constructor(message: string, errors: Record<string, string[]> = {}) {
+  constructor(message: string, errors: Record<string, string[]> = {}, status = 0) {
     super(message);
     this.errors = errors;
+    this.status = status;
   }
 }
 
@@ -15,7 +17,7 @@ export class NetworkError extends ApiError {}
 type ApiEnvelope<T> = { success: boolean; message: string; data?: T; errors?: Record<string, string[]> };
 
 type RequestOptions = {
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;
   auth?: boolean;
 };
@@ -48,7 +50,11 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   const envelope = (await response.json().catch(() => null)) as ApiEnvelope<T> | null;
 
   if (!response.ok || !envelope || !envelope.success) {
-    throw new ApiError(envelope?.message ?? 'Algo deu errado. Tente de novo.', envelope?.errors ?? {});
+    throw new ApiError(
+      envelope?.message ?? 'Algo deu errado. Tente de novo.',
+      envelope?.errors ?? {},
+      response.status,
+    );
   }
 
   return envelope.data as T;

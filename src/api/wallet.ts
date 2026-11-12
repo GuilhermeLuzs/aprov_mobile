@@ -1,8 +1,11 @@
+import type { ApiCompanySummary } from './catalog';
 import { apiRequest } from './client';
 
 export type ApiWallet = {
   aprovPoints: number;
-  coins: { companyId: number; amount: number }[];
+  xp: number;
+  level: number;
+  coins: { companyId: number; amount: number; company?: ApiCompanySummary }[];
 };
 
 export async function apiWallet(): Promise<ApiWallet> {

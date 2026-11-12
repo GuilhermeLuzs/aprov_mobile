@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { apiSavePreferences } from '../../api';
-import { realCompanyIds } from '../../api/catalogBridge';
 import { Button, MauricioMascot } from '../../components';
 import { colors, space, type } from '../../theme';
-import { setPreferences } from '../../store/preferences';
+import { saveInterests } from '../../queries/me';
 import { useLeaveOnboarding, useOnboarding } from './OnboardingContext';
 
 export default function ReadyScreen() {
@@ -15,11 +13,10 @@ export default function ReadyScreen() {
   const [sending, setSending] = useState(false);
 
   const finish = async () => {
-    setPreferences({ categories, companyIds, discovery });
     if (discovery) {
       setSending(true);
       try {
-        await apiSavePreferences({ categories, companyIds: realCompanyIds(companyIds), discoverySource: discovery });
+        await saveInterests({ categories, companyIds }, discovery);
       } catch {}
       setSending(false);
     }
