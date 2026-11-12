@@ -2,7 +2,15 @@ export type { Category, CoinIcon, Company } from './company';
 export { CATEGORY_LABEL } from './company';
 export type { Product, ProductKind } from './product';
 export { PRODUCT_KIND_LABEL } from './product';
-export type { Review, ReviewCharacteristic, ReviewCharacteristicKey, ReviewVersion } from './review';
+export type {
+  Review,
+  ReviewCharacteristic,
+  ReviewCharacteristicKey,
+  ReviewVersion,
+  MediaFile,
+  Vote,
+  VoteTally,
+} from './review';
 export {
   REVIEW_CHARACTERISTIC_LABEL,
   REVIEW_CHARACTERISTIC_DESCRIPTION,

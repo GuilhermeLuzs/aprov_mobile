@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from 'react-native';
-import type { LucideIcon } from 'lucide-react-native';
+import { Plus, type LucideIcon } from 'lucide-react-native';
 import { colors, icon as iconToken, radius, space, type } from '../theme';
 
 export type ChipVariant = 'neutral' | 'positive' | 'negative';
@@ -12,6 +12,8 @@ type Props = {
   variant?: ChipVariant;
   size?: ChipSize;
   icon?: LucideIcon;
+  added?: boolean;
+  removed?: boolean;
   accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
 };
@@ -38,13 +40,17 @@ export function Chip({
   onPress,
   variant = 'neutral',
   size = 'md',
-  icon: Icon,
+  icon,
+  added = false,
+  removed = false,
   accessibilityLabel,
   style,
 }: Props) {
-  const active = selected || (!onPress && variant !== 'neutral');
-  const s = skin(variant, active);
+  const active = !removed && (selected || (!onPress && variant !== 'neutral'));
+  const s = removed ? { bg: colors.surface, border: colors.border, fg: colors.inkFaint } : skin(variant, active);
   const sm = size === 'sm';
+  const Icon = icon ?? (added ? Plus : undefined);
+  const changeLabel = added ? `Nova: ${label}` : removed ? `Removida: ${label}` : label;
 
   return (
     <Pressable
@@ -52,7 +58,7 @@ export function Chip({
       disabled={!onPress}
       accessibilityRole={onPress ? 'button' : undefined}
       accessibilityState={onPress ? { selected } : undefined}
-      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityLabel={accessibilityLabel ?? changeLabel}
       style={({ pressed }) => [
         styles.base,
         sm ? styles.sm : styles.md,
@@ -68,7 +74,10 @@ export function Chip({
           strokeWidth={iconToken.strokeWidth}
         />
       ) : null}
-      <Text style={[sm ? styles.labelSm : styles.labelMd, { color: s.fg }]} numberOfLines={1}>
+      <Text
+        style={[sm ? styles.labelSm : styles.labelMd, { color: s.fg }, removed && styles.struck]}
+        numberOfLines={1}
+      >
         {label}
       </Text>
     </Pressable>
@@ -95,6 +104,7 @@ const styles = StyleSheet.create({
     paddingVertical: space.xs,
   },
   pressed: { opacity: 0.7 },
+  struck: { textDecorationLine: 'line-through' },
   labelMd: {
     flexShrink: 1,
     fontFamily: type.bodyBold.family,

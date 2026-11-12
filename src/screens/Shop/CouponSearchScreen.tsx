@@ -3,9 +3,10 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronRight } from 'lucide-react-native';
 import { CoinBadge, EmptyState, SearchBar, SectionHeader, TopBar } from '../../components';
-import { companies, coupons } from '../../mocks';
+import { coupons } from '../../mocks';
+import { useCompanies } from '../../queries/catalog';
 import type { ShopStackNavigation } from '../../navigation/types';
-import { coinBalance, useWallet } from '../../store/wallet';
+import { coinBalance, useWallet } from '../../queries/wallet';
 import { colors, icon, radius, space, type } from '../../theme';
 import type { Company } from '../../types';
 import { formatInt } from '../../utils/format';
@@ -19,6 +20,7 @@ export default function CouponSearchScreen() {
   const navigation = useNavigation<ShopStackNavigation<'CouponSearch'>>();
   const wallet = useWallet();
   const [query, setQuery] = useState('');
+  const companies = useCompanies().data ?? [];
 
   const searching = query.trim() !== '';
   const withCoupons = companies

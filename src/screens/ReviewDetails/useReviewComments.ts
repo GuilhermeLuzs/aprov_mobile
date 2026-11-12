@@ -1,67 +1,51 @@
 import { useState } from 'react';
-import type { Comment, CommentReply, Review, User } from '../../types';
-import { useDeactivatedIds } from '../../store/deactivated';
-import {
-  addComment,
-  addReply,
-  commentTotal,
-  deleteComment,
-  editComment,
-  myVote,
-  threadOf,
-  toggleVote,
-  useInteractions,
-  withVote,
-  type VoteChoice,
-} from '../../store/interactions';
-import { reportedIds, useReports } from '../../store/reports';
-import { findUser, useCurrentUser } from '../../store/session';
+import type { Comment, CommentReply, Review, User, Vote } from '../../types';
+import { createComment, deleteComment, updateComment, useComments, voteOnComment } from '../../queries/comments';
+import { useCurrentUser } from '../../store/session';
 
 export const COMMENT_MAX_LENGTH = 500;
 
-function byRelevance(a: Comment, b: Comment): number {
-  return b.agreements - a.agreements || Date.parse(b.createdAt) - Date.parse(a.createdAt);
-}
+type Entry = Comment | CommentReply;
 
 export function useReviewComments(review: Review | undefined) {
   const me = useCurrentUser();
-  const interactions = useInteractions();
-  const hiddenAuthorIds = useDeactivatedIds();
-  const reportedComments = reportedIds(useReports(), me.id, 'comment');
+  const query = useComments(review?.id);
   const [draft, setDraft] = useState('');
   const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
-  const [editing, setEditing] = useState<Comment | CommentReply | null>(null);
+  const [editing, setEditing] = useState<Entry | null>(null);
+  const [sending, setSending] = useState(false);
 
-  const authorFor = (id: string): User | undefined => (id === me.id ? me : findUser(id));
-  const voteFor = (id: string) => myVote(interactions, me.id, 'comment', id);
+  const entries = query.thread.flatMap((comment): Entry[] => [comment, ...comment.replies]);
+  const entryById = (id: string) => entries.find((entry) => entry.id === id);
+  const authorFor = (id: string): User | undefined => (id === me.id ? me : query.authors.get(id));
 
-  const thread = review
-    ? threadOf(interactions, review, hiddenAuthorIds, reportedComments)
-        .map((comment) => ({
-          ...withVote(comment, voteFor(comment.id)),
-          replies: comment.replies.map((reply) => withVote(reply, voteFor(reply.id))),
-        }))
-        .sort(byRelevance)
-    : [];
-
-  const send = () => {
+  const send = async () => {
     const text = draft.trim();
-    if (!review || text === '') return;
-    if (editing) {
-      if (text !== editing.text) editComment(editing.id, editing.text, text);
-      setEditing(null);
+    if (!review || text === '' || sending) return;
+    setSending(true);
+    try {
+      if (editing) {
+        if (text !== editing.text) await updateComment(review.id, editing, text);
+        setEditing(null);
+      } else {
+        await createComment(review.id, text, replyingTo);
+        setReplyingTo(null);
+      }
       setDraft('');
-      return;
+    } finally {
+      setSending(false);
     }
-    if (replyingTo) addReply(replyingTo.id, me.id, text);
-    else addComment(review.id, me.id, text);
-    setDraft('');
-    setReplyingTo(null);
   };
 
   return {
-    thread,
-    total: commentTotal(thread),
+    thread: query.thread,
+    total: review?.commentCount ?? 0,
+    loading: query.isPending && review !== undefined,
+    failed: query.isError,
+    retry: () => void query.refetch(),
+    hasMore: query.hasNextPage,
+    loadingMore: query.isFetchingNextPage,
+    loadMore: () => void query.fetchNextPage(),
     draft,
     setDraft,
     replyingTo,
@@ -70,7 +54,7 @@ export function useReviewComments(review: Review | undefined) {
       setReplyingTo(comment);
     },
     editing: editing !== null,
-    startEditing: (entry: Comment | CommentReply) => {
+    startEditing: (entry: Entry) => {
       setReplyingTo(null);
       setEditing(entry);
       setDraft(entry.text);
@@ -79,19 +63,23 @@ export function useReviewComments(review: Review | undefined) {
       setEditing(null);
       setDraft('');
     },
-    remove: (entry: Comment | CommentReply) => {
+    remove: (entry: Entry) => {
+      if (!review) return;
       if (editing?.id === entry.id) {
         setEditing(null);
         setDraft('');
       }
-      deleteComment(entry.id);
+      void deleteComment(review.id, entry);
     },
     canManage: (authorId: string) => authorId === me.id,
     replyingToName: replyingTo ? authorFor(replyingTo.authorId)?.name ?? 'Usuário' : undefined,
-    send,
+    send: () => void send(),
     authorFor,
-    voteFor,
+    voteFor: (id: string) => entryById(id)?.myVote ?? null,
     canVote: (authorId: string) => authorId !== me.id,
-    vote: (id: string, choice: VoteChoice) => toggleVote(me.id, 'comment', id, choice),
+    vote: (id: string, choice: Vote) => {
+      const entry = entryById(id);
+      if (review && entry) void voteOnComment(review.id, entry, choice);
+    },
   };
 }

@@ -18,7 +18,8 @@ type Props = {
   onReport?: (entryId: string) => void;
   canManage?: (authorId: string) => boolean;
   onManage?: (entry: Comment | CommentReply) => void;
-  reviewEditedAt?: string | null;
+  versionOf?: (createdAt: string) => number | null;
+  onPressVersion?: (version: number) => void;
 };
 
 export function CommentThread({
@@ -33,7 +34,8 @@ export function CommentThread({
   onReport,
   canManage,
   onManage,
-  reviewEditedAt,
+  versionOf,
+  onPressVersion,
 }: Props) {
   const entryProps = {
     authorFor,
@@ -45,7 +47,8 @@ export function CommentThread({
     onReport,
     canManage,
     onManage,
-    reviewEditedAt,
+    versionOf,
+    onPressVersion,
   };
 
   return (
@@ -79,7 +82,8 @@ function Entry({
   onReport,
   canManage,
   onManage,
-  reviewEditedAt,
+  versionOf,
+  onPressVersion,
 }: EntryProps) {
   if (entry.deleted) {
     return <Text style={styles.deleted}>Comentário excluído</Text>;
@@ -89,8 +93,7 @@ function Entry({
   const name = author?.name ?? 'Usuário';
   const votable = canVote(entry.authorId);
   const manageable = onManage && canManage?.(entry.authorId);
-  const beforeEdit =
-    reviewEditedAt != null && Date.parse(entry.createdAt) < Date.parse(reviewEditedAt);
+  const version = versionOf?.(entry.createdAt) ?? null;
 
   return (
     <View style={styles.row}>
@@ -138,7 +141,17 @@ function Entry({
             </Pressable>
           ) : null}
         </View>
-        {beforeEdit ? <Text style={styles.beforeEdit}>Antes da edição da avaliação</Text> : null}
+        {version !== null ? (
+          <Pressable
+            onPress={() => onPressVersion?.(version)}
+            disabled={!onPressVersion}
+            hitSlop={space.xs}
+            accessibilityRole={onPressVersion ? 'link' : undefined}
+            accessibilityLabel={`Comentado sobre a versão ${version} da avaliação`}
+          >
+            <Text style={styles.beforeEdit}>Sobre a versão {version}</Text>
+          </Pressable>
+        ) : null}
         <Text style={styles.text}>{entry.text}</Text>
         <View style={styles.actions}>
           <VoteBar

@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
-import type { EarnedRewards } from '../types';
+import type { EarnedRewards, ProductKind } from '../types';
+import type { ApiCompanySummary, ApiPage, ApiTag } from './catalog';
 import { apiRequest } from './client';
 
 export type ReviewMediaUpload = {
@@ -7,9 +8,36 @@ export type ReviewMediaUpload = {
   kind: 'photo' | 'video';
 };
 
-export type ApiReviewTag = { id: number };
+export type ApiReviewAuthor = {
+  id: number;
+  name: string;
+  username: string;
+  avatarUrl: string | null;
+  level: number;
+};
 
-export type ApiReviewMedia = { id: number; type: 'photo' | 'video'; url: string };
+export type ApiReviewItem = {
+  id: number;
+  companyId: number;
+  kind: ProductKind;
+  title: string;
+  coverUrl?: string | null;
+  company?: ApiCompanySummary;
+};
+
+export type ApiReviewMedia = {
+  id: number;
+  type: 'photo' | 'video';
+  url: string;
+  coverUrl: string | null;
+  width: number | null;
+  height: number | null;
+  durationSeconds: number | null;
+};
+
+export type ApiVote = 'agree' | 'disagree';
+
+export type ApiVoteTally = { agreements: number; disagreements: number };
 
 export type ApiReviewVersion = {
   id: number;
@@ -20,12 +48,17 @@ export type ApiReviewVersion = {
   averageRating: number;
   comment: string;
   wouldBuyAgain: boolean;
+  tags?: ApiTag[];
+  media?: ApiReviewMedia[];
   publishedAt: string;
 };
 
 export type ApiReview = {
   id: number;
   itemId: number;
+  customerId: number | null;
+  author?: ApiReviewAuthor | null;
+  item?: ApiReviewItem;
   deliveryRating: number;
   qualityRating: number;
   conformityRating: number;
@@ -34,14 +67,23 @@ export type ApiReview = {
   comment: string;
   wouldBuyAgain: boolean;
   mediaConsent: boolean;
-  positiveTags: ApiReviewTag[];
-  negativeTags: ApiReviewTag[];
+  positiveTags: ApiTag[];
+  negativeTags: ApiTag[];
   media: ApiReviewMedia[];
   rewards?: EarnedRewards;
   versions?: ApiReviewVersion[];
+  agreements?: number;
+  disagreements?: number;
+  commentCount?: number;
+  myVote?: ApiVote | null;
+  votesByVersion?: ApiVoteTally[];
   createdAt: string;
   editedAt: string | null;
 };
+
+export type ApiReviewPage = ApiPage & { total: number; reviews: ApiReview[] };
+
+export type FeedTab = 'for_you' | 'following';
 
 export type CreateReviewPayload = {
   itemId: number;
@@ -72,10 +114,6 @@ async function appendMedia(form: FormData, item: ReviewMediaUpload, index: numbe
   }
 
   form.append('media[]', { uri: item.uri, name, type } as unknown as Blob);
-}
-
-export async function apiMyReviews(): Promise<ApiReview[]> {
-  return apiRequest<ApiReview[]>('me/reviews', { auth: true });
 }
 
 async function reviewForm(payload: Omit<CreateReviewPayload, 'itemId'>): Promise<FormData> {
@@ -109,4 +147,28 @@ export async function apiUpdateReview(reviewId: number, payload: UpdateReviewPay
 
 export async function apiRemoveReviewAuthor(reviewId: number): Promise<void> {
   await apiRequest<null>(`reviews/${reviewId}/author`, { method: 'DELETE', auth: true });
+}
+
+export async function apiItemReviews(itemId: string, page: number): Promise<ApiReviewPage> {
+  return apiRequest<ApiReviewPage>(`items/${itemId}/reviews?page=${page}`, { auth: true });
+}
+
+export async function apiReview(reviewId: number): Promise<ApiReview> {
+  return apiRequest<ApiReview>(`reviews/${reviewId}`, { auth: true });
+}
+
+export async function apiFeed(tab: FeedTab, page: number): Promise<ApiReviewPage> {
+  return apiRequest<ApiReviewPage>(`feed?tab=${tab}&page=${page}`, { auth: true });
+}
+
+export async function apiCustomerReviews(customerId: string, page: number): Promise<ApiReviewPage> {
+  return apiRequest<ApiReviewPage>(`customers/${customerId}/reviews?page=${page}`, { auth: true });
+}
+
+export type ApiVoteResult = ApiVoteTally & { myVote: ApiVote | null };
+
+export async function apiVoteOnReview(reviewId: number, vote: ApiVote | null): Promise<ApiVoteResult> {
+  return vote
+    ? apiRequest<ApiVoteResult>(`reviews/${reviewId}/reaction`, { method: 'PUT', body: { type: vote }, auth: true })
+    : apiRequest<ApiVoteResult>(`reviews/${reviewId}/reaction`, { method: 'DELETE', auth: true });
 }

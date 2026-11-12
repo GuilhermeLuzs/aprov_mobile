@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   FlatList,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -20,26 +21,30 @@ import {
   CommentComposer,
   CommentThread,
   EmptyState,
+  LoadError,
+  LoadingState,
   MediaCarousel,
   SectionHeader,
   StarRating,
+  VersionPager,
   VoteBar,
 } from '../../components';
 import { colors, icon, radius, size, space, type } from '../../theme';
-import { products } from '../../mocks';
-import { apiSourceOf, dropPublishedReview, useAllReviews } from '../../store/publishedReviews';
-import { findUser, isAnonymousAuthor, useCurrentUser } from '../../store/session';
-import { useInteractions, useReviewDisplay, votesAroundEdit } from '../../store/interactions';
+import { refreshAfterReviewChange } from '../../queries/client';
+import { reviewIdOf } from '../../queries/mappers';
+import { useReview, useReviewDisplay } from '../../queries/reviews';
+import { isAnonymousAuthor, useCurrentUser } from '../../store/session';
 import { REVIEW_CHARACTERISTIC_LABEL, type Comment, type CommentReply } from '../../types';
 import { formatInt, formatRating } from '../../utils/format';
 import { formatDayMonth, formatRelativeTime } from '../../utils/date';
+import { changesBetween, snapshotsOf, versionNumberOf } from '../../utils/reviewHistory';
 import type { ReviewDetailsNavigation, ReviewDetailsParamList } from '../../navigation/types';
 import { useOpenProfile } from '../UserProfile/useOpenProfile';
 import { useOpenMedia } from '../Media/useOpenMedia';
 import { useReport } from '../Report/useReport';
 import { COMMENT_MAX_LENGTH, useReviewComments } from './useReviewComments';
 
-const COMMENTS_STEP = 5;
+const NOT_FOUND = 404;
 
 export default function ReviewDetailsScreen() {
   const route = useRoute<RouteProp<ReviewDetailsParamList, 'ReviewDetails'>>();
@@ -47,24 +52,36 @@ export default function ReviewDetailsScreen() {
   const { reviewId } = route.params;
   const insets = useSafeAreaInsets();
   const me = useCurrentUser();
-  const allReviews = useAllReviews();
-  const display = useReviewDisplay(me.id);
+  const display = useReviewDisplay();
   const openMedia = useOpenMedia();
   const openProfile = useOpenProfile();
-  const interactions = useInteractions();
-  const [visibleCount, setVisibleCount] = useState(COMMENTS_STEP);
   const [managing, setManaging] = useState<Comment | CommentReply | null>(null);
-  const [showVersions, setShowVersions] = useState(false);
+  const [versionIndex, setVersionIndex] = useState<number | null>(null);
+  const listRef = useRef<FlatList<Comment>>(null);
   const [confirmRemoveName, setConfirmRemoveName] = useState(false);
   const [removingName, setRemovingName] = useState(false);
   const [removeNameError, setRemoveNameError] = useState<string | null>(null);
 
-  const base = allReviews.find((r) => r.id === reviewId);
+  const remote = useReview(reviewId);
+  const base = remote.data?.review;
+  const product = remote.data?.product;
   const comments = useReviewComments(base);
   const report = useReport((target) => {
     if (target === 'review') navigation.goBack();
   });
-  const product = base ? products.find((p) => p.id === base.productId) : undefined;
+
+  if (remote.isPending) return <LoadingState fill />;
+
+  if (remote.isError && !remote.data) {
+    const missing = remote.error instanceof ApiError && remote.error.status === NOT_FOUND;
+    if (!missing) {
+      return (
+        <View style={styles.notFound}>
+          <LoadError onRetry={() => void remote.refetch()} />
+        </View>
+      );
+    }
+  }
 
   if (!base || !product) {
     return (
@@ -80,20 +97,37 @@ export default function ReviewDetailsScreen() {
   }
 
   const { review, vote, onVote } = display(base);
-  const author = base.authorId === me.id ? me : findUser(base.authorId);
+  const author = remote.data?.author;
   const { thread, total } = comments;
-  const visible = thread.slice(0, visibleCount);
   const question = product.kind === 'service' ? 'Contrataria novamente?' : 'Compraria novamente?';
   const anonymous = isAnonymousAuthor(base.authorId);
-  const source = base.authorId === me.id ? apiSourceOf(base.id) : undefined;
-  const aroundEdit = votesAroundEdit(interactions, me.id, review);
+  const canOpenAuthor = !anonymous;
+  const mine = base.authorId === me.id;
+  const snapshots = snapshotsOf(review);
+  const lastIndex = snapshots.length - 1;
+  const shownIndex = Math.min(versionIndex ?? lastIndex, lastIndex);
+  const shown = snapshots[shownIndex];
+  const changes = changesBetween(snapshots[shownIndex - 1], shown);
+  const viewingPast = shownIndex < lastIndex;
+  const isNewTag = (tagId: string) => changes?.addedTagIds.includes(tagId) ?? false;
+  const versionLabel = viewingPast
+    ? `Versão ${shownIndex + 1} de ${snapshots.length} · ${formatDayMonth(shown.publishedAt)}`
+    : `Versão atual · editada em ${formatDayMonth(shown.publishedAt)}`;
+  const answerLabel = (answer: boolean | null) => (answer === true ? 'Sim' : answer === false ? 'Não' : 'não respondeu');
+  const showVersion = (index: number) => setVersionIndex(index === lastIndex ? null : index);
+  const versionVotes = snapshots.length > 1 ? review.votesByVersion?.[shownIndex] : undefined;
+  const plural = (count: number, one: string, many: string) => `${formatInt(count)} ${count === 1 ? one : many}`;
+  const openVersion = (version: number) => {
+    showVersion(version - 1);
+    listRef.current?.scrollToOffset({ offset: 0, animated: true });
+  };
 
   const removeName = async () => {
-    if (!source) return;
+    if (!mine) return;
     setRemoveNameError(null);
     setRemovingName(true);
     try {
-      await apiRemoveReviewAuthor(source.id);
+      await apiRemoveReviewAuthor(reviewIdOf(base.id));
     } catch (error) {
       setRemovingName(false);
       setRemoveNameError(
@@ -104,7 +138,7 @@ export default function ReviewDetailsScreen() {
     setRemovingName(false);
     setConfirmRemoveName(false);
     navigation.goBack();
-    dropPublishedReview(base.id);
+    refreshAfterReviewChange(product.id, reviewIdOf(base.id));
   };
 
   const header = (
@@ -113,9 +147,9 @@ export default function ReviewDetailsScreen() {
         <Pressable
           style={styles.authorRow}
           onPress={() => openProfile(base.authorId)}
-          disabled={anonymous}
-          accessibilityRole={anonymous ? undefined : 'link'}
-          accessibilityLabel={anonymous ? undefined : `Ver perfil de ${author?.name ?? 'Usuário'}`}
+          disabled={!canOpenAuthor}
+          accessibilityRole={canOpenAuthor ? 'link' : undefined}
+          accessibilityLabel={canOpenAuthor ? `Ver perfil de ${author?.name ?? 'Usuário'}` : undefined}
         >
           <Avatar
             uri={author?.avatarUri ?? ''}
@@ -157,78 +191,134 @@ export default function ReviewDetailsScreen() {
         </Text>
       </Pressable>
 
+      {snapshots.length > 1 ? (
+        <View style={styles.section}>
+          <VersionPager
+            label={versionLabel}
+            canGoBack={shownIndex > 0}
+            canGoForward={viewingPast}
+            onBack={() => showVersion(shownIndex - 1)}
+            onForward={() => showVersion(shownIndex + 1)}
+          />
+          {viewingPast ? (
+            <View style={styles.pastNotice}>
+              <Text style={styles.pastText}>Você está vendo como a avaliação era antes de uma edição.</Text>
+              <Pressable onPress={() => setVersionIndex(null)} hitSlop={space.sm} accessibilityRole="button">
+                <Text style={styles.link}>Voltar para a atual</Text>
+              </Pressable>
+            </View>
+          ) : null}
+        </View>
+      ) : null}
+
       <View style={styles.overall}>
-        <StarRating value={review.averageRating} size="lg" showValue />
+        <StarRating value={shown.averageRating} size="lg" showValue />
+        {changes?.previousAverage != null ? (
+          <Text style={styles.previous} accessibilityLabel={`Antes: ${formatRating(changes.previousAverage)}`}>
+            {formatRating(changes.previousAverage)}
+          </Text>
+        ) : null}
       </View>
 
       <View style={styles.charCard}>
-        {review.characteristics.map((c) => (
-          <View key={c.key} style={styles.charRow}>
-            <Text style={styles.charLabel}>{REVIEW_CHARACTERISTIC_LABEL[c.key]}</Text>
-            <View style={styles.charRight}>
-              <StarRating value={c.rating} size="sm" />
-              <Text style={styles.charValue}>{formatRating(c.rating)}</Text>
+        {shown.characteristics.map((c) => {
+          const before = changes?.previousRatings[c.key];
+          return (
+            <View key={c.key} style={styles.charRow}>
+              <Text style={styles.charLabel}>{REVIEW_CHARACTERISTIC_LABEL[c.key]}</Text>
+              <View style={styles.charRight}>
+                <StarRating value={c.rating} size="sm" />
+                <Text style={styles.charValue}>{formatRating(c.rating)}</Text>
+                {before !== undefined ? (
+                  <Text style={styles.previous} accessibilityLabel={`Antes: ${formatRating(before)}`}>
+                    {formatRating(before)}
+                  </Text>
+                ) : null}
+              </View>
             </View>
-          </View>
-        ))}
+          );
+        })}
       </View>
 
-      {review.positiveTags.length > 0 ? (
+      {shown.positiveTags.length + (changes?.removedPositiveTags.length ?? 0) > 0 ? (
         <View style={styles.section}>
           <SectionHeader title="O que foi bom?" />
           <View style={styles.tags}>
-            {review.positiveTags.map((t) => (
-              <Chip key={t.id} label={t.label} variant="positive" size="sm" />
+            {shown.positiveTags.map((t) => (
+              <Chip key={t.id} label={t.label} variant="positive" size="sm" added={isNewTag(t.id)} />
+            ))}
+            {changes?.removedPositiveTags.map((t) => (
+              <Chip key={t.id} label={t.label} size="sm" removed />
             ))}
           </View>
         </View>
       ) : null}
 
-      {review.negativeTags.length > 0 ? (
+      {shown.negativeTags.length + (changes?.removedNegativeTags.length ?? 0) > 0 ? (
         <View style={styles.section}>
           <SectionHeader title="O que podemos melhorar?" />
           <View style={styles.tags}>
-            {review.negativeTags.map((t) => (
-              <Chip key={t.id} label={t.label} variant="negative" size="sm" />
+            {shown.negativeTags.map((t) => (
+              <Chip key={t.id} label={t.label} variant="negative" size="sm" added={isNewTag(t.id)} />
+            ))}
+            {changes?.removedNegativeTags.map((t) => (
+              <Chip key={t.id} label={t.label} size="sm" removed />
             ))}
           </View>
         </View>
       ) : null}
 
-      {review.media[0] ? (
+      {shown.media[0] ? (
         <View style={styles.section}>
           <MediaCarousel
-            media={review.media}
-            onOpen={(index) => openMedia([review.id], review.id, index)}
+            media={shown.media}
+            onOpen={viewingPast ? undefined : (index) => openMedia([review.id], review.id, index)}
           />
         </View>
       ) : null}
 
-      {review.comment.trim() !== '' ? (
-        <Text style={styles.reviewText}>{review.comment}</Text>
+      {changes && (changes.addedMediaCount > 0 || changes.removedMedia.length > 0) ? (
+        <View style={styles.mediaChanges}>
+          {changes.addedMediaCount > 0 ? (
+            <Text style={styles.changeNote}>
+              {changes.addedMediaCount === 1
+                ? '1 foto ou vídeo novo nesta edição'
+                : `${changes.addedMediaCount} fotos ou vídeos novos nesta edição`}
+            </Text>
+          ) : null}
+          {changes.removedMedia.length > 0 ? (
+            <>
+              <Text style={styles.changeNote}>Removidos nesta edição</Text>
+              <View style={styles.removedMedia}>
+                {changes.removedMedia.map((file) => (
+                  <Image
+                    key={file.id}
+                    source={{ uri: file.previewUri }}
+                    style={styles.removedThumb}
+                    accessibilityLabel={file.kind === 'video' ? 'Vídeo removido' : 'Foto removida'}
+                  />
+                ))}
+              </View>
+            </>
+          ) : null}
+        </View>
       ) : null}
 
-      {review.editedAt && review.versions.length > 0 ? (
-        <Pressable
-          onPress={() => setShowVersions(true)}
-          hitSlop={space.sm}
-          accessibilityRole="button"
-          style={styles.versionsLink}
-        >
-          <Text style={styles.link}>
-            Editada em {formatDayMonth(review.editedAt)} · ver versões anteriores
-          </Text>
-        </Pressable>
+      {changes?.commentChanged ? <Text style={styles.changeLabel}>Texto alterado nesta edição</Text> : null}
+      {shown.comment.trim() !== '' ? (
+        <Text style={[styles.reviewText, changes?.commentChanged && styles.reviewTextAfterLabel]}>
+          {shown.comment}
+        </Text>
       ) : null}
 
       <View style={styles.buyRow}>
         <Text style={styles.buyLabel}>{question}</Text>
-        {review.wouldBuyAgain === true ? (
+        {shown.wouldBuyAgain === true ? (
           <View style={styles.buyAnswer}>
             <Check size={icon.size.md} color={colors.agree} strokeWidth={icon.strokeWidth} />
             <Text style={[styles.buyValue, { color: colors.agree }]}>Sim</Text>
           </View>
-        ) : review.wouldBuyAgain === false ? (
+        ) : shown.wouldBuyAgain === false ? (
           <View style={styles.buyAnswer}>
             <X size={icon.size.md} color={colors.disagree} strokeWidth={icon.strokeWidth} />
             <Text style={[styles.buyValue, { color: colors.disagree }]}>Não</Text>
@@ -237,6 +327,9 @@ export default function ReviewDetailsScreen() {
           <Text style={styles.faint}>não respondeu</Text>
         )}
       </View>
+      {changes?.previousWouldBuyAgain !== undefined ? (
+        <Text style={styles.changeNote}>antes: {answerLabel(changes.previousWouldBuyAgain)}</Text>
+      ) : null}
 
       <View style={styles.section}>
         <VoteBar
@@ -247,15 +340,15 @@ export default function ReviewDetailsScreen() {
           onAgree={onVote && (() => onVote('agree'))}
           onDisagree={onVote && (() => onVote('disagree'))}
         />
-        {aroundEdit ? (
+        {versionVotes ? (
           <Text style={styles.ownNote}>
-            {`Antes da edição: ${formatInt(aroundEdit.before.agreements)} concordâncias e ${formatInt(aroundEdit.before.disagreements)} discordâncias. Depois: ${formatInt(aroundEdit.after.agreements)} e ${formatInt(aroundEdit.after.disagreements)}.`}
+            {`Nesta versão: ${plural(versionVotes.agreements, 'concordância', 'concordâncias')} e ${plural(versionVotes.disagreements, 'discordância', 'discordâncias')}.`}
           </Text>
         ) : null}
         {!onVote ? <Text style={styles.ownNote}>Esta avaliação é sua.</Text> : null}
       </View>
 
-      {source ? (
+      {mine ? (
         <View style={styles.ownActions}>
           <Button
             label="Editar"
@@ -287,9 +380,10 @@ export default function ReviewDetailsScreen() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + size.control : 0}
     >
       <FlatList
+        ref={listRef}
         style={styles.screen}
         contentContainerStyle={styles.content}
-        data={visible}
+        data={thread}
         keyExtractor={(c) => c.id}
         ListHeaderComponent={header}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -307,27 +401,36 @@ export default function ReviewDetailsScreen() {
               onReport={(id) => report.open('comment', id)}
               canManage={comments.canManage}
               onManage={setManaging}
-              reviewEditedAt={review.editedAt}
+              versionOf={(createdAt) => versionNumberOf(snapshots, createdAt)}
+              onPressVersion={openVersion}
             />
           </View>
         )}
         ListEmptyComponent={
           <View style={styles.body}>
-            <EmptyState
-              compact
-              title="Nenhum comentário ainda"
-              description="Seja a primeira pessoa a comentar."
-            />
+            {comments.loading ? (
+              <LoadingState />
+            ) : comments.failed ? (
+              <LoadError compact onRetry={comments.retry} />
+            ) : (
+              <EmptyState
+                compact
+                title="Nenhum comentário ainda"
+                description="Seja a primeira pessoa a comentar."
+              />
+            )}
           </View>
         }
         ListFooterComponent={
-          visibleCount < thread.length ? (
+          comments.loadingMore ? (
+            <LoadingState />
+          ) : comments.hasMore ? (
             <View style={[styles.body, styles.more]}>
               <Button
                 label="Ver mais comentários"
                 variant="secondary"
                 fullWidth
-                onPress={() => setVisibleCount((n) => n + COMMENTS_STEP)}
+                onPress={comments.loadMore}
               />
             </View>
           ) : null
@@ -413,25 +516,6 @@ export default function ReviewDetailsScreen() {
         {removeNameError ? <Text style={styles.sheetError}>{removeNameError}</Text> : null}
       </BottomSheet>
 
-      <BottomSheet
-        visible={showVersions}
-        title="Versões anteriores"
-        closeLabel="Fechar"
-        onClose={() => setShowVersions(false)}
-        tall
-      >
-        <View style={styles.versions}>
-          {review.versions.map((version) => (
-            <View key={version.id} style={styles.version}>
-              <View style={styles.versionHead}>
-                <Text style={styles.authorName}>{formatDayMonth(version.publishedAt)}</Text>
-                <StarRating value={version.averageRating} size="sm" showValue />
-              </View>
-              <Text style={styles.versionText}>{version.comment}</Text>
-            </View>
-          ))}
-        </View>
-      </BottomSheet>
     </KeyboardAvoidingView>
   );
 }
@@ -481,7 +565,44 @@ const styles = StyleSheet.create({
     color: colors.inkMuted,
   },
   contextStrong: { fontFamily: type.bodyBold.family, color: colors.primary },
-  overall: { marginTop: space.lg, alignItems: 'flex-start' },
+  overall: { marginTop: space.lg, flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  previous: {
+    fontFamily: type.numeric.family,
+    fontSize: type.caption.size,
+    lineHeight: type.caption.lineHeight,
+    color: colors.inkFaint,
+    textDecorationLine: 'line-through',
+  },
+  pastNotice: { marginTop: space.sm, gap: space.xs },
+  pastText: {
+    fontFamily: type.caption.family,
+    fontSize: type.caption.size,
+    lineHeight: type.caption.lineHeight,
+    color: colors.inkMuted,
+  },
+  mediaChanges: { marginTop: space.sm, gap: space.xs },
+  removedMedia: { flexDirection: 'row', flexWrap: 'wrap', gap: space.xs },
+  removedThumb: {
+    width: size.historyThumb,
+    height: size.historyThumb,
+    borderRadius: radius.control,
+    backgroundColor: colors.border,
+  },
+  changeNote: {
+    marginTop: space.xs,
+    fontFamily: type.caption.family,
+    fontSize: type.caption.size,
+    lineHeight: type.caption.lineHeight,
+    color: colors.inkMuted,
+  },
+  changeLabel: {
+    marginTop: space.lg,
+    fontFamily: type.bodyBold.family,
+    fontSize: type.caption.size,
+    lineHeight: type.caption.lineHeight,
+    color: colors.agree,
+  },
+  reviewTextAfterLabel: { marginTop: space.xs },
   charCard: {
     marginTop: space.lg,
     padding: space.lg,
@@ -539,7 +660,6 @@ const styles = StyleSheet.create({
     lineHeight: type.caption.lineHeight,
     color: colors.inkMuted,
   },
-  versionsLink: { marginTop: space.md, alignSelf: 'flex-start' },
   link: {
     fontFamily: type.bodyBold.family,
     fontSize: type.caption.size,
@@ -565,15 +685,6 @@ const styles = StyleSheet.create({
     color: colors.disagree,
   },
   sheetButton: { flex: 1 },
-  versions: { paddingHorizontal: space.lg, paddingVertical: space.md, gap: space.lg },
-  version: { gap: space.xs },
-  versionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  versionText: {
-    fontFamily: type.body.family,
-    fontSize: type.body.size,
-    lineHeight: type.body.lineHeight,
-    color: colors.ink,
-  },
   divider: { height: 1, marginVertical: space.lg, backgroundColor: colors.border },
   separator: { height: space.md },
   more: { marginTop: space.md },

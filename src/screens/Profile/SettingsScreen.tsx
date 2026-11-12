@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Heart, UserX } from 'lucide-react-native';
 import { BottomSheet, Button, MenuRow, SectionHeader } from '../../components';
 import { colors, space, type } from '../../theme';
-import { usePreferences } from '../../store/preferences';
+import { useMyInterests } from '../../queries/me';
 import { deactivateAccount } from '../../store/session';
 import type { ProfileStackNavigation } from '../../navigation/types';
 
@@ -14,7 +14,7 @@ function plural(count: number, one: string, many: string): string {
 
 export default function SettingsScreen() {
   const navigation = useNavigation<ProfileStackNavigation<'Settings'>>();
-  const preferences = usePreferences();
+  const preferences = useMyInterests().data ?? { categories: [], companyIds: [] };
   const [confirmDeactivate, setConfirmDeactivate] = useState(false);
 
   const hasInterests = preferences.categories.length + preferences.companyIds.length > 0;

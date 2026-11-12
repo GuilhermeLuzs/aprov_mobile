@@ -1,13 +1,13 @@
-import { tagById } from '../../mocks';
 import {
   REVIEW_CHARACTERISTIC_KEYS,
   type DraftRewardFacts,
-  type Media,
   type Product,
   type ProductKind,
   type Review,
   type ReviewCharacteristicKey,
+  type Tag,
 } from '../../types';
+import { toReviewMedia } from '../../utils/media';
 
 export const TOTAL_STEPS = 5;
 export const MAX_MEDIA = 6;
@@ -94,34 +94,8 @@ export function isDirty(draft: Draft): boolean {
   );
 }
 
-export function toReviewMedia(media: DraftMedia[]): Media[] {
-  if (media.length === 0) return [];
-  const photos = media.filter((m) => m.kind === 'photo');
-  if (photos.length > 1 && photos.length === media.length) {
-    return [
-      {
-        id: 'draft-carousel',
-        type: 'carousel',
-        items: photos.map((p) => ({ uri: p.uri, width: p.width, height: p.height })),
-      },
-    ];
-  }
-  const first = media[0];
-  if (first.kind === 'video') {
-    return [
-      {
-        id: first.id,
-        type: 'video',
-        uri: first.uri,
-        thumbnailUri: '',
-        durationSeconds: first.durationSeconds,
-      },
-    ];
-  }
-  return [{ id: first.id, type: 'photo', uri: first.uri, width: first.width, height: first.height }];
-}
-
-export function buildReview(draft: Draft, product: Product, id: string, authorId: string): Review {
+export function buildReview(draft: Draft, product: Product, id: string, authorId: string, tags: Tag[]): Review {
+  const byId = (tagId: string) => tags.find((tag) => tag.id === tagId);
   return {
     id,
     productId: product.id,
@@ -136,13 +110,15 @@ export function buildReview(draft: Draft, product: Product, id: string, authorId
       rating: draft.characteristics[key],
     })),
     averageRating: averageRating(draft),
-    positiveTags: draft.positiveTagIds.map((tagId) => tagById[tagId]).filter(Boolean),
-    negativeTags: draft.negativeTagIds.map((tagId) => tagById[tagId]).filter(Boolean),
+    positiveTags: draft.positiveTagIds.map(byId).filter((tag): tag is Tag => tag !== undefined),
+    negativeTags: draft.negativeTagIds.map(byId).filter((tag): tag is Tag => tag !== undefined),
     media: toReviewMedia(draft.media),
+    mediaFiles: draft.media.map((m) => ({ id: m.id, kind: m.kind, previewUri: m.uri })),
     comment: draft.comment.trim(),
     wouldBuyAgain: draft.wouldBuyAgain,
     agreements: 0,
     disagreements: 0,
+    myVote: null,
     comments: [],
     commentCount: 0,
     shares: 0,

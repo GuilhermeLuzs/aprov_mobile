@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import { Chip, SectionHeader } from '../../../components';
 import { space } from '../../../theme';
-import { tags as allTags } from '../../../mocks';
+import { useItemTags } from '../../../queries/catalog';
 import type { Product, Tag } from '../../../types';
 import type { Draft } from '../draft';
 import type { StepReward } from '../rewards';
@@ -23,9 +23,7 @@ function toggled(list: string[], id: string): string[] {
 export function StepTags({ draft, update, product, rewards }: Props) {
   const ratingFor = (tag: Tag) => draft.characteristics[tag.characteristic] || NEUTRAL_RATING;
 
-  const forCategory = allTags.filter(
-    (t) => t.categories.length === 0 || t.categories.some((c) => product.categories.includes(c)),
-  );
+  const forCategory = useItemTags(product.id).data ?? [];
   const positive = forCategory
     .filter((t) => t.sentiment === 'positive')
     .sort((a, b) => ratingFor(b) - ratingFor(a));

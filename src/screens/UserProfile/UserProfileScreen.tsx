@@ -6,66 +6,61 @@ import {
   BottomSheet,
   Button,
   EmptyState,
+  LoadError,
+  LoadingState,
   ProfileSummary,
   ReviewPost,
   SectionHeader,
 } from '../../components';
 import { colors, space, type } from '../../theme';
-import { companies, products, reviews } from '../../mocks';
-import {
-  follow,
-  followersOf,
-  followingOf,
-  isFollowing,
-  unfollow,
-  useFollows,
-} from '../../store/follows';
-import { useReviewDisplay } from '../../store/interactions';
-import { usePublishedReviews } from '../../store/publishedReviews';
-import { findUser, useCurrentUser } from '../../store/session';
-import { byNewest } from '../../utils/date';
+import { ApiError } from '../../api';
+import { setFollowing, useProfile } from '../../queries/people';
+import { useCustomerReviews, useReviewDisplay } from '../../queries/reviews';
 import { formatInt } from '../../utils/format';
 import type { PeopleNavigation, PeopleParamList } from '../../navigation/types';
 import { useOpenMedia } from '../Media/useOpenMedia';
 import { useReport } from '../Report/useReport';
 
+const NOT_FOUND = 404;
+
 export default function UserProfileScreen() {
   const route = useRoute<RouteProp<PeopleParamList, 'UserProfile'>>();
   const navigation = useNavigation<PeopleNavigation<'UserProfile'>>();
   const { userId } = route.params;
-  const me = useCurrentUser();
-  const display = useReviewDisplay(me.id);
+  const display = useReviewDisplay();
   const openMedia = useOpenMedia();
   const report = useReport();
-  const published = usePublishedReviews();
-  const follows = useFollows();
+  const profile = useProfile(userId);
+  const reviews = useCustomerReviews(userId);
   const [confirmUnfollow, setConfirmUnfollow] = useState(false);
 
-  const user = findUser(userId);
+  const user = profile.data?.user;
 
   useLayoutEffect(() => {
     if (user) navigation.setOptions({ title: user.handle });
   }, [navigation, user]);
 
-  if (!user) {
+  if (profile.isPending) return <LoadingState fill />;
+
+  if (!profile.data || !user) {
+    const missing = profile.error instanceof ApiError && profile.error.status === NOT_FOUND;
     return (
       <View style={styles.notFound}>
-        <EmptyState mood="confused" title="Perfil não encontrado" description="Não foi possível abrir este perfil." />
+        {missing ? (
+          <EmptyState mood="confused" title="Perfil não encontrado" description="Não foi possível abrir este perfil." />
+        ) : (
+          <LoadError onRetry={() => void profile.refetch()} />
+        )}
       </View>
     );
   }
 
+  const { followerCount, followingCount, isFollowing } = profile.data;
   const firstName = user.name.split(' ')[0];
-  const userReviews = [
-    ...published.filter((r) => r.authorId === user.id),
-    ...reviews.filter((r) => r.authorId === user.id).sort(byNewest),
-  ];
-  const mediaIds = userReviews.map((r) => r.id);
-  const agreementsReceived = userReviews.reduce((sum, r) => sum + r.agreements, 0);
-  const following = isFollowing(follows, me.id, user.id);
+  const mediaIds = reviews.entries.map((entry) => entry.review.id);
 
   const confirmAndUnfollow = () => {
-    unfollow(me.id, user.id);
+    void setFollowing(userId, false);
     setConfirmUnfollow(false);
   };
 
@@ -74,29 +69,29 @@ export default function UserProfileScreen() {
       <ProfileSummary
         user={user}
         level={user.level}
-        reviews={userReviews.length}
-        agreements={agreementsReceived}
-        followers={followersOf(follows, user.id).length}
-        following={followingOf(follows, user.id).length}
+        reviews={user.reviewCount}
+        agreements={user.agreementsReceived}
+        followers={followerCount}
+        following={followingCount}
         onPressFollowers={() => navigation.push('FollowList', { userId: user.id, kind: 'followers' })}
         onPressFollowing={() => navigation.push('FollowList', { userId: user.id, kind: 'following' })}
         emptyBadgesText="Nenhuma badge ainda."
       >
         <View style={styles.follow}>
           <Button
-            label={following ? 'Seguindo' : 'Seguir'}
-            variant={following ? 'secondary' : 'primary'}
-            icon={following ? UserCheck : UserPlus}
+            label={isFollowing ? 'Seguindo' : 'Seguir'}
+            variant={isFollowing ? 'secondary' : 'primary'}
+            icon={isFollowing ? UserCheck : UserPlus}
             fullWidth
-            accessibilityLabel={following ? `Deixar de seguir ${user.name}` : `Seguir ${user.name}`}
-            onPress={() => (following ? setConfirmUnfollow(true) : follow(me.id, user.id))}
+            accessibilityLabel={isFollowing ? `Deixar de seguir ${user.name}` : `Seguir ${user.name}`}
+            onPress={() => (isFollowing ? setConfirmUnfollow(true) : void setFollowing(userId, true))}
           />
         </View>
       </ProfileSummary>
 
       <View style={styles.divider} />
 
-      <SectionHeader title={`Avaliações · ${formatInt(userReviews.length)}`} />
+      <SectionHeader title={`Avaliações · ${formatInt(user.reviewCount)}`} />
     </View>
   );
 
@@ -105,27 +100,25 @@ export default function UserProfileScreen() {
       <FlatList
         style={styles.screen}
         contentContainerStyle={styles.content}
-        data={userReviews}
-        keyExtractor={(r) => r.id}
+        data={reviews.entries}
+        keyExtractor={(entry) => entry.review.id}
         ListHeaderComponent={header}
         ItemSeparatorComponent={Separator}
-        renderItem={({ item }) => {
-          const product = products.find((p) => p.id === item.productId);
-          const company = companies.find((c) => c.id === item.companyId);
-          if (!product || !company) return null;
+        renderItem={({ item: { review, product, company } }) => {
+          if (!company) return null;
           return (
             <View style={styles.gutter}>
               <ReviewPost
-                {...display(item)}
+                {...display(review)}
                 author={user}
                 product={product}
                 company={company}
                 showAuthor={false}
                 onPressProduct={() => navigation.navigate('ProductDetails', { productId: product.id })}
-                onPressBody={() => navigation.navigate('ReviewDetails', { reviewId: item.id })}
-                onOpenMedia={(index) => openMedia(mediaIds, item.id, index)}
+                onPressBody={() => navigation.navigate('ReviewDetails', { reviewId: review.id })}
+                onOpenMedia={(index) => openMedia(mediaIds, review.id, index)}
                 onReport={
-                  report.canReport(item.authorId) ? () => report.open('review', item.id) : undefined
+                  report.canReport(review.authorId) ? () => report.open('review', review.id) : undefined
                 }
               />
             </View>
@@ -133,13 +126,23 @@ export default function UserProfileScreen() {
         }}
         ListEmptyComponent={
           <View style={styles.gutter}>
-            <EmptyState
-              compact
-              title={`${firstName} ainda não avaliou nada`}
-              description="As avaliações publicadas aparecem aqui."
-            />
+            {reviews.isPending ? (
+              <LoadingState />
+            ) : reviews.isError ? (
+              <LoadError compact onRetry={() => void reviews.refetch()} />
+            ) : (
+              <EmptyState
+                compact
+                title={`${firstName} ainda não avaliou nada`}
+                description="As avaliações publicadas aparecem aqui."
+              />
+            )}
           </View>
         }
+        ListFooterComponent={reviews.isFetchingNextPage ? <LoadingState /> : null}
+        onEndReached={() => {
+          if (reviews.hasNextPage && !reviews.isFetchingNextPage) void reviews.fetchNextPage();
+        }}
         showsVerticalScrollIndicator={false}
       />
 

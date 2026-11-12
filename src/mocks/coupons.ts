@@ -3,7 +3,7 @@ import type { Coupon } from '../types';
 export const coupons: Coupon[] = [
   {
     id: 'cp1',
-    companyId: 'c1',
+    companyId: '1',
     title: '5% em notebooks',
     description: 'Desconto em qualquer notebook da loja oficial da Acer.',
     coinCost: 300,
@@ -12,7 +12,7 @@ export const coupons: Coupon[] = [
   },
   {
     id: 'cp2',
-    companyId: 'c1',
+    companyId: '1',
     title: 'Mouse grátis',
     description: 'Um mouse sem fio de brinde na compra de um notebook.',
     coinCost: 500,
@@ -21,7 +21,7 @@ export const coupons: Coupon[] = [
   },
   {
     id: 'cp11',
-    companyId: 'c1',
+    companyId: '1',
     title: '10% em monitores',
     description: 'Desconto em qualquer monitor da linha Nitro.',
     coinCost: 250,
@@ -30,7 +30,7 @@ export const coupons: Coupon[] = [
   },
   {
     id: 'cp12',
-    companyId: 'c1',
+    companyId: '1',
     title: 'Garantia estendida',
     description: 'Mais 12 meses de garantia na compra de um notebook.',
     coinCost: 700,
@@ -39,7 +39,7 @@ export const coupons: Coupon[] = [
   },
   {
     id: 'cp3',
-    companyId: 'c5',
+    companyId: '5',
     title: 'Um espresso grátis',
     description: 'Vale um espresso em qualquer loja do Café Serra Alta.',
     coinCost: 40,
@@ -48,7 +48,7 @@ export const coupons: Coupon[] = [
   },
   {
     id: 'cp4',
-    companyId: 'c5',
+    companyId: '5',
     title: '10% em cafés especiais',
     description: 'Desconto nos pacotes de café em grão e moído.',
     coinCost: 60,
@@ -57,7 +57,7 @@ export const coupons: Coupon[] = [
   },
   {
     id: 'cp5',
-    companyId: 'c7',
+    companyId: '7',
     title: '15% na tosa',
     description: 'Desconto na tosa de qualquer porte.',
     coinCost: 50,
@@ -66,7 +66,7 @@ export const coupons: Coupon[] = [
   },
   {
     id: 'cp6',
-    companyId: 'c7',
+    companyId: '7',
     title: 'Banho grátis',
     description: 'Um banho completo para o seu pet, com secagem e perfume.',
     coinCost: 120,
@@ -75,7 +75,7 @@ export const coupons: Coupon[] = [
   },
   {
     id: 'cp7',
-    companyId: 'c2',
+    companyId: '2',
     title: '10% em qualquer pedido',
     description: 'Desconto em pratos prontos e congelados, no delivery ou no balcão.',
     coinCost: 50,
@@ -84,7 +84,7 @@ export const coupons: Coupon[] = [
   },
   {
     id: 'cp8',
-    companyId: 'c2',
+    companyId: '2',
     title: 'Frete grátis',
     description: 'Entrega sem custo em um pedido pelo delivery.',
     coinCost: 30,
@@ -93,7 +93,7 @@ export const coupons: Coupon[] = [
   },
   {
     id: 'cp13',
-    companyId: 'c2',
+    companyId: '2',
     title: 'Sobremesa grátis',
     description: 'Um pudim da Vó em pedidos acima de R$ 60.',
     coinCost: 40,
@@ -102,7 +102,7 @@ export const coupons: Coupon[] = [
   },
   {
     id: 'cp14',
-    companyId: 'c2',
+    companyId: '2',
     title: '20% em congelados',
     description: 'Desconto nos kits de congelados para a semana.',
     coinCost: 90,
@@ -111,7 +111,7 @@ export const coupons: Coupon[] = [
   },
   {
     id: 'cp9',
-    companyId: 'c11',
+    companyId: '11',
     title: '10% em tênis',
     description: 'Desconto em qualquer tênis da Urban Kicks.',
     coinCost: 200,
@@ -120,7 +120,7 @@ export const coupons: Coupon[] = [
   },
   {
     id: 'cp10',
-    companyId: 'c3',
+    companyId: '3',
     title: '20% na limpeza de pele',
     description: 'Desconto na limpeza de pele profunda do Studio Bhering.',
     coinCost: 150,

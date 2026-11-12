@@ -1,40 +1,37 @@
 import { useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { EmptyState, PersonRow, SearchBar, SectionHeader, TopBar } from '../../components';
+import {
+  EmptyState,
+  LoadError,
+  LoadingState,
+  PersonRow,
+  SearchBar,
+  SectionHeader,
+  TopBar,
+} from '../../components';
 import { colors, space } from '../../theme';
-import type { Follow, User } from '../../types';
-import { followersOf, followingOf, useFollows } from '../../store/follows';
-import { allUsers, useCurrentUser } from '../../store/session';
+import { usePeople, type Person } from '../../queries/people';
 import { formatInt } from '../../utils/format';
-import { matchesSearch } from '../../utils/search';
+import { useDebouncedValue } from '../../utils/useDebouncedValue';
 import type { PeopleNavigation } from '../../navigation/types';
 import { useOpenProfile } from './useOpenProfile';
 
-function byFollowers(follows: Follow[]) {
-  return (a: User, b: User) => followersOf(follows, b.id).length - followersOf(follows, a.id).length;
+const SEARCH_DELAY_MS = 300;
+
+function followersLabel(person: Person): string {
+  const count = person.followerCount;
+  return `${formatInt(count)} ${count === 1 ? 'seguidor' : 'seguidores'}`;
 }
 
 export default function PeopleSearchScreen() {
   const navigation = useNavigation<PeopleNavigation<'UserProfile'>>();
-  const me = useCurrentUser();
-  const follows = useFollows();
   const openProfile = useOpenProfile();
   const [query, setQuery] = useState('');
+  const search = useDebouncedValue(query.trim(), SEARCH_DELAY_MS);
+  const people = usePeople(search);
 
   const searching = query.trim() !== '';
-  const others = allUsers().filter((u) => u.id !== me.id);
-  const following = followingOf(follows, me.id);
-
-  const people = searching
-    ? others.filter((u) => matchesSearch(u.name, query) || matchesSearch(u.handle, query))
-    : others.filter((u) => !following.includes(u.id));
-  const sorted = [...people].sort(byFollowers(follows));
-
-  const followersLabel = (user: User) => {
-    const count = followersOf(follows, user.id).length;
-    return `${formatInt(count)} ${count === 1 ? 'seguidor' : 'seguidores'}`;
-  };
 
   return (
     <View style={styles.screen}>
@@ -48,20 +45,24 @@ export default function PeopleSearchScreen() {
       </TopBar>
 
       <FlatList
-        data={sorted}
-        keyExtractor={(u) => u.id}
+        data={people.people}
+        keyExtractor={(person) => person.user.id}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.content}
         ListHeaderComponent={searching ? null : <SectionHeader title="Sugestões para seguir" />}
         renderItem={({ item }) => (
           <PersonRow
-            user={item}
+            user={item.user}
             detail={followersLabel(item)}
-            onPress={() => openProfile(item.id)}
+            onPress={() => openProfile(item.user.id)}
           />
         )}
         ListEmptyComponent={
-          searching ? (
+          people.isPending ? (
+            <LoadingState />
+          ) : people.isError ? (
+            <LoadError compact onRetry={() => void people.refetch()} />
+          ) : searching ? (
             <EmptyState
               compact
               mood="confused"
@@ -72,6 +73,10 @@ export default function PeopleSearchScreen() {
             <EmptyState compact title="Você já segue todo mundo por aqui" />
           )
         }
+        ListFooterComponent={people.isFetchingNextPage ? <LoadingState /> : null}
+        onEndReached={() => {
+          if (people.hasNextPage && !people.isFetchingNextPage) void people.fetchNextPage();
+        }}
         showsVerticalScrollIndicator={false}
       />
     </View>

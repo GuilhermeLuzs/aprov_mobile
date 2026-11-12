@@ -9,6 +9,16 @@ export type VideoSlide = {
 };
 export type MediaSlide = PhotoSlide | VideoSlide;
 
+export type ReviewMediaSource = {
+  id: string;
+  kind: 'photo' | 'video';
+  uri: string;
+  thumbnailUri?: string;
+  width: number;
+  height: number;
+  durationSeconds: number;
+};
+
 export function slidesOf(media: Media[]): MediaSlide[] {
   return media.flatMap((m): MediaSlide[] => {
     if (m.type === 'photo') {
@@ -31,4 +41,31 @@ export function slidesOf(media: Media[]): MediaSlide[] {
       height: item.height,
     }));
   });
+}
+
+export function toReviewMedia(media: ReviewMediaSource[]): Media[] {
+  if (media.length === 0) return [];
+  const photos = media.filter((m) => m.kind === 'photo');
+  if (photos.length > 1 && photos.length === media.length) {
+    return [
+      {
+        id: 'draft-carousel',
+        type: 'carousel',
+        items: photos.map((p) => ({ uri: p.uri, width: p.width, height: p.height })),
+      },
+    ];
+  }
+  const first = media[0];
+  if (first.kind === 'video') {
+    return [
+      {
+        id: first.id,
+        type: 'video',
+        uri: first.uri,
+        thumbnailUri: first.thumbnailUri ?? '',
+        durationSeconds: first.durationSeconds,
+      },
+    ];
+  }
+  return [{ id: first.id, type: 'photo', uri: first.uri, width: first.width, height: first.height }];
 }

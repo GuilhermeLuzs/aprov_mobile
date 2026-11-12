@@ -13,23 +13,15 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
 import { ApiError, apiCreateReview, apiRewardPreview, apiUpdateReview, type ApiReview } from '../../api';
-import { realItemId, realTagIds } from '../../api/catalogBridge';
-import { BottomSheet, Button, EmptyState, RewardAmount, Stepper } from '../../components';
+import { BottomSheet, Button, EmptyState, LoadError, LoadingState, RewardAmount, Stepper } from '../../components';
 import { colors, icon, size, space, type } from '../../theme';
-import { companies, products } from '../../mocks';
-import type { Review, RewardPreview } from '../../types';
+import type { Company, Product, RewardPreview } from '../../types';
 import type { RootStackParamList } from '../../navigation/types';
-import {
-  apiSourceOf,
-  publishReview,
-  replacePublishedReview,
-  reviewFromApi,
-} from '../../store/publishedReviews';
-import { creditRewards } from '../../store/wallet';
-import { useCurrentUser } from '../../store/session';
+import { useItem } from '../../queries/catalog';
+import { refreshAfterReviewChange } from '../../queries/client';
+import { useReviewSource } from '../../queries/reviews';
 import {
   TOTAL_STEPS,
-  buildReview,
   clearDraft,
   commentDone,
   draftRewardFacts,
@@ -44,7 +36,6 @@ import {
   tagsDone,
   type Draft,
 } from './draft';
-import { mockTagId } from '../../api/catalogBridge';
 import { stepRewards, type Rewards } from './rewards';
 import { StepStars } from './steps/StepStars';
 import { StepTags } from './steps/StepTags';
@@ -54,19 +45,47 @@ import { StepPreview } from './steps/StepPreview';
 import { Conclusion } from './Conclusion';
 
 const EXISTING_MEDIA_SIDE = 1080;
+const NOT_FOUND = 404;
 
 export default function CreateReviewScreen() {
   const insets = useSafeAreaInsets();
-  const me = useCurrentUser();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'CreateReview'>>();
   const route = useRoute<RouteProp<RootStackParamList, 'CreateReview'>>();
   const { productId, reviewId } = route.params;
-  const source = reviewId ? apiSourceOf(reviewId) : undefined;
+  const item = useItem(productId);
+  const source = useReviewSource(reviewId ?? null);
+
+  if (item.isPending || (reviewId && source.isPending)) return <LoadingState fill />;
+
+  if (!item.data || (reviewId && !source.data)) {
+    const failed = item.isError && !(item.error instanceof ApiError && item.error.status === NOT_FOUND);
+    return (
+      <View style={[styles.notFound, { paddingTop: insets.top }]}>
+        {failed ? (
+          <LoadError onRetry={() => void item.refetch()} />
+        ) : (
+          <EmptyState
+            mood="confused"
+            title="Item não encontrado"
+            description="Não dá para avaliar este item agora."
+            action={{ label: 'Fechar', onPress: () => navigation.goBack() }}
+          />
+        )}
+      </View>
+    );
+  }
+
+  return <CreateReviewFlow product={item.data.product} company={item.data.company} source={source.data} />;
+}
+
+type FlowProps = { product: Product; company: Company; source: ApiReview | undefined };
+
+function CreateReviewFlow({ product, company, source }: FlowProps) {
+  const insets = useSafeAreaInsets();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'CreateReview'>>();
+  const productId = product.id;
   const editing = source !== undefined;
   const draftKey = source ? `edit-${source.id}` : productId;
-
-  const product = products.find((p) => p.id === productId);
-  const company = product ? companies.find((c) => c.id === product.companyId) : undefined;
 
   const [draft, setDraft] = useState<Draft>(() =>
     loadDraft(draftKey, source ? () => draftFromApi(source) : undefined),
@@ -81,10 +100,10 @@ export default function CreateReviewScreen() {
   const factsKey = JSON.stringify(draftRewardFacts(draft));
 
   useEffect(() => {
-    if (!product || editing) return;
+    if (editing) return;
     let cancelled = false;
     const timer = setTimeout(() => {
-      apiRewardPreview(realItemId(productId), draftRewardFacts(draft))
+      apiRewardPreview(Number(productId), draftRewardFacts(draft))
         .then((result) => {
           if (!cancelled) setPreview(result);
         })
@@ -95,19 +114,6 @@ export default function CreateReviewScreen() {
       clearTimeout(timer);
     };
   }, [productId, factsKey]);
-
-  if (!product || !company || (reviewId && !editing)) {
-    return (
-      <View style={[styles.notFound, { paddingTop: insets.top }]}>
-        <EmptyState
-          mood="confused"
-          title="Item não encontrado"
-          description="Não dá para avaliar este item agora."
-          action={{ label: 'Fechar', onPress: () => navigation.goBack() }}
-        />
-      </View>
-    );
-  }
 
   if (published) {
     return (
@@ -175,7 +181,7 @@ export default function CreateReviewScreen() {
         qualityRating: draft.characteristics.qualidade,
         conformityRating: draft.characteristics.conformidade,
         valueRating: draft.characteristics.custo_beneficio,
-        tagIds: realTagIds([...draft.positiveTagIds, ...draft.negativeTagIds]),
+        tagIds: [...draft.positiveTagIds, ...draft.negativeTagIds].map(Number),
         comment: draft.comment.trim(),
         wouldBuyAgain: draft.wouldBuyAgain ?? false,
         mediaConsent: draft.mediaConsent,
@@ -192,8 +198,7 @@ export default function CreateReviewScreen() {
       return;
     }
     setPublishing(false);
-    const review = reviewFromApi(updated, me.id);
-    if (review) replacePublishedReview(review);
+    refreshAfterReviewChange(productId, updated.id);
     clearDraft(draftKey);
     navigation.goBack();
   };
@@ -210,30 +215,27 @@ export default function CreateReviewScreen() {
     setPublishError(null);
     setPublishing(true);
     let rewards: Rewards;
-    let saved: Review | null;
     try {
       const created = await apiCreateReview({
-        itemId: realItemId(productId),
+        itemId: Number(productId),
         deliveryRating: draft.characteristics.entrega,
         qualityRating: draft.characteristics.qualidade,
         conformityRating: draft.characteristics.conformidade,
         valueRating: draft.characteristics.custo_beneficio,
-        tagIds: realTagIds([...draft.positiveTagIds, ...draft.negativeTagIds]),
+        tagIds: [...draft.positiveTagIds, ...draft.negativeTagIds].map(Number),
         comment: draft.comment.trim(),
         wouldBuyAgain: draft.wouldBuyAgain ?? false,
         media: draft.media.map((item) => ({ uri: item.uri, kind: item.kind })),
       });
       const earned = created.rewards ?? { coins: 0, aprovPoints: 0, xp: 0 };
       rewards = { coins: earned.coins, points: earned.aprovPoints, xp: earned.xp };
-      saved = reviewFromApi(created, me.id);
     } catch (error) {
       setPublishing(false);
       setPublishError(error instanceof ApiError ? error.message : 'Não deu para publicar agora. Tente de novo.');
       return;
     }
     setPublishing(false);
-    publishReview(saved ?? buildReview(draft, product, `published-${Date.now()}`, me.id));
-    creditRewards({ companyId: product.companyId, ...rewards });
+    refreshAfterReviewChange(productId);
     clearDraft(productId);
     setPublished(rewards);
   };
@@ -439,7 +441,7 @@ const styles = StyleSheet.create({
 
 function draftFromApi(api: ApiReview): Draft {
   const tagIds = (tags: { id: number }[]) =>
-    tags.map((t) => mockTagId(t.id)).filter((id): id is string => id !== undefined);
+    tags.map((t) => String(t.id));
   return {
     step: 1,
     characteristics: {

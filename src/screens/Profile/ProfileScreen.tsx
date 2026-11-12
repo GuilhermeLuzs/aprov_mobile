@@ -14,6 +14,8 @@ import {
   BottomSheet,
   BrandMark,
   EmptyState,
+  LoadError,
+  LoadingState,
   MenuRow,
   ProfileSummary,
   ReviewPost,
@@ -21,15 +23,13 @@ import {
   TopBar,
 } from '../../components';
 import { colors, icon, radius, size, space, type } from '../../theme';
-import { companies, products, reviews, xpPerLevel } from '../../mocks';
-import { followersOf, followingOf, useFollows } from '../../store/follows';
+import { xpPerLevel } from '../../mocks';
 import { useEquippedFrame } from '../../store/accessories';
-import { useReviewDisplay } from '../../store/interactions';
-import { usePublishedReviews } from '../../store/publishedReviews';
 import { signOut, useCurrentUser } from '../../store/session';
-import { useUserItems } from '../../store/userItems';
-import { totalCoins, useWallet } from '../../store/wallet';
-import { byNewest } from '../../utils/date';
+import { useMyItems } from '../../queries/catalog';
+import { useProfile } from '../../queries/people';
+import { useCustomerReviews, useReviewDisplay } from '../../queries/reviews';
+import { totalCoins, useWallet } from '../../queries/wallet';
 import { formatInt } from '../../utils/format';
 import { levelProgress } from '../../utils/level';
 import type { ProfileStackNavigation } from '../../navigation/types';
@@ -38,22 +38,19 @@ import { useOpenMedia } from '../Media/useOpenMedia';
 export default function ProfileScreen() {
   const navigation = useNavigation<ProfileStackNavigation<'Profile'>>();
   const user = useCurrentUser();
-  const display = useReviewDisplay(user.id);
+  const display = useReviewDisplay();
   const openMedia = useOpenMedia();
-  const wallet = useWallet();
-  const items = useUserItems();
-  const published = usePublishedReviews();
-  const follows = useFollows();
   const frame = useEquippedFrame();
   const [menuOpen, setMenuOpen] = useState(false);
+  const profile = useProfile(user.id).data;
+  const reviews = useCustomerReviews(user.id);
+  const wallet = useWallet(menuOpen);
+  const saved = useMyItems('saved', menuOpen).data?.total ?? 0;
+  const purchased = useMyItems('purchased', menuOpen).data?.total ?? 0;
 
-  const myReviews = [
-    ...published.filter((r) => r.authorId === user.id),
-    ...reviews.filter((r) => r.authorId === user.id).sort(byNewest),
-  ];
-  const mediaIds = myReviews.map((r) => r.id);
-  const agreementsReceived = myReviews.reduce((sum, r) => sum + r.agreements, 0);
-  const progress = levelProgress(wallet.xp, xpPerLevel);
+  const mediaIds = reviews.entries.map((entry) => entry.review.id);
+  const reviewCount = profile?.user.reviewCount ?? 0;
+  const progress = levelProgress(profile?.user.xp ?? user.xp, xpPerLevel);
   const coinTotal = totalCoins(wallet);
 
   const openFromMenu = (open: () => void) => {
@@ -67,10 +64,10 @@ export default function ProfileScreen() {
         user={user}
         frame={frame}
         level={progress.level}
-        reviews={myReviews.length}
-        agreements={agreementsReceived}
-        followers={followersOf(follows, user.id).length}
-        following={followingOf(follows, user.id).length}
+        reviews={reviewCount}
+        agreements={profile?.user.agreementsReceived ?? 0}
+        followers={profile?.followerCount ?? 0}
+        following={profile?.followingCount ?? 0}
         onPressFollowers={() => navigation.navigate('FollowList', { userId: user.id, kind: 'followers' })}
         onPressFollowing={() => navigation.navigate('FollowList', { userId: user.id, kind: 'following' })}
         emptyBadgesText="Nenhuma badge ainda. Elas chegam conforme você avalia itens das empresas parceiras."
@@ -88,7 +85,7 @@ export default function ProfileScreen() {
 
       <View style={styles.divider} />
 
-      <SectionHeader title={`Suas avaliações · ${formatInt(myReviews.length)}`} />
+      <SectionHeader title={`Suas avaliações · ${formatInt(reviewCount)}`} />
     </View>
   );
 
@@ -112,42 +109,50 @@ export default function ProfileScreen() {
       <FlatList
         style={styles.list}
         contentContainerStyle={styles.content}
-        data={myReviews}
-        keyExtractor={(r) => r.id}
+        data={reviews.entries}
+        keyExtractor={(entry) => entry.review.id}
         ListHeaderComponent={header}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
-        renderItem={({ item }) => {
-          const product = products.find((p) => p.id === item.productId);
-          const company = companies.find((c) => c.id === item.companyId);
-          if (!product || !company) return null;
+        renderItem={({ item: { review, product, company } }) => {
+          if (!company) return null;
           return (
             <View style={styles.gutter}>
               <ReviewPost
-                {...display(item)}
+                {...display(review)}
                 author={user}
                 product={product}
                 company={company}
                 showAuthor={false}
                 onPressProduct={() => navigation.navigate('ProductDetails', { productId: product.id })}
-                onPressBody={() => navigation.navigate('ReviewDetails', { reviewId: item.id })}
-                onOpenMedia={(index) => openMedia(mediaIds, item.id, index)}
+                onPressBody={() => navigation.navigate('ReviewDetails', { reviewId: review.id })}
+                onOpenMedia={(index) => openMedia(mediaIds, review.id, index)}
               />
             </View>
           );
         }}
         ListEmptyComponent={
           <View style={styles.gutter}>
-            <EmptyState
-              compact
-              title="Você ainda não avaliou nada"
-              description="Suas avaliações publicadas aparecem aqui."
-              action={{
-                label: 'Explorar itens',
-                onPress: () => navigation.navigate('MainTabs', { screen: 'HomeTab', params: { screen: 'Home' } }),
-              }}
-            />
+            {reviews.isPending ? (
+              <LoadingState />
+            ) : reviews.isError ? (
+              <LoadError compact onRetry={() => void reviews.refetch()} />
+            ) : (
+              <EmptyState
+                compact
+                title="Você ainda não avaliou nada"
+                description="Suas avaliações publicadas aparecem aqui."
+                action={{
+                  label: 'Explorar itens',
+                  onPress: () => navigation.navigate('MainTabs', { screen: 'HomeTab', params: { screen: 'Home' } }),
+                }}
+              />
+            )}
           </View>
         }
+        ListFooterComponent={reviews.isFetchingNextPage ? <LoadingState /> : null}
+        onEndReached={() => {
+          if (reviews.hasNextPage && !reviews.isFetchingNextPage) void reviews.fetchNextPage();
+        }}
         showsVerticalScrollIndicator={false}
       />
 
@@ -173,13 +178,13 @@ export default function ProfileScreen() {
           <MenuRow
             Icon={Bookmark}
             label="Itens salvos"
-            detail={`${formatInt(items.savedIds.length)} ${items.savedIds.length === 1 ? 'item' : 'itens'}`}
+            detail={`${formatInt(saved)} ${saved === 1 ? 'item' : 'itens'}`}
             onPress={() => openFromMenu(() => navigation.navigate('ItemList', { kind: 'saved' }))}
           />
           <MenuRow
             Icon={Receipt}
             label="Itens comprados"
-            detail={`${formatInt(items.purchasedIds.length)} ${items.purchasedIds.length === 1 ? 'item' : 'itens'}`}
+            detail={`${formatInt(purchased)} ${purchased === 1 ? 'item' : 'itens'}`}
             onPress={() => openFromMenu(() => navigation.navigate('ItemList', { kind: 'purchased' }))}
           />
           <MenuRow

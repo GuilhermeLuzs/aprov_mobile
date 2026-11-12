@@ -9,7 +9,7 @@ import {
   type AccessoryStatus,
 } from '../../store/accessories';
 import { useCurrentUser } from '../../store/session';
-import { useWallet } from '../../store/wallet';
+import { useWallet } from '../../queries/wallet';
 import type { Accessory } from '../../types';
 import { levelProgress } from '../../utils/level';
 
