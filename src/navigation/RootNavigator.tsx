@@ -1,4 +1,5 @@
-import { NavigationContainer } from '@react-navigation/native';
+import { useEffect, useRef } from 'react';
+import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { RootStackParamList } from './types';
 import { navTheme, stackScreenOptions } from './navTheme';
@@ -12,14 +13,27 @@ import {
   MediaViewerScreen,
   ProductMediaScreen,
 } from '../screens';
+import { useSession } from '../store/session';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 type Props = { initialRoute: 'Login' | 'MainTabs' };
 
 export function RootNavigator({ initialRoute }: Props) {
+  const session = useSession();
+  const hadSession = useRef(session !== null);
+
+  useEffect(() => {
+    if (hadSession.current && session === null && navigationRef.isReady()) {
+      navigationRef.reset({ index: 0, routes: [{ name: 'Login' }] });
+    }
+    hadSession.current = session !== null;
+  }, [session]);
+
   return (
-    <NavigationContainer theme={navTheme}>
+    <NavigationContainer ref={navigationRef} theme={navTheme}>
       <Stack.Navigator screenOptions={stackScreenOptions} initialRouteName={initialRoute}>
         <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
         <Stack.Screen name="SignUp" component={SignUpNavigator} options={{ headerShown: false }} />

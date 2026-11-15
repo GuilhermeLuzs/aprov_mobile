@@ -1,4 +1,4 @@
-export { ApiError, NetworkError, apiRequest } from './client';
+export { ApiError, NetworkError, apiRequest, onUnauthorized } from './client';
 export { apiLogin, apiLogout, apiMe, apiRegister, type ApiCustomer, type RegisterPayload } from './auth';
 export {
   apiCreateReview,

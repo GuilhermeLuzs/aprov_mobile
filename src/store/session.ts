@@ -8,6 +8,7 @@ import {
   apiRegister,
   clearToken,
   getToken,
+  onUnauthorized,
   type ApiCustomer,
 } from '../api';
 import { queryClient } from '../queries/client';
@@ -59,6 +60,15 @@ function emit() {
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
 const handleOf = (username: string) => `@${normalizeUsername(username)}`;
+
+onUnauthorized(() => {
+  if (!session) return;
+  queryClient.clear();
+  resetAccessories(EMPTY_ACCESSORIES);
+  resetRedemptions([]);
+  session = null;
+  emit();
+});
 
 export function isEmailInUse(email: string): boolean {
   return accounts.some((a) => a.email === normalizeEmail(email));

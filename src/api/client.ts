@@ -1,5 +1,13 @@
 import { API_BASE_URL } from './config';
-import { getToken } from './token';
+import { clearToken, getToken } from './token';
+
+const UNAUTHORIZED = 401;
+
+let unauthorizedHandler: (() => void) | null = null;
+
+export function onUnauthorized(handler: () => void): void {
+  unauthorizedHandler = handler;
+}
 
 export class ApiError extends Error {
   errors: Record<string, string[]>;
@@ -43,6 +51,11 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     });
   } catch {
     throw new NetworkError('Não deu para conectar com a APROV. Confira a internet e tente de novo.');
+  }
+
+  if (headers.Authorization && response.status === UNAUTHORIZED) {
+    await clearToken();
+    unauthorizedHandler?.();
   }
 
   if (response.status === 204) return undefined as T;
