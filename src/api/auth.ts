@@ -30,7 +30,11 @@ export type RegisterPayload = {
 };
 
 export async function apiRegister(payload: RegisterPayload): Promise<ApiCustomer> {
-  const { token, customer } = await apiRequest<SessionResponse>('register', { method: 'POST', body: payload });
+  const { token, customer } = await apiRequest<SessionResponse>('register', {
+    method: 'POST',
+    body: payload,
+    auth: false,
+  });
   await setToken(token);
   return customer;
 }
@@ -39,6 +43,7 @@ export async function apiLogin(email: string, password: string): Promise<ApiCust
   const { token, customer } = await apiRequest<SessionResponse>('login', {
     method: 'POST',
     body: { email, password },
+    auth: false,
   });
   await setToken(token);
   return customer;

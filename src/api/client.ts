@@ -31,7 +31,7 @@ type RequestOptions = {
 };
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = 'GET', body, auth = false } = options;
+  const { method = 'GET', body, auth = true } = options;
   const isFormData = body instanceof FormData;
   const headers: Record<string, string> = { Accept: 'application/json' };
 
