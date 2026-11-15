@@ -10,18 +10,13 @@ import {
   RewardAmount,
   SectionHeader,
 } from '../../components';
-import { couponById, coupons } from '../../mocks';
-import { useCompanies } from '../../queries/catalog';
 import type { ShopStackNavigation } from '../../navigation/types';
-import { useRedemptions } from '../../store/coupons';
+import { useCouponShelves, useRedemptions } from '../../queries/coupons';
 import { coinBalance, useWallet } from '../../queries/wallet';
 import { colors, size, space, type } from '../../theme';
 import { useCouponSheet } from './useCouponSheet';
 
-const COMPANIES_PER_PAGE = 5;
 const COUPONS_PER_CAROUSEL = 6;
-
-const couponOf = (couponId: string) => couponById[couponId];
 
 function redeemedLabel(count: number): string {
   if (count === 0) return 'Nenhum resgatado ainda';
@@ -35,21 +30,10 @@ export function CouponsTab() {
   const { openCoupon, sheet } = useCouponSheet();
   const [historyOpen, setHistoryOpen] = useState(false);
   const [page, setPage] = useState(1);
-  const companies = useCompanies().data ?? [];
-  const companyOf = (companyId: string) => companies.find((c) => c.id === companyId);
-
-  const shelves = companies
-    .map((company) => ({
-      company,
-      balance: coinBalance(wallet, company.id),
-      offers: coupons.filter((c) => c.companyId === company.id),
-    }))
-    .filter((shelf) => shelf.offers.length > 0)
-    .sort((a, b) => b.balance - a.balance);
-
-  const pageCount = Math.max(1, Math.ceil(shelves.length / COMPANIES_PER_PAGE));
+  const shelvesQuery = useCouponShelves(page).data;
+  const pageCount = shelvesQuery?.pageCount ?? 1;
   const safePage = Math.min(page, pageCount);
-  const pagedShelves = shelves.slice((safePage - 1) * COMPANIES_PER_PAGE, safePage * COMPANIES_PER_PAGE);
+  const pagedShelves = (shelvesQuery?.shelves ?? []).map((shelf) => ({ ...shelf, balance: coinBalance(wallet, shelf.company.id) }));
 
   return (
     <>
@@ -96,7 +80,7 @@ export function CouponsTab() {
                   coupon={coupon}
                   company={company}
                   balance={balance}
-                  onPress={() => openCoupon(coupon.id)}
+                  onPress={() => openCoupon(coupon, company)}
                 />
               ))}
             </ScrollView>
@@ -109,12 +93,7 @@ export function CouponsTab() {
       {sheet}
 
       {historyOpen ? (
-        <RedemptionsSheet
-          redemptions={redemptions}
-          couponOf={couponOf}
-          companyOf={companyOf}
-          onClose={() => setHistoryOpen(false)}
-        />
+        <RedemptionsSheet redemptions={redemptions} onClose={() => setHistoryOpen(false)} />
       ) : null}
     </>
   );

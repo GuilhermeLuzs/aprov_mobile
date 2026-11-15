@@ -1,28 +1,24 @@
 import { useState, type ReactNode } from 'react';
 import { CouponSheet } from '../../components';
-import { couponById } from '../../mocks';
-import { useCompanies } from '../../queries/catalog';
-import { redeemCoupon } from '../../store/coupons';
+import { newRedemptionKey, redeemCoupon } from '../../queries/coupons';
 import { coinBalance, useWallet } from '../../queries/wallet';
+import type { Company, Coupon } from '../../types';
 
-export function useCouponSheet(): { openCoupon: (couponId: string) => void; sheet: ReactNode } {
+type Open = { coupon: Coupon; company: Company; key: string };
+
+export function useCouponSheet(): { openCoupon: (coupon: Coupon, company: Company) => void; sheet: ReactNode } {
   const wallet = useWallet();
-  const [openId, setOpenId] = useState<string | null>(null);
-  const companies = useCompanies().data ?? [];
+  const [open, setOpen] = useState<Open | null>(null);
 
-  const coupon = openId ? couponById[openId] : undefined;
-  const company = coupon ? companies.find((c) => c.id === coupon.companyId) : undefined;
+  const sheet = open ? (
+    <CouponSheet
+      coupon={open.coupon}
+      company={open.company}
+      balance={coinBalance(wallet, open.company.id)}
+      onClose={() => setOpen(null)}
+      onRedeem={() => redeemCoupon(open.coupon, open.key)}
+    />
+  ) : null;
 
-  const sheet =
-    coupon && company ? (
-      <CouponSheet
-        coupon={coupon}
-        company={company}
-        balance={coinBalance(wallet, company.id)}
-        onClose={() => setOpenId(null)}
-        onRedeem={() => redeemCoupon(coupon)}
-      />
-    ) : null;
-
-  return { openCoupon: setOpenId, sheet };
+  return { openCoupon: (coupon, company) => setOpen({ coupon, company, key: newRedemptionKey() }), sheet };
 }

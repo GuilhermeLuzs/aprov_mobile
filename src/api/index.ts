@@ -66,3 +66,12 @@ export { apiMauricioChat, type MauricioMessage } from './mauricio';
 export { apiRewardPreview } from './rewards';
 export { apiSavePreferences, type SavePreferencesPayload } from './preferences';
 export { clearToken, getToken, setToken } from './token';
+export {
+  apiCompanyCoupons,
+  apiCouponShelves,
+  apiRedeemCoupon,
+  apiRedemptions,
+  type ApiCoupon,
+  type ApiCouponShelf,
+  type ApiRedemption,
+} from './coupons';
