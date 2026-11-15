@@ -17,7 +17,6 @@ import type { User } from '../types';
 import { normalizeUsername, onlyDigits } from '../utils/validation';
 import { getDeactivatedIds, markDeactivated } from './deactivated';
 import { EMPTY_ACCESSORIES, resetAccessories } from './accessories';
-import { resetRedemptions } from './coupons';
 
 type StoredAccount = { email: string; cpf: string; user: User };
 
@@ -65,7 +64,6 @@ onUnauthorized(() => {
   if (!session) return;
   queryClient.clear();
   resetAccessories(EMPTY_ACCESSORIES);
-  resetRedemptions([]);
   session = null;
   emit();
 });
@@ -109,7 +107,6 @@ function rememberAccount(email: string, cpf: string, user: User): void {
 function startSession(user: User): void {
   queryClient.clear();
   resetAccessories(EMPTY_ACCESSORIES);
-  resetRedemptions([]);
   session = user;
   emit();
 }
@@ -189,7 +186,6 @@ export function signOut(): void {
   apiLogout().catch(() => undefined);
   queryClient.clear();
   resetAccessories(EMPTY_ACCESSORIES);
-  resetRedemptions([]);
   session = null;
   emit();
 }

@@ -3,14 +3,12 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronRight } from 'lucide-react-native';
 import { CoinBadge, EmptyState, SearchBar, SectionHeader, TopBar } from '../../components';
-import { coupons } from '../../mocks';
-import { useCompanies } from '../../queries/catalog';
+import { useCouponShelves } from '../../queries/coupons';
 import type { ShopStackNavigation } from '../../navigation/types';
 import { coinBalance, useWallet } from '../../queries/wallet';
 import { colors, icon, radius, space, type } from '../../theme';
 import type { Company } from '../../types';
 import { formatInt } from '../../utils/format';
-import { matchesSearch } from '../../utils/search';
 
 function couponCountLabel(count: number): string {
   return `${count} ${count === 1 ? 'cupom' : 'cupons'}`;
@@ -20,18 +18,12 @@ export default function CouponSearchScreen() {
   const navigation = useNavigation<ShopStackNavigation<'CouponSearch'>>();
   const wallet = useWallet();
   const [query, setQuery] = useState('');
-  const companies = useCompanies().data ?? [];
-
   const searching = query.trim() !== '';
-  const withCoupons = companies
-    .map((company) => ({
-      company,
-      balance: coinBalance(wallet, company.id),
-      count: coupons.filter((c) => c.companyId === company.id).length,
-    }))
-    .filter((row) => row.count > 0)
-    .filter((row) => !searching || matchesSearch(row.company.name, query))
-    .sort((a, b) => b.balance - a.balance);
+  const withCoupons = (useCouponShelves(1, query).data?.shelves ?? []).map((shelf) => ({
+    company: shelf.company,
+    balance: coinBalance(wallet, shelf.company.id),
+    count: shelf.count,
+  }));
 
   const open = (company: Company) => navigation.navigate('CompanyCoupons', { companyId: company.id });
 

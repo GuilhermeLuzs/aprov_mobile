@@ -4,7 +4,6 @@ import { Award, ChevronRight, Store } from 'lucide-react-native';
 import { Button, CoinBadge, EmptyState, SectionHeader } from '../../components';
 import type { ProfileStackNavigation } from '../../navigation/types';
 import { colors, icon, radius, space, type } from '../../theme';
-import { coupons } from '../../mocks';
 import { useWallet } from '../../queries/wallet';
 import { formatInt } from '../../utils/format';
 
@@ -60,7 +59,7 @@ export default function WalletScreen() {
       ItemSeparatorComponent={() => <View style={styles.separator} />}
       renderItem={({ item }) => {
         if (!item.company) return null;
-        const hasCoupons = coupons.some((c) => c.companyId === item.companyId);
+        const hasCoupons = item.couponCount > 0;
         return (
           <Pressable
             onPress={hasCoupons ? () => openCoupons(item.companyId) : undefined}

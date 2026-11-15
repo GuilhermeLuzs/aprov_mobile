@@ -5,7 +5,7 @@ export type ApiWallet = {
   aprovPoints: number;
   xp: number;
   level: number;
-  coins: { companyId: number; amount: number; company?: ApiCompanySummary }[];
+  coins: { companyId: number; amount: number; couponCount: number; company?: ApiCompanySummary }[];
 };
 
 export async function apiWallet(): Promise<ApiWallet> {

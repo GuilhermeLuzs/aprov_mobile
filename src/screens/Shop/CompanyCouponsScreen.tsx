@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import { CouponCard, EmptyState, Pagination, RewardAmount } from '../../components';
-import { coupons } from '../../mocks';
+import { useCompanyCoupons } from '../../queries/coupons';
 import { useCompany } from '../../queries/catalog';
 import type { ShopStackParamList } from '../../navigation/types';
 import { coinBalance, useWallet } from '../../queries/wallet';
@@ -19,7 +19,7 @@ export default function CompanyCouponsScreen() {
   const [page, setPage] = useState(1);
 
   const company = useCompany(companyId).data;
-  const offers = coupons.filter((c) => c.companyId === companyId);
+  const offers = useCompanyCoupons(companyId).data ?? [];
   const pageCount = Math.max(1, Math.ceil(offers.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount);
   const paged = offers.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
@@ -55,7 +55,7 @@ export default function CompanyCouponsScreen() {
             coupon={item}
             company={company}
             balance={balance}
-            onPress={() => openCoupon(item.id)}
+            onPress={() => openCoupon(item, company)}
             fullWidth
           />
         )}
