@@ -1,9 +1,7 @@
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { AccessoryCard, SectionHeader } from '../../components';
-import { accessories } from '../../mocks';
 import type { ShopStackNavigation } from '../../navigation/types';
-import { equipAccessory } from '../../store/accessories';
 import { useCurrentUser } from '../../store/session';
 import { size, space } from '../../theme';
 import { ACCESSORY_KIND_LABEL, type AccessoryKind } from '../../types';
@@ -15,7 +13,7 @@ const ITEMS_PER_CAROUSEL = 6;
 export function AccessoriesTab() {
   const navigation = useNavigation<ShopStackNavigation<'Shop'>>();
   const user = useCurrentUser();
-  const { statusOf, openAccessory, sheet } = useAccessorySheet();
+  const { accessories, statusOf, openAccessory, equip, sheet } = useAccessorySheet();
 
   return (
     <>
@@ -48,7 +46,7 @@ export function AccessoriesTab() {
                     status={statusOf(accessory)}
                     user={user}
                     onPress={() => openAccessory(accessory.id)}
-                    onEquip={() => equipAccessory(accessory)}
+                    onEquip={() => equip(accessory)}
                   />
                 ))}
             </ScrollView>

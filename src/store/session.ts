@@ -16,7 +16,6 @@ import { ANONYMOUS_AUTHOR_ID, anonymousAuthor } from '../queries/mappers';
 import type { User } from '../types';
 import { normalizeUsername, onlyDigits } from '../utils/validation';
 import { getDeactivatedIds, markDeactivated } from './deactivated';
-import { EMPTY_ACCESSORIES, resetAccessories } from './accessories';
 
 type StoredAccount = { email: string; cpf: string; user: User };
 
@@ -63,7 +62,6 @@ const handleOf = (username: string) => `@${normalizeUsername(username)}`;
 onUnauthorized(() => {
   if (!session) return;
   queryClient.clear();
-  resetAccessories(EMPTY_ACCESSORIES);
   session = null;
   emit();
 });
@@ -106,7 +104,6 @@ function rememberAccount(email: string, cpf: string, user: User): void {
 
 function startSession(user: User): void {
   queryClient.clear();
-  resetAccessories(EMPTY_ACCESSORIES);
   session = user;
   emit();
 }
@@ -185,7 +182,6 @@ export function updateProfile(changes: ProfileChanges): ProfileUpdateResult {
 export function signOut(): void {
   apiLogout().catch(() => undefined);
   queryClient.clear();
-  resetAccessories(EMPTY_ACCESSORIES);
   session = null;
   emit();
 }

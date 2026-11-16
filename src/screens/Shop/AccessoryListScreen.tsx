@@ -2,9 +2,7 @@ import { useState } from 'react';
 import { FlatList, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import { AccessoryCard, Pagination } from '../../components';
-import { accessories } from '../../mocks';
 import type { ShopStackParamList } from '../../navigation/types';
-import { equipAccessory } from '../../store/accessories';
 import { useCurrentUser } from '../../store/session';
 import { colors, space } from '../../theme';
 import { useAccessorySheet } from './useAccessorySheet';
@@ -17,7 +15,7 @@ export default function AccessoryListScreen() {
   const { kind } = route.params;
   const { width: screenWidth } = useWindowDimensions();
   const user = useCurrentUser();
-  const { statusOf, openAccessory, sheet } = useAccessorySheet();
+  const { accessories, statusOf, openAccessory, equip, sheet } = useAccessorySheet();
   const [page, setPage] = useState(1);
 
   const items = accessories.filter((c) => c.kind === kind);
@@ -41,7 +39,7 @@ export default function AccessoryListScreen() {
             user={user}
             width={cardWidth}
             onPress={() => openAccessory(item.id)}
-            onEquip={() => equipAccessory(item)}
+            onEquip={() => equip(item)}
           />
         )}
         ListFooterComponent={
