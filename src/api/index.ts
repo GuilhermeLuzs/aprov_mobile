@@ -75,3 +75,4 @@ export {
   type ApiCouponShelf,
   type ApiRedemption,
 } from './coupons';
+export { apiMyTickets, apiOpenTicket, apiReplyTicket, apiTicket, type ApiTicket, type ApiTicketMessage } from './support';
