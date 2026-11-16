@@ -2,10 +2,14 @@ import { useSyncExternalStore } from 'react';
 import {
   ApiError,
   NetworkError,
+  apiDeactivate,
   apiLogin,
   apiLogout,
   apiMe,
   apiRegister,
+  apiRemoveAvatar,
+  apiUpdateProfile,
+  apiUploadAvatar,
   clearToken,
   getToken,
   onUnauthorized,
@@ -15,7 +19,6 @@ import { queryClient } from '../queries/client';
 import { ANONYMOUS_AUTHOR_ID, anonymousAuthor } from '../queries/mappers';
 import type { User } from '../types';
 import { normalizeUsername, onlyDigits } from '../utils/validation';
-import { getDeactivatedIds, markDeactivated } from './deactivated';
 
 type StoredAccount = { email: string; cpf: string; user: User };
 
@@ -30,6 +33,8 @@ export type SignUpData = {
 
 export type SignUpResult = 'ok' | 'email-in-use' | 'cpf-in-use' | 'username-in-use' | 'error';
 
+const ACCOUNT_INACTIVE = 403;
+
 export type SignInResult = 'ok' | 'invalid' | 'deactivated' | 'network-error';
 
 export type ProfileChanges = {
@@ -39,7 +44,7 @@ export type ProfileChanges = {
   avatarUri: string;
 };
 
-export type ProfileUpdateResult = 'ok' | 'username-in-use';
+export type ProfileUpdateResult = 'ok' | 'username-in-use' | 'error';
 
 function toIsoDate(brDate: string): string {
   const [day, month, year] = brDate.split('/');
@@ -129,10 +134,10 @@ export async function signIn(email: string, password: string): Promise<SignInRes
     customer = await apiLogin(email, password);
   } catch (error) {
     if (error instanceof NetworkError) return 'network-error';
+    if (error instanceof ApiError && error.status === ACCOUNT_INACTIVE) return 'deactivated';
     return 'invalid';
   }
   const user = userFromApiCustomer(customer);
-  if (getDeactivatedIds().includes(user.id)) return 'deactivated';
   rememberAccount(email, '', user);
   startSession(user);
   return 'ok';
@@ -163,20 +168,24 @@ export async function signUp(data: SignUpData): Promise<SignUpResult> {
   return 'ok';
 }
 
-export function updateProfile(changes: ProfileChanges): ProfileUpdateResult {
+export async function updateProfile(changes: ProfileChanges): Promise<ProfileUpdateResult> {
   if (!session) return 'ok';
-  if (isUsernameInUse(changes.username, session.id)) return 'username-in-use';
-  session = {
-    ...session,
-    name: changes.name.trim(),
-    handle: handleOf(changes.username),
-    bio: changes.bio.trim(),
-    avatarUri: changes.avatarUri,
-  };
-  const account = accounts.find((a) => a.user.id === session?.id);
-  if (account) account.user = session;
-  emit();
-  return 'ok';
+  const current = session;
+  try {
+    let customer = await apiUpdateProfile({ name: changes.name.trim(), username: normalizeUsername(changes.username), bio: changes.bio.trim() });
+    if (changes.avatarUri !== current.avatarUri) {
+      customer = changes.avatarUri ? await apiUploadAvatar(changes.avatarUri) : await apiRemoveAvatar();
+    }
+    session = { ...userFromApiCustomer(customer), avatarUri: customer.avatarUrl ?? '' };
+    const account = accounts.find((a) => a.user.id === session?.id);
+    if (account) account.user = session;
+    emit();
+    void queryClient.invalidateQueries();
+    return 'ok';
+  } catch (error) {
+    if (error instanceof ApiError && error.errors.username) return 'username-in-use';
+    return 'error';
+  }
 }
 
 export function signOut(): void {
@@ -186,10 +195,17 @@ export function signOut(): void {
   emit();
 }
 
-export function deactivateAccount(): void {
-  if (!session) return;
-  markDeactivated(session.id);
-  signOut();
+export async function deactivateAccount(): Promise<boolean> {
+  if (!session) return true;
+  try {
+    await apiDeactivate();
+  } catch {
+    return false;
+  }
+  queryClient.clear();
+  session = null;
+  emit();
+  return true;
 }
 
 export function isAnonymousAuthor(id: string): boolean {

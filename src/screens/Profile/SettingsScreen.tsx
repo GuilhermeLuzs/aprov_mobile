@@ -22,10 +22,9 @@ export default function SettingsScreen() {
     ? `${plural(preferences.categories.length, 'categoria', 'categorias')} · ${plural(preferences.companyIds.length, 'empresa', 'empresas')}`
     : 'Ainda não escolhidos';
 
-  const deactivate = () => {
+  const deactivate = async () => {
     setConfirmDeactivate(false);
-    deactivateAccount();
-    navigation.getParent()?.getParent()?.reset({ index: 0, routes: [{ name: 'Login' }] });
+    if (await deactivateAccount()) navigation.getParent()?.getParent()?.reset({ index: 0, routes: [{ name: 'Login' }] });
   };
 
   return (
@@ -66,7 +65,7 @@ export default function SettingsScreen() {
               onPress={() => setConfirmDeactivate(false)}
               style={styles.sheetButton}
             />
-            <Button label="Desativar" onPress={deactivate} style={styles.sheetButton} />
+            <Button label="Desativar" onPress={() => void deactivate()} style={styles.sheetButton} />
           </>
         }
       >
