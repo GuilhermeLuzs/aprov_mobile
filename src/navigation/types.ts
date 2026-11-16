@@ -52,6 +52,9 @@ export type ProfileStackParamList = ProductDetailsParamList & PeopleParamList & 
   EditProfile: undefined;
   Settings: undefined;
   EditInterests: undefined;
+  Support: undefined;
+  NewTicket: undefined;
+  Ticket: { ticketId: string };
 };
 
 export type ShopStackParamList = {

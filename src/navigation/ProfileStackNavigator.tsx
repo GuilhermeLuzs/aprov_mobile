@@ -7,7 +7,10 @@ import {
   ProductDetailsScreen,
   ProfileScreen,
   ReviewDetailsScreen,
+  NewTicketScreen,
   SettingsScreen,
+  SupportScreen,
+  TicketScreen,
   UserProfileScreen,
   WalletScreen,
 } from '../screens';
@@ -28,6 +31,9 @@ export function ProfileStackNavigator() {
         options={{ title: 'Editar perfil' }}
       />
       <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Configurações' }} />
+      <Stack.Screen name="Support" component={SupportScreen} options={{ title: 'Ajuda e suporte' }} />
+      <Stack.Screen name="NewTicket" component={NewTicketScreen} options={{ title: 'Novo pedido' }} />
+      <Stack.Screen name="Ticket" component={TicketScreen} options={{ title: 'Pedido de ajuda' }} />
       <Stack.Screen
         name="EditInterests"
         component={EditInterestsScreen}

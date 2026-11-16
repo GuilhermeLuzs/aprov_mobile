@@ -3,6 +3,7 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   Bookmark,
+  LifeBuoy,
   LogOut,
   Menu,
   Receipt,
@@ -192,6 +193,12 @@ export default function ProfileScreen() {
             label="Configurações"
             detail="Interesses e conta"
             onPress={() => openFromMenu(() => navigation.navigate('Settings'))}
+          />
+          <MenuRow
+            Icon={LifeBuoy}
+            label="Ajuda e suporte"
+            detail="Fale com a equipe da APROV"
+            onPress={() => openFromMenu(() => navigation.navigate('Support'))}
           />
           <MenuRow
             Icon={LogOut}
