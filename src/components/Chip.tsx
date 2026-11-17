@@ -15,6 +15,7 @@ type Props = {
   added?: boolean;
   removed?: boolean;
   accessibilityLabel?: string;
+  disabled?: boolean;
   style?: StyleProp<ViewStyle>;
 };
 
@@ -44,10 +45,11 @@ export function Chip({
   added = false,
   removed = false,
   accessibilityLabel,
+  disabled = false,
   style,
 }: Props) {
   const active = !removed && (selected || (!onPress && variant !== 'neutral'));
-  const s = removed ? { bg: colors.surface, border: colors.border, fg: colors.inkFaint } : skin(variant, active);
+  const s = removed || disabled ? { bg: colors.surface, border: colors.border, fg: colors.inkFaint } : skin(variant, active);
   const sm = size === 'sm';
   const Icon = icon ?? (added ? Plus : undefined);
   const changeLabel = added ? `Nova: ${label}` : removed ? `Removida: ${label}` : label;
@@ -55,9 +57,9 @@ export function Chip({
   return (
     <Pressable
       onPress={onPress}
-      disabled={!onPress}
+      disabled={disabled || !onPress}
       accessibilityRole={onPress ? 'button' : undefined}
-      accessibilityState={onPress ? { selected } : undefined}
+      accessibilityState={onPress ? { selected, disabled } : undefined}
       accessibilityLabel={accessibilityLabel ?? changeLabel}
       style={({ pressed }) => [
         styles.base,

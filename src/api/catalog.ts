@@ -76,7 +76,10 @@ export type ApiTag = {
   label: string;
   sentiment: TagSentiment;
   characteristic: ReviewCharacteristicKey;
-  categories: Category[];
+  kind: 'product' | 'service' | null;
+  category: Category | null;
+  oppositeId: number | null;
+  general: boolean;
 };
 
 export async function apiCompanies(): Promise<ApiCompany[]> {

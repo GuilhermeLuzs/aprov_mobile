@@ -14,22 +14,16 @@ type Props = {
   rewards: StepReward[];
 };
 
-const NEUTRAL_RATING = 3;
-
 function toggled(list: string[], id: string): string[] {
   return list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
 }
 
 export function StepTags({ draft, update, product, rewards }: Props) {
-  const ratingFor = (tag: Tag) => draft.characteristics[tag.characteristic] || NEUTRAL_RATING;
-
-  const forCategory = useItemTags(product.id).data ?? [];
-  const positive = forCategory
-    .filter((t) => t.sentiment === 'positive')
-    .sort((a, b) => ratingFor(b) - ratingFor(a));
-  const negative = forCategory
-    .filter((t) => t.sentiment === 'negative')
-    .sort((a, b) => ratingFor(a) - ratingFor(b));
+  const tags = useItemTags(product.id).data ?? [];
+  const selected = [...draft.positiveTagIds, ...draft.negativeTagIds];
+  const blocked = (tag: Tag) => tag.oppositeId !== null && selected.includes(tag.oppositeId);
+  const positive = tags.filter((t) => t.sentiment === 'positive');
+  const negative = tags.filter((t) => t.sentiment === 'negative');
 
   return (
     <View style={styles.wrap}>
@@ -44,6 +38,7 @@ export function StepTags({ draft, update, product, rewards }: Props) {
               label={t.label}
               variant="positive"
               selected={draft.positiveTagIds.includes(t.id)}
+              disabled={blocked(t)}
               onPress={() => update({ positiveTagIds: toggled(draft.positiveTagIds, t.id) })}
             />
           ))}
@@ -59,6 +54,7 @@ export function StepTags({ draft, update, product, rewards }: Props) {
               label={t.label}
               variant="negative"
               selected={draft.negativeTagIds.includes(t.id)}
+              disabled={blocked(t)}
               onPress={() => update({ negativeTagIds: toggled(draft.negativeTagIds, t.id) })}
             />
           ))}
