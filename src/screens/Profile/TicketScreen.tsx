@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRoute, type RouteProp } from '@react-navigation/native';
-import { Button, EmptyState, TextField } from '../../components';
+import {
+  Button,
+  EmptyState,
+  LoadingState,
+  TextField,
+} from '../../components';
 import type { ProfileStackParamList } from '../../navigation/types';
 import { TICKET_STATUS_LABEL, replyTicket, useTicket } from '../../queries/support';
 import { colors, radius, space, type } from '../../theme';
@@ -16,7 +21,7 @@ export default function TicketScreen() {
   const [error, setError] = useState<string | undefined>();
   const [sending, setSending] = useState(false);
 
-  if (ticket.isPending) return <View style={styles.screen} />;
+  if (ticket.isPending) return <LoadingState fill />;
   if (!ticket.data) return <EmptyState mood="confused" title="Pedido não encontrado" />;
 
   const send = async () => {

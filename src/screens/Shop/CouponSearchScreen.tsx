@@ -2,7 +2,14 @@ import { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronRight } from 'lucide-react-native';
-import { CoinBadge, EmptyState, SearchBar, SectionHeader, TopBar } from '../../components';
+import {
+  CoinBadge,
+  EmptyState,
+  LoadingState,
+  SearchBar,
+  SectionHeader,
+  TopBar,
+} from '../../components';
 import { useCouponShelves } from '../../queries/coupons';
 import type { ShopStackNavigation } from '../../navigation/types';
 import { coinBalance, useWallet } from '../../queries/wallet';
@@ -19,7 +26,8 @@ export default function CouponSearchScreen() {
   const wallet = useWallet();
   const [query, setQuery] = useState('');
   const searching = query.trim() !== '';
-  const withCoupons = (useCouponShelves(1, query).data?.shelves ?? []).map((shelf) => ({
+  const shelves = useCouponShelves(1, query);
+  const withCoupons = (shelves.data?.shelves ?? []).map((shelf) => ({
     company: shelf.company,
     balance: coinBalance(wallet, shelf.company.id),
     count: shelf.count,
@@ -59,12 +67,16 @@ export default function CouponSearchScreen() {
           </Pressable>
         )}
         ListEmptyComponent={
+          shelves.isPending ? (
+            <LoadingState />
+          ) : (
           <EmptyState
             compact
             mood="confused"
             title="Nenhuma empresa encontrada"
             description="Confira o nome e tente de novo."
           />
+          )
         }
         showsVerticalScrollIndicator={false}
       />

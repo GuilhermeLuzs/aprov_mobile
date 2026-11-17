@@ -17,12 +17,12 @@ export type AccessoryStatus =
   | { kind: 'short'; missing: number }
   | { kind: 'locked'; level: number };
 
-export type AccessoryCatalog = AccessoriesState & { accessories: Accessory[]; points: number; level: number };
+export type AccessoryCatalog = AccessoriesState & { accessories: Accessory[]; points: number; level: number; loading: boolean };
 
 const ACCESSORIES_KEY = ['accessories'] as const;
 const DEFAULT_SKIN: MauricioSkin = 'mauricio';
 
-const EMPTY_CATALOG: AccessoryCatalog = { accessories: [], ownedIds: [], equippedSkin: DEFAULT_SKIN, equippedFrameId: null, points: 0, level: 1 };
+const EMPTY_CATALOG: AccessoryCatalog = { accessories: [], ownedIds: [], equippedSkin: DEFAULT_SKIN, equippedFrameId: null, points: 0, level: 1, loading: true };
 
 function frameOf(asset: string): AvatarFrame {
   return { colors: asset in framePalette ? [framePalette[asset as keyof typeof framePalette]] : brandGradient };
@@ -41,6 +41,7 @@ function catalogFromApi(api: ApiAccessoryState): AccessoryCatalog {
     equippedFrameId: api.equippedFrameId,
     points: api.points,
     level: api.level,
+    loading: false,
   };
 }
 

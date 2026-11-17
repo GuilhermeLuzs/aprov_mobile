@@ -1,7 +1,13 @@
 import { useState } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { useRoute, type RouteProp } from '@react-navigation/native';
-import { CouponCard, EmptyState, Pagination, RewardAmount } from '../../components';
+import {
+  CouponCard,
+  EmptyState,
+  LoadingState,
+  Pagination,
+  RewardAmount,
+} from '../../components';
 import { useCompanyCoupons } from '../../queries/coupons';
 import { useCompany } from '../../queries/catalog';
 import type { ShopStackParamList } from '../../navigation/types';
@@ -18,11 +24,15 @@ export default function CompanyCouponsScreen() {
   const { openCoupon, sheet } = useCouponSheet();
   const [page, setPage] = useState(1);
 
-  const company = useCompany(companyId).data;
-  const offers = useCompanyCoupons(companyId).data ?? [];
+  const companyResult = useCompany(companyId);
+  const company = companyResult.data;
+  const offersResult = useCompanyCoupons(companyId);
+  const offers = offersResult.data ?? [];
   const pageCount = Math.max(1, Math.ceil(offers.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount);
   const paged = offers.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  if (companyResult.isPending || offersResult.isPending) return <LoadingState fill />;
 
   if (!company) {
     return <EmptyState mood="confused" title="Empresa não encontrada" />;
