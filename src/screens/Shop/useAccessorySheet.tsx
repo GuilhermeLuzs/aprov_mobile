@@ -12,6 +12,7 @@ import type { Accessory } from '../../types';
 
 type AccessorySheetControls = {
   accessories: Accessory[];
+  loading: boolean;
   statusOf: (accessory: Accessory) => AccessoryStatus;
   openAccessory: (accessoryId: string) => void;
   equip: (accessory: Accessory) => void;
@@ -37,5 +38,5 @@ export function useAccessorySheet(): AccessorySheetControls {
     />
   ) : null;
 
-  return { accessories: catalog.accessories, statusOf, openAccessory: setOpenId, equip: (accessory) => void equipAccessory(accessory), sheet };
+  return { accessories: catalog.accessories, loading: catalog.loading, statusOf, openAccessory: setOpenId, equip: (accessory) => void equipAccessory(accessory), sheet };
 }

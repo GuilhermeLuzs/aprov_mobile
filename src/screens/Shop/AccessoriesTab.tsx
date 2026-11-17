@@ -1,6 +1,10 @@
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { AccessoryCard, SectionHeader } from '../../components';
+import {
+  AccessoryCard,
+  LoadingState,
+  SectionHeader,
+} from '../../components';
 import type { ShopStackNavigation } from '../../navigation/types';
 import { useCurrentUser } from '../../store/session';
 import { size, space } from '../../theme';
@@ -13,7 +17,9 @@ const ITEMS_PER_CAROUSEL = 6;
 export function AccessoriesTab() {
   const navigation = useNavigation<ShopStackNavigation<'Shop'>>();
   const user = useCurrentUser();
-  const { accessories, statusOf, openAccessory, equip, sheet } = useAccessorySheet();
+  const { accessories, loading, statusOf, openAccessory, equip, sheet } = useAccessorySheet();
+
+  if (loading) return <LoadingState fill />;
 
   return (
     <>

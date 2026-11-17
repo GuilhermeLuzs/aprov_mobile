@@ -1,6 +1,10 @@
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Button, EmptyState } from '../../components';
+import {
+  Button,
+  EmptyState,
+  LoadingState,
+} from '../../components';
 import type { ProfileStackNavigation } from '../../navigation/types';
 import { TICKET_STATUS_LABEL, TICKET_TOPICS, useMyTickets } from '../../queries/support';
 import { colors, radius, space, type } from '../../theme';
@@ -11,7 +15,7 @@ export default function SupportScreen() {
   const tickets = useMyTickets();
   const openNew = () => navigation.navigate('NewTicket');
 
-  if (tickets.isPending) return <View style={styles.screen} />;
+  if (tickets.isPending) return <LoadingState fill />;
 
   return (
     <FlatList

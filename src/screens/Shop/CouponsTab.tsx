@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Ticket } from 'lucide-react-native';
 import {
   CouponCard,
+  LoadingState,
   MenuRow,
   Pagination,
   RedemptionsSheet,
@@ -30,10 +31,13 @@ export function CouponsTab() {
   const { openCoupon, sheet } = useCouponSheet();
   const [historyOpen, setHistoryOpen] = useState(false);
   const [page, setPage] = useState(1);
-  const shelvesQuery = useCouponShelves(page).data;
+  const shelvesResult = useCouponShelves(page);
+  const shelvesQuery = shelvesResult.data;
   const pageCount = shelvesQuery?.pageCount ?? 1;
   const safePage = Math.min(page, pageCount);
   const pagedShelves = (shelvesQuery?.shelves ?? []).map((shelf) => ({ ...shelf, balance: coinBalance(wallet, shelf.company.id) }));
+
+  if (shelvesResult.isPending) return <LoadingState fill />;
 
   return (
     <>
