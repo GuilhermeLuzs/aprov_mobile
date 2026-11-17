@@ -56,7 +56,8 @@ export default function PeopleSearchScreen() {
         renderItem={({ item }) => (
           <PersonRow
             user={item.user}
-            detail={item.reason || followersLabel(item)}
+            detail={item.reason ? undefined : followersLabel(item)}
+            reason={item.reason}
             onPress={() => openProfile(item.user.id)}
           />
         )}
