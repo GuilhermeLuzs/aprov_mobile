@@ -11,7 +11,7 @@ import {
   TopBar,
 } from '../../components';
 import { colors, space } from '../../theme';
-import { usePeople, type Person } from '../../queries/people';
+import { useFollowSuggestions, usePeople, type Person } from '../../queries/people';
 import { formatInt } from '../../utils/format';
 import { useDebouncedValue } from '../../utils/useDebouncedValue';
 import type { PeopleNavigation } from '../../navigation/types';
@@ -32,6 +32,9 @@ export default function PeopleSearchScreen() {
   const people = usePeople(search);
 
   const searching = query.trim() !== '';
+  const suggestions = useFollowSuggestions(!searching);
+  const list = searching ? people : suggestions;
+  const rows: (Person & { reason?: string })[] = searching ? people.people : (suggestions.data ?? []);
 
   return (
     <View style={styles.screen}>
@@ -45,7 +48,7 @@ export default function PeopleSearchScreen() {
       </TopBar>
 
       <FlatList
-        data={people.people}
+        data={rows}
         keyExtractor={(person) => person.user.id}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.content}
@@ -53,15 +56,15 @@ export default function PeopleSearchScreen() {
         renderItem={({ item }) => (
           <PersonRow
             user={item.user}
-            detail={followersLabel(item)}
+            detail={item.reason || followersLabel(item)}
             onPress={() => openProfile(item.user.id)}
           />
         )}
         ListEmptyComponent={
-          people.isPending ? (
+          (searching ? people.isPending : suggestions.isPending) ? (
             <LoadingState />
-          ) : people.isError ? (
-            <LoadError compact onRetry={() => void people.refetch()} />
+          ) : list.isError ? (
+            <LoadError compact onRetry={() => void list.refetch()} />
           ) : searching ? (
             <EmptyState
               compact

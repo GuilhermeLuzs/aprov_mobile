@@ -14,6 +14,7 @@ export type ApiProfile = {
   followerCount?: number;
   followingCount?: number;
   isFollowing?: boolean;
+  suggestionReason?: string;
   joinedAt: string;
 };
 
@@ -40,4 +41,8 @@ export async function apiSetFollowing(customerId: string, following: boolean): P
     method: following ? 'PUT' : 'DELETE',
     auth: true,
   });
+}
+
+export async function apiFollowSuggestions(): Promise<ApiProfile[]> {
+  return apiRequest<ApiProfile[]>('customers/suggestions');
 }
