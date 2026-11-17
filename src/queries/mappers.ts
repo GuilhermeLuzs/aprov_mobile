@@ -173,7 +173,10 @@ export function tagFromApi(api: ApiTag): Tag {
     label: api.label,
     sentiment: api.sentiment,
     characteristic: api.characteristic,
-    categories: api.categories,
+    kind: api.kind,
+    category: api.category,
+    oppositeId: api.oppositeId === null ? null : String(api.oppositeId),
+    general: api.general,
   };
 }
 
