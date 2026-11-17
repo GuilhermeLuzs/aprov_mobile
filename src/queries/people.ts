@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { apiFollowList, apiPeople, apiProfile, apiSetFollowing, type ApiProfile, type FollowListKind } from '../api';
+import { apiFollowList, apiFollowSuggestions, apiPeople, apiProfile, apiSetFollowing, type ApiProfile, type FollowListKind } from '../api';
 import type { User } from '../types';
 import { queryClient, queryKeys } from './client';
 import { userFromProfile } from './mappers';
@@ -25,9 +25,10 @@ function nextPage(last: { page: number; pageCount: number }): number | undefined
   return last.page < last.pageCount ? last.page + 1 : undefined;
 }
 
-function usePeoplePages(queryKey: readonly unknown[], fetchPage: (page: number) => ReturnType<typeof apiPeople>) {
+function usePeoplePages(queryKey: readonly unknown[], fetchPage: (page: number) => ReturnType<typeof apiPeople>, enabled = true) {
   const query = useInfiniteQuery({
     queryKey,
+    enabled,
     queryFn: ({ pageParam }) => fetchPage(pageParam),
     initialPageParam: 1,
     getNextPageParam: nextPage,
@@ -40,7 +41,18 @@ function usePeoplePages(queryKey: readonly unknown[], fetchPage: (page: number) 
 }
 
 export function usePeople(search: string) {
-  return usePeoplePages(queryKeys.people(search), (page) => apiPeople(search, page));
+  return usePeoplePages(queryKeys.people(search), (page) => apiPeople(search, page), search !== '');
+}
+
+export type Suggestion = Person & { reason: string };
+
+export function useFollowSuggestions(enabled: boolean) {
+  return useQuery({
+    queryKey: ['follow-suggestions'],
+    queryFn: apiFollowSuggestions,
+    enabled,
+    select: (list): Suggestion[] => list.map((api) => ({ ...toPerson(api), reason: api.suggestionReason ?? '' })),
+  });
 }
 
 export function useFollowList(customerId: string, kind: FollowListKind) {

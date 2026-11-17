@@ -7,10 +7,11 @@ import { Avatar } from './Avatar';
 type Props = {
   user: User;
   detail?: string;
+  reason?: string;
   onPress: () => void;
 };
 
-export function PersonRow({ user, detail, onPress }: Props) {
+export function PersonRow({ user, detail, reason, onPress }: Props) {
   return (
     <Pressable
       onPress={onPress}
@@ -27,6 +28,7 @@ export function PersonRow({ user, detail, onPress }: Props) {
           {user.handle} · Nível {user.level}
           {detail ? ` · ${detail}` : ''}
         </Text>
+        {reason ? <Text style={styles.reason}>{reason}</Text> : null}
       </View>
       <ChevronRight size={icon.size.md} color={colors.inkFaint} strokeWidth={icon.strokeWidth} />
     </Pressable>
@@ -49,6 +51,12 @@ const styles = StyleSheet.create({
     fontFamily: type.bodyBold.family,
     fontSize: type.bodyBold.size,
     lineHeight: type.bodyBold.lineHeight,
+    color: colors.ink,
+  },
+  reason: {
+    fontFamily: type.caption.family,
+    fontSize: type.caption.size,
+    lineHeight: type.caption.lineHeight,
     color: colors.ink,
   },
   sub: {

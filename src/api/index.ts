@@ -52,6 +52,7 @@ export {
 } from './comments';
 export {
   apiFollowList,
+  apiFollowSuggestions,
   apiPeople,
   apiProfile,
   apiSetFollowing,
