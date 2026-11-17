@@ -77,3 +77,4 @@ export {
 } from './coupons';
 export { apiMyTickets, apiOpenTicket, apiReplyTicket, apiTicket, type ApiTicket, type ApiTicketMessage } from './support';
 export { apiAccessories, apiBuyAccessory, apiEquipAccessory, type ApiAccessory, type ApiAccessoryState } from './accessories';
+export { apiDeactivate, apiRemoveAvatar, apiUpdateProfile, apiUploadAvatar } from './account';
