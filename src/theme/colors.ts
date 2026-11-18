@@ -30,6 +30,10 @@ export const colors = {
 
 export const brandGradient = ['#E8840E', '#FACE04', '#CC0C5F'] as const;
 
+export const welcomeGradient = ['#E06014', '#E8840E'] as const;
+
+export const welcomeTextureOpacity = 0.12;
+
 export const framePalette = {
   laranja: '#E06014',
   grafite: '#2A211C',

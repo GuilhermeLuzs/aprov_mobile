@@ -1,17 +1,20 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { colors, radius, space, mauricioVoice } from '../theme';
+import type { MauricioSkin } from '../types';
 import { MauricioMascot, type MauricioMood } from './MauricioMascot';
 
 type Props = {
   text: string;
   mascotSize?: number;
   mood?: MauricioMood;
+  skin?: MauricioSkin;
+  outlined?: boolean;
 };
 
-export function MauricioBubble({ text, mascotSize = 72, mood = 'talking' }: Props) {
+export function MauricioBubble({ text, mascotSize = 72, mood = 'talking', skin, outlined }: Props) {
   return (
     <View style={styles.row}>
-      <MauricioMascot size={mascotSize} mood={mood} />
+      <MauricioMascot size={mascotSize} mood={mood} skin={skin} outlined={outlined} />
       <View style={styles.bubble}>
         <View style={styles.tail} />
         <Text style={styles.text}>{text}</Text>
