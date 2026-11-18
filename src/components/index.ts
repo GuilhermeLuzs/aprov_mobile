@@ -18,6 +18,8 @@ export { CoinBadge } from './CoinBadge';
 export { ItemToggles } from './ItemToggles';
 export { ReportSheet } from './ReportSheet';
 export { BrandMark } from './BrandMark';
+export { BrandBackdrop } from './BrandBackdrop';
+export { BrandLockup } from './BrandLockup';
 export { ZoomableImage } from './ZoomableImage';
 export type { VoteState } from './VoteBar';
 export { CommentThread } from './CommentThread';

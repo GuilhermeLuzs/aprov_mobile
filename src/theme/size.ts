@@ -23,6 +23,12 @@ export const size = {
     lg: { box: 40, icon: 22 },
   },
   brandMark: 28,
+  mascotOutline: 5,
+  welcome: {
+    mark: 30,
+    mascot: { large: 168, medium: 120 },
+    textureStar: { sm: 56, md: 96, lg: 168 },
+  },
   tabIndicator: 2,
   sheetMaxHeight: '85%',
   sheetHandle: { width: 40, height: 4 },

@@ -1,13 +1,16 @@
 import { Image, StyleSheet } from 'react-native';
-import { size } from '../theme';
+import { colors, size } from '../theme';
 
 const LOGO_ASPECT_RATIO = 905 / 719;
 
-export function BrandMark() {
+type Props = { height?: number; onBrand?: boolean };
+
+export function BrandMark({ height = size.brandMark, onBrand = false }: Props) {
   return (
     <Image
       source={require('../../assets/logo-aprov.png')}
-      style={styles.mark}
+      style={[styles.mark, { width: Math.round(height * LOGO_ASPECT_RATIO), height }]}
+      tintColor={onBrand ? colors.surface : undefined}
       resizeMode="contain"
       accessible
       accessibilityRole="image"
@@ -17,9 +20,5 @@ export function BrandMark() {
 }
 
 const styles = StyleSheet.create({
-  mark: {
-    width: Math.round(size.brandMark * LOGO_ASPECT_RATIO),
-    height: size.brandMark,
-    flexShrink: 0,
-  },
+  mark: { flexShrink: 0 },
 });
