@@ -13,27 +13,39 @@ type Props = {
   visible: boolean;
   title: string;
   onClose: () => void;
-  onSubmit: (reason: ReportReason, details: string) => void;
+  onSubmit: (reason: ReportReason, details: string) => Promise<void>;
 };
 
 export function ReportSheet({ visible, title, onClose, onSubmit }: Props) {
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [details, setDetails] = useState('');
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!visible) return;
     setReason(null);
     setDetails('');
     setSent(false);
+    setSending(false);
+    setError(null);
   }, [visible]);
 
-  const canSend = reason !== null && (reason !== 'other' || details.trim() !== '');
+  const canSend = reason !== null && (reason !== 'other' || details.trim() !== '') && !sending;
 
-  const send = () => {
+  const send = async () => {
     if (!reason || !canSend) return;
-    onSubmit(reason, details);
-    setSent(true);
+    setError(null);
+    setSending(true);
+    try {
+      await onSubmit(reason, details);
+      setSent(true);
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : 'Não deu para enviar agora. Tente de novo.');
+    } finally {
+      setSending(false);
+    }
   };
 
   if (sent) {
@@ -65,7 +77,7 @@ export function ReportSheet({ visible, title, onClose, onSubmit }: Props) {
           <Button
             label="Enviar"
             disabled={!canSend}
-            onPress={send}
+            onPress={() => void send()}
             style={styles.footerButton}
           />
         </>
@@ -96,6 +108,7 @@ export function ReportSheet({ visible, title, onClose, onSubmit }: Props) {
             hint={`${details.length}/${DETAILS_MAX_LENGTH}`}
           />
         ) : null}
+        {error ? <Text style={styles.error}>{error}</Text> : null}
       </ScrollView>
     </BottomSheet>
   );
@@ -125,4 +138,10 @@ const styles = StyleSheet.create({
     color: colors.ink,
   },
   footerButton: { flex: 1 },
+  error: {
+    fontFamily: type.bodyBold.family,
+    fontSize: type.body.size,
+    lineHeight: type.body.lineHeight,
+    color: colors.disagree,
+  },
 });

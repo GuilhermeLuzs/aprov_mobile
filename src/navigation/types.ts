@@ -52,6 +52,9 @@ export type ProfileStackParamList = ProductDetailsParamList & PeopleParamList & 
   EditProfile: undefined;
   Settings: undefined;
   EditInterests: undefined;
+  Support: undefined;
+  NewTicket: undefined;
+  Ticket: { ticketId: string };
 };
 
 export type ShopStackParamList = {
@@ -75,8 +78,8 @@ export type RootStackParamList = {
   SignUp: NavigatorScreenParams<SignUpStackParamList> | undefined;
   Onboarding: NavigatorScreenParams<OnboardingStackParamList> | undefined;
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
-  CreateReview: { productId: string };
-  MauricioChat: { productId: string };
+  CreateReview: { productId: string; reviewId?: string };
+  MauricioChat: { productId: string; draftKey?: string };
   MediaViewer: {
     reviewIds: string[];
     reviewId: string;

@@ -5,8 +5,10 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { fontMap } from './src/theme';
 import { RootNavigator } from './src/navigation';
+import { queryClient } from './src/queries/client';
 import { restoreSession } from './src/store/session';
 
 void SplashScreen.preventAutoHideAsync();
@@ -37,13 +39,15 @@ export default function App() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayout}>
-      <SafeAreaProvider>
-        <View style={{ flex: 1 }}>
-          <StatusBar style="dark" />
-          <RootNavigator initialRoute={restored ? 'MainTabs' : 'Login'} />
-        </View>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <QueryClientProvider client={queryClient}>
+      <GestureHandlerRootView style={{ flex: 1 }} onLayout={onLayout}>
+        <SafeAreaProvider>
+          <View style={{ flex: 1 }}>
+            <StatusBar style="dark" />
+            <RootNavigator initialRoute={restored ? 'MainTabs' : 'Login'} />
+          </View>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </QueryClientProvider>
   );
 }

@@ -1,33 +1,31 @@
 import { useState, type ReactNode } from 'react';
 import { AccessorySheet } from '../../components';
-import { accessories, xpPerLevel } from '../../mocks';
 import {
-  buyAccessory,
   accessoryStatus,
+  buyAccessory,
   equipAccessory,
-  useAccessories,
+  useAccessoryCatalog,
   type AccessoryStatus,
 } from '../../store/accessories';
 import { useCurrentUser } from '../../store/session';
-import { useWallet } from '../../store/wallet';
 import type { Accessory } from '../../types';
-import { levelProgress } from '../../utils/level';
 
 type AccessorySheetControls = {
+  accessories: Accessory[];
+  loading: boolean;
   statusOf: (accessory: Accessory) => AccessoryStatus;
   openAccessory: (accessoryId: string) => void;
+  equip: (accessory: Accessory) => void;
   sheet: ReactNode;
 };
 
 export function useAccessorySheet(): AccessorySheetControls {
   const user = useCurrentUser();
-  const wallet = useWallet();
-  const owned = useAccessories();
+  const catalog = useAccessoryCatalog();
   const [openId, setOpenId] = useState<string | null>(null);
 
-  const { level } = levelProgress(wallet.xp, xpPerLevel);
-  const statusOf = (accessory: Accessory) => accessoryStatus(owned, accessory, wallet.aprovPoints, level);
-  const open = accessories.find((c) => c.id === openId);
+  const statusOf = (accessory: Accessory) => accessoryStatus(catalog, accessory, catalog.points, catalog.level);
+  const open = catalog.accessories.find((item) => item.id === openId);
 
   const sheet = open ? (
     <AccessorySheet
@@ -35,10 +33,10 @@ export function useAccessorySheet(): AccessorySheetControls {
       status={statusOf(open)}
       user={user}
       onClose={() => setOpenId(null)}
-      onBuy={() => buyAccessory(open, level)}
-      onEquip={() => equipAccessory(open)}
+      onBuy={() => void buyAccessory(open)}
+      onEquip={() => void equipAccessory(open)}
     />
   ) : null;
 
-  return { statusOf, openAccessory: setOpenId, sheet };
+  return { accessories: catalog.accessories, loading: catalog.loading, statusOf, openAccessory: setOpenId, equip: (accessory) => void equipAccessory(accessory), sheet };
 }

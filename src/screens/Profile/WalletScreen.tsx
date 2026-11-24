@@ -4,8 +4,7 @@ import { Award, ChevronRight, Store } from 'lucide-react-native';
 import { Button, CoinBadge, EmptyState, SectionHeader } from '../../components';
 import type { ProfileStackNavigation } from '../../navigation/types';
 import { colors, icon, radius, space, type } from '../../theme';
-import { companies, coupons } from '../../mocks';
-import { useWallet } from '../../store/wallet';
+import { useWallet } from '../../queries/wallet';
 import { formatInt } from '../../utils/format';
 
 export default function WalletScreen() {
@@ -20,7 +19,6 @@ export default function WalletScreen() {
 
   const balances = wallet.coins
     .filter((c) => c.amount > 0)
-    .map((c) => ({ ...c, company: companies.find((co) => co.id === c.companyId) }))
     .filter((c) => c.company !== undefined)
     .sort((a, b) => b.amount - a.amount);
 
@@ -61,7 +59,7 @@ export default function WalletScreen() {
       ItemSeparatorComponent={() => <View style={styles.separator} />}
       renderItem={({ item }) => {
         if (!item.company) return null;
-        const hasCoupons = coupons.some((c) => c.companyId === item.companyId);
+        const hasCoupons = item.couponCount > 0;
         return (
           <Pressable
             onPress={hasCoupons ? () => openCoupons(item.companyId) : undefined}

@@ -45,6 +45,8 @@ export default function EditProfileScreen() {
   const [submitted, setSubmitted] = useState(false);
   const [photoOpen, setPhotoOpen] = useState(false);
   const [permissionDenied, setPermissionDenied] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const errors = submitted ? validate(form, user.id) : {};
   const change = (field: keyof Form) => (value: string) =>
@@ -79,10 +81,14 @@ export default function EditProfileScreen() {
     change('avatarUri')('');
   };
 
-  const save = () => {
+  const save = async () => {
     setSubmitted(true);
     if (Object.keys(validate(form, user.id)).length > 0) return;
-    if (updateProfile(form) === 'ok') navigation.goBack();
+    setSaving(true);
+    const result = await updateProfile(form);
+    setSaving(false);
+    if (result === 'ok') navigation.goBack();
+    else setSaveError(result === 'username-in-use' ? 'Este nome de usuário já está em uso.' : 'Não deu para salvar agora. Tente de novo.');
   };
 
   return (
@@ -143,7 +149,8 @@ export default function EditProfileScreen() {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + space.md }]}>
-        <Button label="Salvar" fullWidth onPress={save} />
+        {saveError ? <Text style={styles.saveError}>{saveError}</Text> : null}
+        <Button label={saving ? 'Salvando...' : 'Salvar'} fullWidth onPress={() => void save()} disabled={saving} />
       </View>
 
       <BottomSheet
@@ -183,6 +190,13 @@ export default function EditProfileScreen() {
 }
 
 const styles = StyleSheet.create({
+  saveError: {
+    fontFamily: type.caption.family,
+    fontSize: type.caption.size,
+    lineHeight: type.caption.lineHeight,
+    color: colors.disagree,
+    marginBottom: space.sm,
+  },
   screen: { flex: 1, backgroundColor: colors.bg },
   content: { padding: space.lg, gap: space.lg },
   photo: { alignItems: 'center', gap: space.sm },

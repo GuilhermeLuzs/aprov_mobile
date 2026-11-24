@@ -4,7 +4,7 @@ import type { ApiCustomer } from './auth';
 export type SavePreferencesPayload = {
   categories: string[];
   companyIds: number[];
-  discoverySource: string;
+  discoverySource?: string;
 };
 
 export async function apiSavePreferences(payload: SavePreferencesPayload): Promise<ApiCustomer> {

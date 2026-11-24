@@ -1,7 +1,8 @@
 import { useRef, useState, type ReactNode } from 'react';
 import { ReportSheet } from '../../components';
+import { apiReport } from '../../api';
 import type { ReportTarget } from '../../types';
-import { submitReport } from '../../store/reports';
+import { queryClient, refreshReviewLists } from '../../queries/client';
 import { useCurrentUser } from '../../store/session';
 
 type Pending = { target: ReportTarget; id: string };
@@ -25,7 +26,11 @@ export function useReport(onReported?: (target: ReportTarget, id: string) => voi
   const close = () => {
     const finished = pending;
     setPending(null);
-    if (finished && sentRef.current) onReported?.(finished.target, finished.id);
+    if (finished && sentRef.current) {
+      refreshReviewLists();
+      void queryClient.invalidateQueries({ queryKey: ['comments'] });
+      onReported?.(finished.target, finished.id);
+    }
     sentRef.current = false;
   };
 
@@ -40,9 +45,9 @@ export function useReport(onReported?: (target: ReportTarget, id: string) => voi
         visible={pending !== null}
         title={pending ? TITLE[pending.target] : ''}
         onClose={close}
-        onSubmit={(reason, details) => {
+        onSubmit={async (reason, details) => {
           if (!pending) return;
-          submitReport(me.id, pending.target, pending.id, reason, details);
+          await apiReport({ targetType: pending.target, targetId: Number(pending.id), reason, description: details });
           sentRef.current = true;
         }}
       />

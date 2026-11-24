@@ -15,7 +15,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Volume2, VolumeX, X } from 'lucide-react-native';
 import { ZoomableImage } from '../../components';
 import { colors, icon, radius, size, space, type } from '../../theme';
-import { products } from '../../mocks';
+import { useItem } from '../../queries/catalog';
 import { slidesOf } from '../../utils/media';
 import type { RootStackParamList } from '../../navigation/types';
 import { VideoSlide } from './VideoSlide';
@@ -28,7 +28,7 @@ export default function ProductMediaScreen() {
   const route = useRoute<RouteProp<RootStackParamList, 'ProductMedia'>>();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const product = products.find((p) => p.id === route.params.productId);
+  const product = useItem(route.params.productId).data?.product;
   const slides = product ? slidesOf(product.media) : [];
   const startIndex = Math.min(route.params.index, Math.max(0, slides.length - 1));
 

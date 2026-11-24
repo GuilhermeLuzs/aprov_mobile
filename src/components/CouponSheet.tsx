@@ -13,14 +13,23 @@ type Props = {
   company: Company;
   balance: number;
   onClose: () => void;
-  onRedeem: () => CouponRedemption | null;
+  onRedeem: () => Promise<{ redemption: CouponRedemption } | { error: string }>;
 };
 
 export function CouponSheet({ coupon, company, balance, onClose, onRedeem }: Props) {
   const [redemption, setRedemption] = useState<CouponRedemption | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const missing = coupon.coinCost - balance;
 
-  const redeem = () => setRedemption(onRedeem());
+  const redeem = async () => {
+    setBusy(true);
+    setError(null);
+    const result = await onRedeem();
+    setBusy(false);
+    if ('redemption' in result) setRedemption(result.redemption);
+    else setError(result.error);
+  };
 
   if (redemption) {
     return (
@@ -57,14 +66,15 @@ export function CouponSheet({ coupon, company, balance, onClose, onRedeem }: Pro
       onClose={onClose}
       footer={
         <Button
-          label={missing > 0 ? `Faltam ${formatInt(missing)} ${company.coinName}` : 'Resgatar'}
-          disabled={missing > 0}
-          onPress={redeem}
+          label={missing > 0 ? `Faltam ${formatInt(missing)} ${company.coinName}` : busy ? 'Resgatando...' : 'Resgatar'}
+          disabled={missing > 0 || busy}
+          onPress={() => void redeem()}
           style={styles.footerButton}
         />
       }
     >
       <View style={styles.content}>
+        {error ? <Text style={styles.error}>{error}</Text> : null}
         <Text style={styles.caption} numberOfLines={1}>
           {company.name}
         </Text>
@@ -81,6 +91,12 @@ export function CouponSheet({ coupon, company, balance, onClose, onRedeem }: Pro
 }
 
 const styles = StyleSheet.create({
+  error: {
+    fontFamily: type.caption.family,
+    fontSize: type.caption.size,
+    lineHeight: type.caption.lineHeight,
+    color: colors.disagree,
+  },
   content: {
     alignItems: 'center',
     gap: space.md,

@@ -5,7 +5,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, CompanyCard, Stepper } from '../../components';
 import { colors, space, type } from '../../theme';
-import { companies } from '../../mocks';
+import { useCompanies } from '../../queries/catalog';
 import type { OnboardingStackParamList } from '../../navigation/types';
 import {
   MIN_COMPANIES,
@@ -22,13 +22,15 @@ export default function CompaniesScreen() {
   const { categories, companyIds, toggleCompany } = useOnboarding();
   const leave = useLeaveOnboarding();
   const [showAll, setShowAll] = useState(false);
+  const companies = useCompanies().data;
 
   const effectiveShowAll = showAll || categories.length === 0;
 
   const list = useMemo(() => {
-    if (effectiveShowAll) return companies;
-    return companies.filter((c) => c.categories.some((cat) => categories.includes(cat)));
-  }, [categories, effectiveShowAll]);
+    const all = companies ?? [];
+    if (effectiveShowAll) return all;
+    return all.filter((c) => c.categories.some((cat) => categories.includes(cat)));
+  }, [companies, categories, effectiveShowAll]);
 
   const selectedCount = companyIds.length;
   const remaining = MIN_COMPANIES - selectedCount;

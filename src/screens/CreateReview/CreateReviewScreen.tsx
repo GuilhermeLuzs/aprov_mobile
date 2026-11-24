@@ -12,22 +12,21 @@ import { useNavigation, useRoute, type RouteProp } from '@react-navigation/nativ
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X } from 'lucide-react-native';
-import { ApiError, apiCreateReview, apiRewardPreview } from '../../api';
-import { realItemId, realTagIds } from '../../api/catalogBridge';
-import { BottomSheet, Button, EmptyState, RewardAmount, Stepper } from '../../components';
+import { ApiError, apiCreateReview, apiRewardPreview, apiUpdateReview, type ApiReview } from '../../api';
+import { BottomSheet, Button, EmptyState, LoadError, LoadingState, RewardAmount, Stepper } from '../../components';
 import { colors, icon, size, space, type } from '../../theme';
-import { companies, products } from '../../mocks';
-import type { Review, RewardPreview } from '../../types';
+import type { Company, Product, RewardPreview } from '../../types';
 import type { RootStackParamList } from '../../navigation/types';
-import { publishReview, reviewFromApi } from '../../store/publishedReviews';
-import { creditRewards } from '../../store/wallet';
-import { useCurrentUser } from '../../store/session';
+import { useItem } from '../../queries/catalog';
+import { refreshAfterReviewChange } from '../../queries/client';
+import { useReviewSource } from '../../queries/reviews';
 import {
   TOTAL_STEPS,
-  buildReview,
   clearDraft,
   commentDone,
   draftRewardFacts,
+  existingMediaId,
+  EXISTING_MEDIA_PREFIX,
   isDirty,
   loadDraft,
   mediaDone,
@@ -45,17 +44,53 @@ import { StepComment } from './steps/StepComment';
 import { StepPreview } from './steps/StepPreview';
 import { Conclusion } from './Conclusion';
 
+const EXISTING_MEDIA_SIDE = 1080;
+const NOT_FOUND = 404;
+
 export default function CreateReviewScreen() {
   const insets = useSafeAreaInsets();
-  const me = useCurrentUser();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'CreateReview'>>();
   const route = useRoute<RouteProp<RootStackParamList, 'CreateReview'>>();
-  const { productId } = route.params;
+  const { productId, reviewId } = route.params;
+  const item = useItem(productId);
+  const source = useReviewSource(reviewId ?? null);
 
-  const product = products.find((p) => p.id === productId);
-  const company = product ? companies.find((c) => c.id === product.companyId) : undefined;
+  if (item.isPending || (reviewId && source.isPending)) return <LoadingState fill />;
 
-  const [draft, setDraft] = useState<Draft>(() => loadDraft(productId));
+  if (!item.data || (reviewId && !source.data)) {
+    const failed = item.isError && !(item.error instanceof ApiError && item.error.status === NOT_FOUND);
+    return (
+      <View style={[styles.notFound, { paddingTop: insets.top }]}>
+        {failed ? (
+          <LoadError onRetry={() => void item.refetch()} />
+        ) : (
+          <EmptyState
+            mood="confused"
+            title="Item não encontrado"
+            description="Não dá para avaliar este item agora."
+            action={{ label: 'Fechar', onPress: () => navigation.goBack() }}
+          />
+        )}
+      </View>
+    );
+  }
+
+  return <CreateReviewFlow product={item.data.product} company={item.data.company} source={source.data} />;
+}
+
+type FlowProps = { product: Product; company: Company; source: ApiReview | undefined };
+
+function CreateReviewFlow({ product, company, source }: FlowProps) {
+  const insets = useSafeAreaInsets();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'CreateReview'>>();
+  const productId = product.id;
+  const editing = source !== undefined;
+  const draftKey = source ? `edit-${source.id}` : productId;
+
+  const [draft, setDraft] = useState<Draft>(() =>
+    loadDraft(draftKey, source ? () => draftFromApi(source) : undefined),
+  );
+  const [initialDraft] = useState(() => JSON.stringify({ ...draft, step: 1 }));
   const [published, setPublished] = useState<Rewards | null>(null);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const [publishing, setPublishing] = useState(false);
@@ -65,10 +100,10 @@ export default function CreateReviewScreen() {
   const factsKey = JSON.stringify(draftRewardFacts(draft));
 
   useEffect(() => {
-    if (!product) return;
+    if (editing) return;
     let cancelled = false;
     const timer = setTimeout(() => {
-      apiRewardPreview(realItemId(productId), draftRewardFacts(draft))
+      apiRewardPreview(Number(productId), draftRewardFacts(draft))
         .then((result) => {
           if (!cancelled) setPreview(result);
         })
@@ -79,19 +114,6 @@ export default function CreateReviewScreen() {
       clearTimeout(timer);
     };
   }, [productId, factsKey]);
-
-  if (!product || !company) {
-    return (
-      <View style={[styles.notFound, { paddingTop: insets.top }]}>
-        <EmptyState
-          mood="confused"
-          title="Item não encontrado"
-          description="Não dá para avaliar este item agora."
-          action={{ label: 'Fechar', onPress: () => navigation.goBack() }}
-        />
-      </View>
-    );
-  }
 
   if (published) {
     return (
@@ -112,14 +134,14 @@ export default function CreateReviewScreen() {
   const update = (patch: Partial<Draft>) => {
     setDraft((prev) => {
       const next = { ...prev, ...patch };
-      saveDraft(productId, next);
+      saveDraft(draftKey, next);
       return next;
     });
   };
 
   const topics = preview?.topics ?? [];
   const earnedCoins = preview?.earned.coins ?? 0;
-  const rewardsFor = (n: number) => stepRewards(topics, n, company.coinName);
+  const rewardsFor = (n: number) => (editing ? [] : stepRewards(topics, n, company.coinName));
 
   const step = draft.step;
   const canAdvance =
@@ -137,46 +159,92 @@ export default function CreateReviewScreen() {
 
   const skippable = step === 3 && !mediaDone(draft);
   const primaryLabel =
-    step === TOTAL_STEPS ? (publishing ? 'Publicando...' : 'Publicar avaliação') : skippable && canAdvance ? 'Pular' : 'Continuar';
+    step === TOTAL_STEPS
+      ? editing
+        ? publishing
+          ? 'Salvando...'
+          : 'Salvar alterações'
+        : publishing
+          ? 'Publicando...'
+          : 'Publicar avaliação'
+      : skippable && canAdvance
+        ? 'Pular'
+        : 'Continuar';
+
+  const saveEdit = async (original: ApiReview) => {
+    setPublishError(null);
+    setPublishing(true);
+    let updated: ApiReview;
+    try {
+      updated = await apiUpdateReview(original.id, {
+        deliveryRating: draft.characteristics.entrega,
+        qualityRating: draft.characteristics.qualidade,
+        conformityRating: draft.characteristics.conformidade,
+        valueRating: draft.characteristics.custo_beneficio,
+        tagIds: [...draft.positiveTagIds, ...draft.negativeTagIds].map(Number),
+        comment: draft.comment.trim(),
+        wouldBuyAgain: draft.wouldBuyAgain ?? false,
+        mediaConsent: draft.mediaConsent,
+        keepMediaIds: draft.media
+          .map(existingMediaId)
+          .filter((id): id is number => id !== null),
+        media: draft.media
+          .filter((item) => existingMediaId(item) === null)
+          .map((item) => ({ uri: item.uri, kind: item.kind })),
+      });
+    } catch (error) {
+      setPublishing(false);
+      setPublishError(error instanceof ApiError ? error.message : 'Não deu para salvar agora. Tente de novo.');
+      return;
+    }
+    setPublishing(false);
+    refreshAfterReviewChange(productId, updated.id);
+    clearDraft(draftKey);
+    navigation.goBack();
+  };
 
   const advance = async () => {
     if (step < TOTAL_STEPS) {
       update({ step: step + 1 });
       return;
     }
+    if (source) {
+      await saveEdit(source);
+      return;
+    }
     setPublishError(null);
     setPublishing(true);
     let rewards: Rewards;
-    let saved: Review | null;
     try {
       const created = await apiCreateReview({
-        itemId: realItemId(productId),
+        itemId: Number(productId),
         deliveryRating: draft.characteristics.entrega,
         qualityRating: draft.characteristics.qualidade,
         conformityRating: draft.characteristics.conformidade,
         valueRating: draft.characteristics.custo_beneficio,
-        tagIds: realTagIds([...draft.positiveTagIds, ...draft.negativeTagIds]),
+        tagIds: [...draft.positiveTagIds, ...draft.negativeTagIds].map(Number),
         comment: draft.comment.trim(),
         wouldBuyAgain: draft.wouldBuyAgain ?? false,
         media: draft.media.map((item) => ({ uri: item.uri, kind: item.kind })),
       });
       const earned = created.rewards ?? { coins: 0, aprovPoints: 0, xp: 0 };
       rewards = { coins: earned.coins, points: earned.aprovPoints, xp: earned.xp };
-      saved = reviewFromApi(created, me.id);
     } catch (error) {
       setPublishing(false);
       setPublishError(error instanceof ApiError ? error.message : 'Não deu para publicar agora. Tente de novo.');
       return;
     }
     setPublishing(false);
-    publishReview(saved ?? buildReview(draft, product, `published-${Date.now()}`, me.id));
-    creditRewards({ companyId: product.companyId, ...rewards });
+    refreshAfterReviewChange(productId);
     clearDraft(productId);
     setPublished(rewards);
   };
 
   const requestClose = () => {
-    if (isDirty(draft)) {
+    const changed = editing
+      ? JSON.stringify({ ...draft, step: 1 }) !== initialDraft
+      : isDirty(draft);
+    if (changed) {
       setConfirmDiscard(true);
       return;
     }
@@ -184,7 +252,7 @@ export default function CreateReviewScreen() {
   };
 
   const discard = () => {
-    clearDraft(productId);
+    clearDraft(draftKey);
     setConfirmDiscard(false);
     navigation.goBack();
   };
@@ -196,18 +264,22 @@ export default function CreateReviewScreen() {
     >
       <View style={[styles.top, { paddingTop: insets.top + space.sm }]}>
         <View style={styles.topRow}>
-          <RewardAmount
-            amount={earnedCoins}
-            label={company.coinName}
-            size="sm"
-            coin={{ icon: company.coinIcon, color: company.coinColor }}
-          />
+          {editing ? (
+            <Text style={styles.editingLabel}>Editando avaliação</Text>
+          ) : (
+            <RewardAmount
+              amount={earnedCoins}
+              label={company.coinName}
+              size="sm"
+              coin={{ icon: company.coinIcon, color: company.coinColor }}
+            />
+          )}
           <Pressable
             style={styles.close}
             onPress={requestClose}
             hitSlop={space.sm}
             accessibilityRole="button"
-            accessibilityLabel="Fechar avaliação"
+            accessibilityLabel={editing ? 'Fechar edição' : 'Fechar avaliação'}
           >
             <X size={icon.size.lg} color={colors.inkMuted} strokeWidth={icon.strokeWidth} />
           </Pressable>
@@ -240,8 +312,8 @@ export default function CreateReviewScreen() {
             product={product}
             rewards={rewardsFor(4)}
             onOpenChat={() => {
-              saveDraft(productId, draft);
-              navigation.navigate('MauricioChat', { productId });
+              saveDraft(draftKey, draft);
+              navigation.navigate('MauricioChat', { productId, draftKey });
             }}
           />
         ) : null}
@@ -270,8 +342,8 @@ export default function CreateReviewScreen() {
 
       <BottomSheet
         visible={confirmDiscard}
-        title="Sair da avaliação?"
-        closeLabel="Continuar avaliando"
+        title={editing ? 'Sair da edição?' : 'Sair da avaliação?'}
+        closeLabel={editing ? 'Continuar editando' : 'Continuar avaliando'}
         onClose={() => setConfirmDiscard(false)}
         footer={
           <>
@@ -290,8 +362,9 @@ export default function CreateReviewScreen() {
         }
       >
         <Text style={styles.sheetText}>
-          O que você preencheu até aqui fica guardado enquanto o app estiver aberto. Se descartar,
-          começa do zero.
+          {editing
+            ? 'O que você mudou fica guardado enquanto o app estiver aberto. Se descartar, a avaliação continua como estava.'
+            : 'O que você preencheu até aqui fica guardado enquanto o app estiver aberto. Se descartar, começa do zero.'}
         </Text>
       </BottomSheet>
     </KeyboardAvoidingView>
@@ -324,6 +397,12 @@ const styles = StyleSheet.create({
     height: size.control,
     alignItems: 'flex-end',
     justifyContent: 'center',
+  },
+  editingLabel: {
+    fontFamily: type.bodyBold.family,
+    fontSize: type.bodyBold.size,
+    lineHeight: type.bodyBold.lineHeight,
+    color: colors.ink,
   },
   productTitle: {
     fontFamily: type.subtitle.family,
@@ -359,3 +438,30 @@ const styles = StyleSheet.create({
   },
   sheetButton: { flex: 1 },
 });
+
+function draftFromApi(api: ApiReview): Draft {
+  const tagIds = (tags: { id: number }[]) =>
+    tags.map((t) => String(t.id));
+  return {
+    step: 1,
+    characteristics: {
+      entrega: api.deliveryRating,
+      qualidade: api.qualityRating,
+      conformidade: api.conformityRating,
+      custo_beneficio: api.valueRating,
+    },
+    positiveTagIds: tagIds(api.positiveTags),
+    negativeTagIds: tagIds(api.negativeTags),
+    media: api.media.map((m) => ({
+      id: `${EXISTING_MEDIA_PREFIX}${m.id}`,
+      kind: m.type,
+      uri: m.url,
+      width: EXISTING_MEDIA_SIDE,
+      height: EXISTING_MEDIA_SIDE,
+      durationSeconds: 0,
+    })),
+    comment: api.comment,
+    wouldBuyAgain: api.wouldBuyAgain,
+    mediaConsent: api.mediaConsent,
+  };
+}

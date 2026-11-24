@@ -1,5 +1,5 @@
 import { Award } from 'lucide-react-native';
-import { useWallet } from '../store/wallet';
+import { useWallet } from '../queries/wallet';
 import { RewardAmount } from './RewardAmount';
 
 export function PointsBalance() {

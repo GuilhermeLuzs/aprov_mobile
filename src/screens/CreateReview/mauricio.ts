@@ -1,7 +1,8 @@
-import { mauricioReplies, mauricioFallbacks, tagById } from '../../mocks';
+import { mauricioReplies, mauricioFallbacks } from '../../mocks';
 import {
   REVIEW_CHARACTERISTIC_KEYS,
   REVIEW_CHARACTERISTIC_LABEL,
+  type Tag,
   type ReviewCharacteristicKey,
 } from '../../types';
 import { normalizeForSearch } from '../../utils/search';
@@ -25,18 +26,19 @@ function lowestRated(draft: Draft) {
   return rated.reduce((a, b) => (b.value < a.value ? b : a));
 }
 
-export function contextualQuestion(draft: Draft): string {
+export function contextualQuestion(draft: Draft, tags: Tag[]): string {
   const lowest = lowestRated(draft);
   if (lowest && lowest.value <= LOW_RATING) return LOW_RATING_QUESTION[lowest.key];
-  const negative = draft.negativeTagIds.map((id) => tagById[id]).filter(Boolean)[0];
+  const byId = (id: string) => tags.find((tag) => tag.id === id);
+  const negative = draft.negativeTagIds.map(byId).filter(Boolean)[0];
   if (negative) return `Você marcou "${negative.label}". Pode contar como foi?`;
-  const positive = draft.positiveTagIds.map((id) => tagById[id]).filter(Boolean)[0];
+  const positive = draft.positiveTagIds.map(byId).filter(Boolean)[0];
   if (positive) return `Você marcou "${positive.label}". Conta uma situação em que isso apareceu.`;
   return 'Como foi a sua experiência no dia a dia?';
 }
 
-export function greeting(draft: Draft): string {
-  return `Oi, eu sou o Maurício! Tô aqui pra te ajudar a escrever uma avaliação que ajude de verdade. ${contextualQuestion(draft)}`;
+export function greeting(draft: Draft, tags: Tag[]): string {
+  return `Oi, eu sou o Maurício! Tô aqui pra te ajudar a escrever uma avaliação que ajude de verdade. ${contextualQuestion(draft, tags)}`;
 }
 
 function ratingReply(draft: Draft): string | null {

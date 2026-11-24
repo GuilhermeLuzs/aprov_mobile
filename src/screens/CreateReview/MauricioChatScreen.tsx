@@ -17,9 +17,9 @@ import { Chip, MauricioMascot } from '../../components';
 import { colors, icon, mauricioVoice, noFocusOutline, radius, size, space, type } from '../../theme';
 import { mauricioSuggestions } from '../../mocks';
 import { apiMauricioChat } from '../../api';
-import { realItemId } from '../../api/catalogBridge';
 import type { RootStackParamList } from '../../navigation/types';
 import { draftRewardFacts, loadChat, loadDraft, saveChat, type ChatMessage } from './draft';
+import { useItemTags } from '../../queries/catalog';
 import { greeting, replyTo } from './mauricio';
 
 const MESSAGE_MAX_LENGTH = 300;
@@ -28,19 +28,20 @@ export default function MauricioChatScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RootStackParamList, 'MauricioChat'>>();
-  const { productId } = route.params;
-  const draft = loadDraft(productId);
+  const { productId, draftKey = productId } = route.params;
+  const draft = loadDraft(draftKey);
+  const tags = useItemTags(productId).data ?? [];
 
   const [messages, setMessages] = useState<ChatMessage[]>(
-    () => loadChat(productId) ?? [{ id: 'm0', author: 'mauricio', text: greeting(draft) }],
+    () => loadChat(draftKey) ?? [{ id: 'm0', author: 'mauricio', text: greeting(draft, tags) }],
   );
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
   const listRef = useRef<FlatList<ChatMessage>>(null);
 
   useEffect(() => {
-    saveChat(productId, messages);
-  }, [productId, messages]);
+    saveChat(draftKey, messages);
+  }, [draftKey, messages]);
 
   const send = (raw: string) => {
     const text = raw.trim();
@@ -52,7 +53,7 @@ export default function MauricioChatScreen() {
     setTyping(true);
 
     apiMauricioChat(
-      realItemId(productId),
+      Number(productId),
       history.map(({ author, text: messageText }) => ({ author, text: messageText })),
       draftRewardFacts(draft)
     )

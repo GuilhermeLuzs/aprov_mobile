@@ -6,6 +6,8 @@ import {
   EMPTY_CATALOG_FILTERS,
   EmptyState,
   FilterButton,
+  LoadError,
+  LoadingState,
   Pagination,
   ProductCard,
   SearchBar,
@@ -14,19 +16,14 @@ import {
   type CatalogFilters,
 } from '../../components';
 import { colors, radius, size, space, type } from '../../theme';
-import { companies } from '../../mocks';
-import { useProductsWithStats } from '../../store/publishedReviews';
-import type { Category, Product } from '../../types';
+import { ApiError } from '../../api';
+import { togglePurchased, toggleSaved, useCompany, useCompanyItems } from '../../queries/catalog';
 import type { HomeStackNavigation, HomeStackParamList } from '../../navigation/types';
-import { matchesSearch } from '../../utils/search';
-import { togglePurchased, toggleSaved, useUserItems } from '../../store/userItems';
+import { useDebouncedValue } from '../../utils/useDebouncedValue';
 
-const PAGE_SIZE = 20;
 const COLUMNS = 2;
-
-function byRating(a: Product, b: Product): number {
-  return b.averageRating - a.averageRating || b.reviewCount - a.reviewCount;
-}
+const SEARCH_DELAY_MS = 300;
+const NOT_FOUND = 404;
 
 export default function CompanyCatalogScreen() {
   const route = useRoute<RouteProp<HomeStackParamList, 'CompanyCatalog'>>();
@@ -38,29 +35,20 @@ export default function CompanyCatalogScreen() {
   const [filters, setFilters] = useState<CatalogFilters>(EMPTY_CATALOG_FILTERS);
   const [filterOpen, setFilterOpen] = useState(false);
   const [page, setPage] = useState(1);
-  const items = useUserItems();
+  const search = useDebouncedValue(query.trim(), SEARCH_DELAY_MS);
 
-  const company = companies.find((c) => c.id === companyId);
-  const products = useProductsWithStats();
-  const companyProducts = products.filter((p) => p.companyId === companyId);
+  const companyQuery = useCompany(companyId);
+  const itemsQuery = useCompanyItems(companyId, {
+    page,
+    search,
+    kinds: filters.kinds,
+    categories: filters.categories,
+  });
 
-  const availableCategories = companyProducts.reduce<Category[]>(
-    (acc, p) => [...acc, ...p.categories.filter((c) => !acc.includes(c))],
-    [],
-  );
-
-  const filtered = companyProducts
-    .filter((p) => matchesSearch(p.title, query))
-    .filter((p) => filters.kinds.length === 0 || filters.kinds.includes(p.kind))
-    .filter(
-      (p) =>
-        filters.categories.length === 0 || p.categories.some((c) => filters.categories.includes(c)),
-    )
-    .sort(byRating);
-
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const safePage = Math.min(page, pageCount);
-  const pageItems = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  const company = companyQuery.data;
+  const pageItems = itemsQuery.data?.products ?? [];
+  const pageCount = itemsQuery.data?.pageCount ?? 1;
+  const currentPage = itemsQuery.data?.page ?? page;
 
   const cardWidth = Math.floor((screenWidth - space.lg * 2 - space.md * (COLUMNS - 1)) / COLUMNS);
   const activeFilterCount = countCatalogFilters(filters);
@@ -81,15 +69,22 @@ export default function CompanyCatalogScreen() {
     setFilters(EMPTY_CATALOG_FILTERS);
   };
 
+  if (companyQuery.isPending) return <LoadingState fill />;
+
   if (!company) {
+    const missing = companyQuery.error instanceof ApiError && companyQuery.error.status === NOT_FOUND;
     return (
       <View style={styles.notFound}>
-        <EmptyState
-          mood="confused"
-          title="Empresa não encontrada"
-          description="Ela pode ter saído da plataforma."
-          action={{ label: 'Voltar', onPress: () => navigation.goBack() }}
-        />
+        {missing ? (
+          <EmptyState
+            mood="confused"
+            title="Empresa não encontrada"
+            description="Ela pode ter saído da plataforma."
+            action={{ label: 'Voltar', onPress: () => navigation.goBack() }}
+          />
+        ) : (
+          <LoadError onRetry={() => void companyQuery.refetch()} />
+        )}
       </View>
     );
   }
@@ -136,14 +131,18 @@ export default function CompanyCatalogScreen() {
             width={cardWidth}
             onAvaliar={() => navigation.navigate('CreateReview', { productId: item.id })}
             onSecondary={() => navigation.navigate('ProductDetails', { productId: item.id })}
-            saved={items.savedIds.includes(item.id)}
-            purchased={items.purchasedIds.includes(item.id)}
-            onToggleSaved={() => toggleSaved(item.id)}
-            onTogglePurchased={() => togglePurchased(item.id)}
+            saved={item.savedByCurrentUser}
+            purchased={item.purchasedByCurrentUser}
+            onToggleSaved={() => toggleSaved(item)}
+            onTogglePurchased={() => togglePurchased(item)}
           />
         )}
         ListEmptyComponent={
-          filtering ? (
+          itemsQuery.isPending ? (
+            <LoadingState />
+          ) : itemsQuery.isError ? (
+            <LoadError onRetry={() => void itemsQuery.refetch()} />
+          ) : filtering ? (
             <EmptyState
               mood={searching ? 'confused' : 'neutral'}
               title={
@@ -162,7 +161,7 @@ export default function CompanyCatalogScreen() {
         ListFooterComponent={
           pageCount > 1 ? (
             <View style={styles.pagination}>
-              <Pagination page={safePage} pageCount={pageCount} onChange={setPage} />
+              <Pagination page={currentPage} pageCount={pageCount} onChange={setPage} />
             </View>
           ) : null
         }
@@ -173,7 +172,7 @@ export default function CompanyCatalogScreen() {
 
       <CatalogFilterSheet
         visible={filterOpen}
-        availableCategories={availableCategories}
+        availableCategories={company.categories}
         filters={filters}
         onApply={applyFilters}
         onClose={() => setFilterOpen(false)}

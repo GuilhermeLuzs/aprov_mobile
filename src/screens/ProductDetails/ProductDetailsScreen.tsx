@@ -6,6 +6,8 @@ import {
   Chip,
   EmptyState,
   ItemToggles,
+  LoadError,
+  LoadingState,
   MediaCarousel,
   Pagination,
   ReviewPost,
@@ -13,69 +15,67 @@ import {
   StarRating,
 } from '../../components';
 import { colors, space, type } from '../../theme';
-import { companies, products } from '../../mocks';
+import { ApiError } from '../../api';
 import { CATEGORY_LABEL, PRODUCT_KIND_LABEL } from '../../types';
-import { useAllReviews, usePublishedReviews } from '../../store/publishedReviews';
-import { findUser, useCurrentUser } from '../../store/session';
-import { useReviewDisplay } from '../../store/interactions';
-import { byNewest } from '../../utils/date';
-import { ratingStats } from '../../utils/rating';
+import { useCurrentUser } from '../../store/session';
+import { togglePurchased, toggleSaved, useItem } from '../../queries/catalog';
+import { useItemReviews, useReviewDisplay } from '../../queries/reviews';
 import { formatInt } from '../../utils/format';
 import type { ProductDetailsNavigation, ProductDetailsParamList } from '../../navigation/types';
-import { togglePurchased, toggleSaved, useUserItems } from '../../store/userItems';
 import { CATEGORY_ICON } from '../Onboarding/options';
 import { useOpenProfile } from '../UserProfile/useOpenProfile';
 import { useOpenMedia } from '../Media/useOpenMedia';
 import { useReport } from '../Report/useReport';
 
-const REVIEWS_PER_PAGE = 5;
+const NOT_FOUND = 404;
 const HERO_RATIO = 16 / 10;
 
 export default function ProductDetailsScreen() {
   const route = useRoute<RouteProp<ProductDetailsParamList, 'ProductDetails'>>();
   const navigation = useNavigation<ProductDetailsNavigation>();
   const { productId } = route.params;
-  const published = usePublishedReviews();
-  const allReviews = useAllReviews();
   const me = useCurrentUser();
-  const display = useReviewDisplay(me.id);
+  const display = useReviewDisplay();
   const openMedia = useOpenMedia();
   const report = useReport();
-  const userItems = useUserItems();
   const openProfile = useOpenProfile();
   const [page, setPage] = useState(1);
+  const item = useItem(productId);
+  const reviews = useItemReviews(productId, page);
 
-  const product = products.find((p) => p.id === productId);
-  const company = product ? companies.find((c) => c.id === product.companyId) : undefined;
+  const company = item.data?.company;
 
   useLayoutEffect(() => {
     if (company) navigation.setOptions({ title: company.name });
   }, [navigation, company]);
 
-  if (!product || !company) {
+  if (item.isPending) return <LoadingState fill />;
+
+  if (!item.data) {
+    const missing = item.error instanceof ApiError && item.error.status === NOT_FOUND;
     return (
       <View style={styles.notFound}>
-        <EmptyState
-          mood="confused"
-          title="Item não encontrado"
-          description="Ele pode ter saído do catálogo."
-          action={{ label: 'Voltar', onPress: () => navigation.goBack() }}
-        />
+        {missing ? (
+          <EmptyState
+            mood="confused"
+            title="Item não encontrado"
+            description="Ele pode ter saído do catálogo."
+            action={{ label: 'Voltar', onPress: () => navigation.goBack() }}
+          />
+        ) : (
+          <LoadError onRetry={() => void item.refetch()} />
+        )}
       </View>
     );
   }
 
-  const productReviews = allReviews.filter((r) => r.productId === productId).sort(byNewest);
-  const mediaIds = productReviews.map((r) => r.id);
-  const publishedIds = new Set(published.map((r) => r.id));
-  const { reviewCount, averageRating: average } = ratingStats(productReviews);
-
-  const pageCount = Math.max(1, Math.ceil(reviewCount / REVIEWS_PER_PAGE));
-  const safePage = Math.min(page, pageCount);
-  const pageItems = productReviews.slice(
-    (safePage - 1) * REVIEWS_PER_PAGE,
-    safePage * REVIEWS_PER_PAGE,
-  );
+  const { product } = item.data;
+  const itemCompany = item.data.company;
+  const entries = reviews.data?.entries ?? [];
+  const mediaIds = entries.map((entry) => entry.review.id);
+  const { reviewCount, averageRating: average } = product;
+  const pageCount = reviews.data?.pageCount ?? 1;
+  const currentPage = reviews.data?.page ?? page;
 
   const review = () => navigation.navigate('CreateReview', { productId });
 
@@ -90,10 +90,10 @@ export default function ProductDetailsScreen() {
         />
         <ItemToggles
           kind={product.kind}
-          saved={userItems.savedIds.includes(product.id)}
-          purchased={userItems.purchasedIds.includes(product.id)}
-          onToggleSaved={() => toggleSaved(product.id)}
-          onTogglePurchased={() => togglePurchased(product.id)}
+          saved={product.savedByCurrentUser}
+          purchased={product.purchasedByCurrentUser}
+          onToggleSaved={() => toggleSaved(product)}
+          onTogglePurchased={() => togglePurchased(product)}
         />
       </View>
 
@@ -145,48 +145,54 @@ export default function ProductDetailsScreen() {
       <FlatList
         style={styles.screen}
         contentContainerStyle={styles.content}
-        data={pageItems}
-        keyExtractor={(r) => r.id}
+        data={entries}
+        keyExtractor={(entry) => entry.review.id}
         ListHeaderComponent={header}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
-        renderItem={({ item }) => {
-          const author = item.authorId === me.id ? me : findUser(item.authorId);
-          if (!author) return null;
+        renderItem={({ item: entry }) => {
+          const { review, author } = entry;
+          const mine = author.id === me.id;
           return (
             <View style={styles.body}>
               <ReviewPost
-                {...display(item)}
+                {...display(review)}
                 author={author}
                 product={product}
-                company={company}
+                company={itemCompany}
                 showProduct={false}
-                highlight={
-                  item.authorId === me.id && publishedIds.has(item.id) ? 'Sua avaliação' : undefined
-                }
-                onPressAuthor={() => openProfile(author.id)}
-                onPressBody={() => navigation.navigate('ReviewDetails', { reviewId: item.id })}
-                onOpenMedia={(index) => openMedia(mediaIds, item.id, index)}
+                highlight={mine ? 'Sua avaliação' : undefined}
+                onPressAuthor={mine ? () => openProfile(me.id) : undefined}
+                onPressBody={() => navigation.navigate('ReviewDetails', { reviewId: review.id })}
+                onOpenMedia={(index) => openMedia(mediaIds, review.id, index)}
                 onReport={
-                  report.canReport(item.authorId) ? () => report.open('review', item.id) : undefined
+                  report.canReport(author.id) ? () => report.open('review', review.id) : undefined
                 }
               />
             </View>
           );
         }}
         ListEmptyComponent={
-          <View style={styles.body}>
-            <EmptyState
-              compact
-              title="Ninguém avaliou ainda"
-              description="Seja a primeira pessoa a contar como foi."
-              action={{ label: 'Avaliar', onPress: review }}
-            />
-          </View>
+          reviews.isPending ? (
+            <LoadingState />
+          ) : reviews.isError ? (
+            <View style={styles.body}>
+              <LoadError compact onRetry={() => void reviews.refetch()} />
+            </View>
+          ) : (
+            <View style={styles.body}>
+              <EmptyState
+                compact
+                title="Ninguém avaliou ainda"
+                description="Seja a primeira pessoa a contar como foi."
+                action={{ label: 'Avaliar', onPress: review }}
+              />
+            </View>
+          )
         }
         ListFooterComponent={
           pageCount > 1 ? (
             <View style={styles.pagination}>
-              <Pagination page={safePage} pageCount={pageCount} onChange={setPage} />
+              <Pagination page={currentPage} pageCount={pageCount} onChange={setPage} />
             </View>
           ) : null
         }

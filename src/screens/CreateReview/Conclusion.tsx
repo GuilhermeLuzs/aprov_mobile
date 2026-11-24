@@ -4,7 +4,7 @@ import { Award } from 'lucide-react-native';
 import { Button, MauricioMascot, RewardAmount } from '../../components';
 import { colors, radius, size, space, type } from '../../theme';
 import { xpPerLevel } from '../../mocks';
-import { useWallet } from '../../store/wallet';
+import { useWallet } from '../../queries/wallet';
 import { levelProgress } from '../../utils/level';
 import { formatInt } from '../../utils/format';
 import type { Company } from '../../types';

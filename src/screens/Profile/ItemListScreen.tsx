@@ -1,10 +1,9 @@
 import { useLayoutEffect } from 'react';
 import { FlatList, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
-import { EmptyState, ProductCard } from '../../components';
+import { EmptyState, LoadError, LoadingState, ProductCard } from '../../components';
 import { colors, space } from '../../theme';
-import { useProductsWithStats } from '../../store/publishedReviews';
-import { togglePurchased, toggleSaved, useUserItems } from '../../store/userItems';
+import { togglePurchased, toggleSaved, useMyItems } from '../../queries/catalog';
 import type {
   ItemListKind,
   ProfileStackNavigation,
@@ -30,24 +29,21 @@ export default function ItemListScreen() {
   const route = useRoute<RouteProp<ProfileStackParamList, 'ItemList'>>();
   const navigation = useNavigation<ProfileStackNavigation<'ItemList'>>();
   const { width: screenWidth } = useWindowDimensions();
-  const items = useUserItems();
   const { kind } = route.params;
+  const items = useMyItems(kind);
   const copy = COPY[kind];
 
   useLayoutEffect(() => {
     navigation.setOptions({ title: copy.title });
   }, [navigation, copy.title]);
 
-  const ids = kind === 'saved' ? items.savedIds : items.purchasedIds;
-  const products = useProductsWithStats();
-  const list = products.filter((p) => ids.includes(p.id));
   const cardWidth = Math.floor((screenWidth - space.lg * 2 - space.md * (COLUMNS - 1)) / COLUMNS);
 
   return (
     <FlatList
       style={styles.screen}
       contentContainerStyle={styles.content}
-      data={list}
+      data={items.data?.products ?? []}
       numColumns={COLUMNS}
       keyExtractor={(p) => p.id}
       columnWrapperStyle={styles.row}
@@ -57,17 +53,27 @@ export default function ItemListScreen() {
           width={cardWidth}
           onAvaliar={() => navigation.navigate('CreateReview', { productId: item.id })}
           onSecondary={() => navigation.navigate('ProductDetails', { productId: item.id })}
-          saved={items.savedIds.includes(item.id)}
-          purchased={items.purchasedIds.includes(item.id)}
-          onToggleSaved={() => toggleSaved(item.id)}
-          onTogglePurchased={() => togglePurchased(item.id)}
+          saved={item.savedByCurrentUser}
+          purchased={item.purchasedByCurrentUser}
+          onToggleSaved={() => toggleSaved(item)}
+          onTogglePurchased={() => togglePurchased(item)}
         />
       )}
       ListEmptyComponent={
         <View>
-          <EmptyState compact title={copy.emptyTitle} description={copy.emptyDescription} />
+          {items.isPending ? (
+            <LoadingState />
+          ) : items.isError ? (
+            <LoadError compact onRetry={() => void items.refetch()} />
+          ) : (
+            <EmptyState compact title={copy.emptyTitle} description={copy.emptyDescription} />
+          )}
         </View>
       }
+      ListFooterComponent={items.isFetchingNextPage ? <LoadingState /> : null}
+      onEndReached={() => {
+        if (items.hasNextPage && !items.isFetchingNextPage) void items.fetchNextPage();
+      }}
       showsVerticalScrollIndicator={false}
     />
   );

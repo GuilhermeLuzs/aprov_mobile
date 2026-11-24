@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Flag } from 'lucide-react-native';
+import { Ellipsis, Flag } from 'lucide-react-native';
 import { colors, icon, radius, space, type } from '../theme';
 import type { Comment, CommentReply, User } from '../types';
 import { formatRelativeTime } from '../utils/date';
@@ -16,6 +16,10 @@ type Props = {
   onPressAuthor?: (authorId: string) => void;
   canReport?: (authorId: string) => boolean;
   onReport?: (entryId: string) => void;
+  canManage?: (authorId: string) => boolean;
+  onManage?: (entry: Comment | CommentReply) => void;
+  versionOf?: (createdAt: string) => number | null;
+  onPressVersion?: (version: number) => void;
 };
 
 export function CommentThread({
@@ -28,8 +32,24 @@ export function CommentThread({
   onPressAuthor,
   canReport,
   onReport,
+  canManage,
+  onManage,
+  versionOf,
+  onPressVersion,
 }: Props) {
-  const entryProps = { authorFor, voteFor, canVote, onVote, onPressAuthor, canReport, onReport };
+  const entryProps = {
+    authorFor,
+    voteFor,
+    canVote,
+    onVote,
+    onPressAuthor,
+    canReport,
+    onReport,
+    canManage,
+    onManage,
+    versionOf,
+    onPressVersion,
+  };
 
   return (
     <View style={styles.card}>
@@ -60,10 +80,20 @@ function Entry({
   onPressAuthor,
   canReport,
   onReport,
+  canManage,
+  onManage,
+  versionOf,
+  onPressVersion,
 }: EntryProps) {
+  if (entry.deleted) {
+    return <Text style={styles.deleted}>Comentário excluído</Text>;
+  }
+
   const author = authorFor(entry.authorId);
   const name = author?.name ?? 'Usuário';
   const votable = canVote(entry.authorId);
+  const manageable = onManage && canManage?.(entry.authorId);
+  const version = versionOf?.(entry.createdAt) ?? null;
 
   return (
     <View style={styles.row}>
@@ -87,8 +117,19 @@ function Entry({
           </Text>
           <Text style={styles.time} numberOfLines={1}>
             {formatRelativeTime(entry.createdAt)}
+            {entry.editedAt ? ' · editado' : ''}
           </Text>
-          {onReport && canReport?.(entry.authorId) ? (
+          {manageable ? (
+            <Pressable
+              onPress={() => onManage(entry)}
+              hitSlop={space.sm}
+              accessibilityRole="button"
+              accessibilityLabel="Editar ou excluir seu comentário"
+              style={styles.menu}
+            >
+              <Ellipsis size={icon.size.sm} color={colors.inkMuted} strokeWidth={icon.strokeWidth} />
+            </Pressable>
+          ) : onReport && canReport?.(entry.authorId) ? (
             <Pressable
               onPress={() => onReport(entry.id)}
               hitSlop={space.sm}
@@ -100,6 +141,17 @@ function Entry({
             </Pressable>
           ) : null}
         </View>
+        {version !== null ? (
+          <Pressable
+            onPress={() => onPressVersion?.(version)}
+            disabled={!onPressVersion}
+            hitSlop={space.xs}
+            accessibilityRole={onPressVersion ? 'link' : undefined}
+            accessibilityLabel={`Comentado sobre a versão ${version} da avaliação`}
+          >
+            <Text style={styles.beforeEdit}>Sobre a versão {version}</Text>
+          </Pressable>
+        ) : null}
         <Text style={styles.text}>{entry.text}</Text>
         <View style={styles.actions}>
           <VoteBar
@@ -161,6 +213,18 @@ const styles = StyleSheet.create({
     fontSize: type.caption.size,
     lineHeight: type.caption.lineHeight,
     color: colors.inkMuted,
+  },
+  beforeEdit: {
+    fontFamily: type.caption.family,
+    fontSize: type.caption.size,
+    lineHeight: type.caption.lineHeight,
+    color: colors.inkMuted,
+  },
+  deleted: {
+    fontFamily: type.caption.family,
+    fontSize: type.caption.size,
+    lineHeight: type.caption.lineHeight,
+    color: colors.inkFaint,
   },
   text: {
     fontFamily: type.body.family,

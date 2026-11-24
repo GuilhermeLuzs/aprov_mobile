@@ -1,13 +1,13 @@
-import { tagById } from '../../mocks';
 import {
   REVIEW_CHARACTERISTIC_KEYS,
   type DraftRewardFacts,
-  type Media,
   type Product,
   type ProductKind,
   type Review,
   type ReviewCharacteristicKey,
+  type Tag,
 } from '../../types';
+import { toReviewMedia } from '../../utils/media';
 
 export const TOTAL_STEPS = 5;
 export const MAX_MEDIA = 6;
@@ -94,34 +94,8 @@ export function isDirty(draft: Draft): boolean {
   );
 }
 
-export function toReviewMedia(media: DraftMedia[]): Media[] {
-  if (media.length === 0) return [];
-  const photos = media.filter((m) => m.kind === 'photo');
-  if (photos.length > 1 && photos.length === media.length) {
-    return [
-      {
-        id: 'draft-carousel',
-        type: 'carousel',
-        items: photos.map((p) => ({ uri: p.uri, width: p.width, height: p.height })),
-      },
-    ];
-  }
-  const first = media[0];
-  if (first.kind === 'video') {
-    return [
-      {
-        id: first.id,
-        type: 'video',
-        uri: first.uri,
-        thumbnailUri: '',
-        durationSeconds: first.durationSeconds,
-      },
-    ];
-  }
-  return [{ id: first.id, type: 'photo', uri: first.uri, width: first.width, height: first.height }];
-}
-
-export function buildReview(draft: Draft, product: Product, id: string, authorId: string): Review {
+export function buildReview(draft: Draft, product: Product, id: string, authorId: string, tags: Tag[]): Review {
+  const byId = (tagId: string) => tags.find((tag) => tag.id === tagId);
   return {
     id,
     productId: product.id,
@@ -129,19 +103,22 @@ export function buildReview(draft: Draft, product: Product, id: string, authorId
     authorId,
     createdAt: new Date().toISOString(),
     editedAt: null,
+    versions: [],
     title: '',
     characteristics: REVIEW_CHARACTERISTIC_KEYS.map((key) => ({
       key,
       rating: draft.characteristics[key],
     })),
     averageRating: averageRating(draft),
-    positiveTags: draft.positiveTagIds.map((tagId) => tagById[tagId]).filter(Boolean),
-    negativeTags: draft.negativeTagIds.map((tagId) => tagById[tagId]).filter(Boolean),
+    positiveTags: draft.positiveTagIds.map(byId).filter((tag): tag is Tag => tag !== undefined),
+    negativeTags: draft.negativeTagIds.map(byId).filter((tag): tag is Tag => tag !== undefined),
     media: toReviewMedia(draft.media),
+    mediaFiles: draft.media.map((m) => ({ id: m.id, kind: m.kind, previewUri: m.uri })),
     comment: draft.comment.trim(),
     wouldBuyAgain: draft.wouldBuyAgain,
     agreements: 0,
     disagreements: 0,
+    myVote: null,
     comments: [],
     commentCount: 0,
     shares: 0,
@@ -155,12 +132,20 @@ export type ChatMessage = { id: string; author: 'mauricio' | 'user'; text: strin
 const drafts = new Map<string, Draft>();
 const chats = new Map<string, ChatMessage[]>();
 
-export function loadDraft(productId: string): Draft {
-  return drafts.get(productId) ?? emptyDraft();
+export function loadDraft(key: string, fallback: () => Draft = emptyDraft): Draft {
+  return drafts.get(key) ?? fallback();
 }
 
-export function saveDraft(productId: string, draft: Draft): void {
-  drafts.set(productId, draft);
+export const EXISTING_MEDIA_PREFIX = 'api-media-';
+
+export function existingMediaId(media: DraftMedia): number | null {
+  return media.id.startsWith(EXISTING_MEDIA_PREFIX)
+    ? Number(media.id.slice(EXISTING_MEDIA_PREFIX.length))
+    : null;
+}
+
+export function saveDraft(key: string, draft: Draft): void {
+  drafts.set(key, draft);
 }
 
 export function loadChat(productId: string): ChatMessage[] | undefined {
@@ -171,7 +156,7 @@ export function saveChat(productId: string, messages: ChatMessage[]): void {
   chats.set(productId, messages);
 }
 
-export function clearDraft(productId: string): void {
-  drafts.delete(productId);
-  chats.delete(productId);
+export function clearDraft(key: string): void {
+  drafts.delete(key);
+  chats.delete(key);
 }

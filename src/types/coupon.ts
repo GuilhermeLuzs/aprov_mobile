@@ -5,12 +5,13 @@ export interface Coupon {
   description: string;
   coinCost: number;
   validUntil: string;
-  codePrefix: string;
 }
 
 export interface CouponRedemption {
   id: string;
   couponId: string;
+  title: string;
+  companyName: string;
   code: string;
   redeemedAt: string;
 }

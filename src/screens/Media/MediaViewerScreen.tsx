@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   FlatList,
   Pressable,
@@ -15,11 +15,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { X } from 'lucide-react-native';
 import { colors, icon, radius, size, space, type } from '../../theme';
-import { companies, products } from '../../mocks';
-import type { Review } from '../../types';
-import { useReviewDisplay } from '../../store/interactions';
-import { useAllReviews } from '../../store/publishedReviews';
-import { findUser, useCurrentUser } from '../../store/session';
+import { useReviewDisplay, useReviews } from '../../queries/reviews';
+import { isAnonymousAuthor, useCurrentUser } from '../../store/session';
 import { slidesOf } from '../../utils/media';
 import type { MainTabParamList, ReviewTab, RootStackParamList } from '../../navigation/types';
 import { CommentsSheet } from './CommentsSheet';
@@ -27,6 +24,7 @@ import { useReport } from '../Report/useReport';
 import { MediaPost } from './MediaPost';
 
 type Size = { width: number; height: number };
+
 
 type TabTarget =
   | { screen: 'ReviewDetails'; params: { reviewId: string } }
@@ -53,18 +51,22 @@ export default function MediaViewerScreen() {
   const insets = useSafeAreaInsets();
   const { reviewIds, reviewId, index, originTab } = route.params;
   const me = useCurrentUser();
-  const display = useReviewDisplay(me.id);
-  const allReviews = useAllReviews();
+  const display = useReviewDisplay();
   const report = useReport();
 
-  const posts = reviewIds
-    .map((id) => allReviews.find((r) => r.id === id))
-    .filter((r): r is Review => r !== undefined && r.media.length > 0);
-  const startPost = Math.max(0, posts.findIndex((r) => r.id === reviewId));
+  const { entries, loading } = useReviews(reviewIds);
+  const posts = entries.filter((post) => post.review.media.length > 0);
+  const startPost = Math.max(0, posts.findIndex((post) => post.review.id === reviewId));
 
   const [frame, setFrame] = useState<Size | null>(null);
   const [current, setCurrent] = useState(startPost);
   const currentRef = useRef(startPost);
+
+  useEffect(() => {
+    if (loading) return;
+    currentRef.current = startPost;
+    setCurrent(startPost);
+  }, [loading]);
   const [zoomed, setZoomed] = useState(false);
   const [muted, setMuted] = useState(false);
   const [infoCollapsed, setInfoCollapsed] = useState(false);
@@ -102,10 +104,10 @@ export default function MediaViewerScreen() {
   return (
     <View style={styles.screen} onLayout={onLayout}>
       <StatusBar style="light" />
-      {frame && posts.length > 0 ? (
+      {frame && !loading && posts.length > 0 ? (
         <FlatList
           data={posts}
-          keyExtractor={(r) => r.id}
+          keyExtractor={(post) => post.review.id}
           pagingEnabled
           scrollEnabled={!zoomed}
           showsVerticalScrollIndicator={false}
@@ -116,16 +118,17 @@ export default function MediaViewerScreen() {
           windowSize={3}
           initialNumToRender={1}
           maxToRenderPerBatch={1}
-          renderItem={({ item, index: postIndex }) => {
+          renderItem={({ item: post, index: postIndex }) => {
+            const item = post.review;
             const { review, vote, onVote } = display(item);
             const slides = slidesOf(item.media);
-            const product = products.find((p) => p.id === item.productId);
+            const canOpenAuthor = !isAnonymousAuthor(item.authorId);
             return (
               <MediaPost
                 review={review}
-                author={item.authorId === me.id ? me : findUser(item.authorId)}
-                product={product}
-                company={companies.find((c) => c.id === product?.companyId)}
+                author={post.author}
+                product={post.product}
+                company={post.company}
                 slides={slides}
                 width={frame.width}
                 height={frame.height}
@@ -138,7 +141,7 @@ export default function MediaViewerScreen() {
                 vote={vote}
                 onVote={onVote}
                 onOpenComments={() => setCommentsFor(item.id)}
-                onOpenAuthor={() => openAuthor(item.authorId)}
+                onOpenAuthor={canOpenAuthor ? () => openAuthor(item.authorId) : undefined}
                 onOpenDetails={() => openDetails(item.id)}
                 onOpenProduct={() => openProduct(item.productId)}
                 infoCollapsed={infoCollapsed}
@@ -152,7 +155,7 @@ export default function MediaViewerScreen() {
         />
       ) : null}
 
-      {frame && posts.length === 0 ? (
+      {frame && posts.length === 0 && !loading ? (
         <Text style={styles.missing}>Esta mídia não está mais disponível.</Text>
       ) : null}
 
@@ -169,7 +172,7 @@ export default function MediaViewerScreen() {
       {report.sheet}
 
       <CommentsSheet
-        review={allReviews.find((r) => r.id === commentsFor)}
+        review={posts.find((post) => post.review.id === commentsFor)?.review}
         onClose={() => setCommentsFor(null)}
       />
     </View>

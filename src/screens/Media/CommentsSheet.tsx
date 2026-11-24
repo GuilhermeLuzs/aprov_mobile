@@ -1,5 +1,5 @@
 import { FlatList, StyleSheet, View } from 'react-native';
-import { BottomSheet, CommentComposer, CommentThread, EmptyState } from '../../components';
+import { BottomSheet, CommentComposer, CommentThread, EmptyState, LoadError, LoadingState } from '../../components';
 import { space } from '../../theme';
 import type { Review } from '../../types';
 import { formatInt } from '../../utils/format';
@@ -41,12 +41,22 @@ export function CommentsSheet({ review, onClose }: Props) {
         )}
         ItemSeparatorComponent={Separator}
         ListEmptyComponent={
-          <EmptyState
-            compact
-            title="Nenhum comentário ainda"
-            description="Seja a primeira pessoa a comentar."
-          />
+          comments.loading ? (
+            <LoadingState />
+          ) : comments.failed ? (
+            <LoadError compact onRetry={comments.retry} />
+          ) : (
+            <EmptyState
+              compact
+              title="Nenhum comentário ainda"
+              description="Seja a primeira pessoa a comentar."
+            />
+          )
         }
+        ListFooterComponent={comments.loadingMore ? <LoadingState /> : null}
+        onEndReached={() => {
+          if (comments.hasMore && !comments.loadingMore) comments.loadMore();
+        }}
         keyboardShouldPersistTaps="handled"
       />
       <CommentComposer

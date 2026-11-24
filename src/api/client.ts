@@ -1,12 +1,22 @@
 import { API_BASE_URL } from './config';
-import { getToken } from './token';
+import { clearToken, getToken } from './token';
+
+const UNAUTHORIZED = 401;
+
+let unauthorizedHandler: (() => void) | null = null;
+
+export function onUnauthorized(handler: () => void): void {
+  unauthorizedHandler = handler;
+}
 
 export class ApiError extends Error {
   errors: Record<string, string[]>;
+  status: number;
 
-  constructor(message: string, errors: Record<string, string[]> = {}) {
+  constructor(message: string, errors: Record<string, string[]> = {}, status = 0) {
     super(message);
     this.errors = errors;
+    this.status = status;
   }
 }
 
@@ -15,15 +25,16 @@ export class NetworkError extends ApiError {}
 type ApiEnvelope<T> = { success: boolean; message: string; data?: T; errors?: Record<string, string[]> };
 
 type RequestOptions = {
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;
   auth?: boolean;
+  headers?: Record<string, string>;
 };
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = 'GET', body, auth = false } = options;
+  const { method = 'GET', body, auth = true } = options;
   const isFormData = body instanceof FormData;
-  const headers: Record<string, string> = { Accept: 'application/json' };
+  const headers: Record<string, string> = { Accept: 'application/json', ...options.headers };
 
   if (body !== undefined && !isFormData) headers['Content-Type'] = 'application/json';
 
@@ -43,12 +54,21 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     throw new NetworkError('Não deu para conectar com a APROV. Confira a internet e tente de novo.');
   }
 
+  if (headers.Authorization && response.status === UNAUTHORIZED) {
+    await clearToken();
+    unauthorizedHandler?.();
+  }
+
   if (response.status === 204) return undefined as T;
 
   const envelope = (await response.json().catch(() => null)) as ApiEnvelope<T> | null;
 
   if (!response.ok || !envelope || !envelope.success) {
-    throw new ApiError(envelope?.message ?? 'Algo deu errado. Tente de novo.', envelope?.errors ?? {});
+    throw new ApiError(
+      envelope?.message ?? 'Algo deu errado. Tente de novo.',
+      envelope?.errors ?? {},
+      response.status,
+    );
   }
 
   return envelope.data as T;
