@@ -1,0 +1,10 @@
+fastapi>=0.115,<1
+uvicorn[standard]>=0.30,<1
+python-multipart>=0.0.9
+numpy>=1.26,<3
+pillow>=10.4
+# O mediapipe já traz o OpenCV (opencv-contrib-python). Não instale outro
+# pacote opencv-* junto: todos brigam pelo mesmo módulo cv2.
+mediapipe>=0.10.14,<0.11
+pytest>=8
+httpx>=0.27

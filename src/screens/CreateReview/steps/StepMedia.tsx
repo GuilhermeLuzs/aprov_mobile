@@ -7,6 +7,7 @@ import { colors, icon, radius, space, type } from '../../../theme';
 import type { Product } from '../../../types';
 import { MAX_MEDIA, mediaRequired, type Draft, type DraftMedia } from '../draft';
 import type { StepReward } from '../rewards';
+import { GuidedCameraModal, type CapturedPhoto } from '../capture/GuidedCameraModal';
 import { StepHeading } from './StepHeading';
 
 type Props = {
@@ -34,6 +35,7 @@ function toDraftMedia(asset: ImagePicker.ImagePickerAsset, index: number): Draft
 export function StepMedia({ draft, update, product, rewards }: Props) {
   const { width: screenWidth } = useWindowDimensions();
   const [permissionDenied, setPermissionDenied] = useState(false);
+  const [guidedCameraOpen, setGuidedCameraOpen] = useState(false);
 
   const required = mediaRequired(product.kind);
   const remaining = MAX_MEDIA - draft.media.length;
@@ -45,7 +47,13 @@ export function StepMedia({ draft, update, product, rewards }: Props) {
     update({ media: [...draft.media, ...added] });
   };
 
-  const openCamera = async () => {
+  const addGuidedPhoto = (photo: CapturedPhoto) => {
+    if (remaining <= 0) return;
+    const media: DraftMedia = { id: `${Date.now()}-guided`, kind: 'photo', durationSeconds: 0, ...photo };
+    update({ media: [...draft.media, media] });
+  };
+
+  const recordVideo = async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
       setPermissionDenied(true);
@@ -53,7 +61,7 @@ export function StepMedia({ draft, update, product, rewards }: Props) {
     }
     setPermissionDenied(false);
     const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ['images', 'videos'],
+      mediaTypes: ['videos'],
       quality: PICKER_QUALITY,
     });
     if (!result.canceled) add(result.assets);
@@ -91,7 +99,14 @@ export function StepMedia({ draft, update, product, rewards }: Props) {
 
       {remaining > 0 ? (
         <View style={styles.actions}>
-          <Button label="Abrir câmera" variant="secondary" icon={Camera} fullWidth onPress={openCamera} />
+          <Button
+            label="Tirar foto"
+            variant="secondary"
+            icon={Camera}
+            fullWidth
+            onPress={() => setGuidedCameraOpen(true)}
+          />
+          <Button label="Gravar vídeo" variant="secondary" icon={Video} fullWidth onPress={recordVideo} />
           <Button label="Escolher da galeria" variant="text" fullWidth onPress={openGallery} />
         </View>
       ) : (
@@ -134,6 +149,12 @@ export function StepMedia({ draft, update, product, rewards }: Props) {
           </View>
         </View>
       ) : null}
+
+      <GuidedCameraModal
+        visible={guidedCameraOpen}
+        onClose={() => setGuidedCameraOpen(false)}
+        onCapture={addGuidedPhoto}
+      />
     </View>
   );
 }
