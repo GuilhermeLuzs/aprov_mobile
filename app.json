@@ -35,7 +35,15 @@
         }
       ],
       "expo-video",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-asset",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "A APROV usa a câmera para você fotografar o item que está avaliando.",
+          "recordAudioAndroid": false
+        }
+      ]
     ]
   }
 }
