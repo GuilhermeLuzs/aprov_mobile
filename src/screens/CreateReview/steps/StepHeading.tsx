@@ -20,11 +20,15 @@ export function StepHeading({ title, hint, rewards }: Props) {
             const Mark = reward.done ? CircleCheck : Circle;
             return (
               <View key={reward.id} style={styles.rewardRow}>
-                <Mark
-                  size={icon.size.sm}
-                  color={reward.done ? colors.agree : colors.inkFaint}
-                  strokeWidth={icon.strokeWidth}
-                />
+                {reward.checkedOnPublish ? (
+                  <View style={styles.markSpace} />
+                ) : (
+                  <Mark
+                    size={icon.size.sm}
+                    color={reward.done ? colors.agree : colors.inkFaint}
+                    strokeWidth={icon.strokeWidth}
+                  />
+                )}
                 <Text style={[styles.rule, reward.done && styles.ruleDone]}>{reward.rule}</Text>
                 <Text style={[styles.amount, reward.done && styles.amountDone]}>{reward.amount}</Text>
               </View>
@@ -52,6 +56,7 @@ const styles = StyleSheet.create({
   },
   rewards: { gap: space.xs, marginTop: space.xs },
   rewardRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  markSpace: { width: icon.size.sm },
   rule: {
     flex: 1,
     fontFamily: type.caption.family,

@@ -12,10 +12,10 @@ export const REVIEW_CHARACTERISTIC_LABEL: Record<ReviewCharacteristicKey, string
 };
 
 export const REVIEW_CHARACTERISTIC_DESCRIPTION: Record<ReviewCharacteristicKey, string> = {
-  entrega: 'Chegou no prazo, em boas condições e com acompanhamento adequado.',
-  qualidade: 'Nível de excelência, acabamento e durabilidade.',
-  conformidade: 'Fidelidade entre o anúncio e o que foi entregue.',
-  custo_beneficio: 'Se a compra realmente valeu o preço cobrado.',
+  entrega: 'Cumpriu o prazo combinado e deixou você informado até o fim.',
+  qualidade: 'Capricho, acabamento e durabilidade do resultado.',
+  conformidade: 'O que você recebeu bate com o que foi anunciado.',
+  custo_beneficio: 'O resultado valeu o preço que você pagou.',
 };
 
 export const REVIEW_CHARACTERISTIC_KEYS: ReviewCharacteristicKey[] = [

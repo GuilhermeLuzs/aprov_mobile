@@ -1,6 +1,7 @@
 import {
   REVIEW_CHARACTERISTIC_KEYS,
   type DraftRewardFacts,
+  type MauricioDraftContext,
   type Product,
   type ProductKind,
   type Review,
@@ -73,6 +74,16 @@ export function draftRewardFacts(draft: Draft): DraftRewardFacts {
     hasVideo: draft.media.some((m) => m.kind === 'video'),
     photoCount: draft.media.filter((m) => m.kind === 'photo').length,
     commentLength: draft.comment.trim().length,
+  };
+}
+
+export function mauricioDraftContext(draft: Draft): MauricioDraftContext {
+  return {
+    ...draftRewardFacts(draft),
+    characteristics: draft.characteristics,
+    positiveTagIds: draft.positiveTagIds.map(Number),
+    negativeTagIds: draft.negativeTagIds.map(Number),
+    comment: draft.comment.trim(),
   };
 }
 

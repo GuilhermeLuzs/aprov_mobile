@@ -1,4 +1,4 @@
-import type { DraftRewardFacts } from '../types';
+import type { MauricioDraftContext } from '../types';
 import { apiRequest } from './client';
 
 export type MauricioMessage = { author: 'user' | 'mauricio'; text: string };
@@ -6,7 +6,7 @@ export type MauricioMessage = { author: 'user' | 'mauricio'; text: string };
 export async function apiMauricioChat(
   itemId: number,
   messages: MauricioMessage[],
-  draft: DraftRewardFacts
+  draft: MauricioDraftContext
 ): Promise<string> {
   const response = await apiRequest<{ reply: string }>(`items/${itemId}/mauricio-chat`, {
     method: 'POST',
