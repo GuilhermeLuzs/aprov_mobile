@@ -5,7 +5,8 @@ import { colors, icon, noFocusOutline, radius, size, space, type } from '../../.
 import type { Product } from '../../../types';
 import { COMMENT_MAX_LENGTH, type Draft } from '../draft';
 import { useItemTags } from '../../../queries/catalog';
-import { contextualQuestion } from '../mauricio';
+import { contextualQuestions } from '../mauricio';
+import { useMauricioLines } from '../useMauricioLines';
 import type { StepReward } from '../rewards';
 import { StepHeading } from './StepHeading';
 
@@ -19,6 +20,7 @@ type Props = {
 
 export function StepComment({ draft, update, product, rewards, onOpenChat }: Props) {
   const tags = useItemTags(product.id).data ?? [];
+  const mauricio = useMauricioLines(contextualQuestions(draft, tags));
   const noun = product.kind === 'service' ? 'contratar esse serviço' : 'comprar esse produto';
 
   return (
@@ -26,7 +28,7 @@ export function StepComment({ draft, update, product, rewards, onOpenChat }: Pro
       <StepHeading title="Conte com suas palavras" rewards={rewards} />
 
       <View>
-        <MauricioBubble text={contextualQuestion(draft, tags)} mascotSize={56} />
+        <MauricioBubble text={mauricio.text} mood={mauricio.mood} mascotSize={56} />
         <Pressable
           style={styles.chatLink}
           onPress={onOpenChat}

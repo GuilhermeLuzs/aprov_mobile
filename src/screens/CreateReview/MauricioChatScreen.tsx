@@ -18,7 +18,7 @@ import { colors, icon, mauricioVoice, noFocusOutline, radius, size, space, type 
 import { mauricioSuggestions } from '../../mocks';
 import { apiMauricioChat } from '../../api';
 import type { RootStackParamList } from '../../navigation/types';
-import { draftRewardFacts, loadChat, loadDraft, saveChat, type ChatMessage } from './draft';
+import { loadChat, mauricioDraftContext, loadDraft, saveChat, type ChatMessage } from './draft';
 import { useItemTags } from '../../queries/catalog';
 import { greeting, replyTo } from './mauricio';
 
@@ -55,7 +55,7 @@ export default function MauricioChatScreen() {
     apiMauricioChat(
       Number(productId),
       history.map(({ author, text: messageText }) => ({ author, text: messageText })),
-      draftRewardFacts(draft)
+      mauricioDraftContext(draft)
     )
       .then((reply) => {
         setMessages((prev) => [...prev, { id: `m${prev.length}`, author: 'mauricio', text: reply }]);

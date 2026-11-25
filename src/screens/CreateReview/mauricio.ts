@@ -26,19 +26,30 @@ function lowestRated(draft: Draft) {
   return rated.reduce((a, b) => (b.value < a.value ? b : a));
 }
 
-export function contextualQuestion(draft: Draft, tags: Tag[]): string {
-  const lowest = lowestRated(draft);
-  if (lowest && lowest.value <= LOW_RATING) return LOW_RATING_QUESTION[lowest.key];
-  const byId = (id: string) => tags.find((tag) => tag.id === id);
-  const negative = draft.negativeTagIds.map(byId).filter(Boolean)[0];
-  if (negative) return `Você marcou "${negative.label}". Pode contar como foi?`;
-  const positive = draft.positiveTagIds.map(byId).filter(Boolean)[0];
-  if (positive) return `Você marcou "${positive.label}". Conta uma situação em que isso apareceu.`;
-  return 'Como foi a sua experiência no dia a dia?';
+const GENERAL_QUESTION = 'Como foi a sua experiência no dia a dia?';
+
+export function contextualQuestions(draft: Draft, tags: Tag[]): string[] {
+  const lowRated = REVIEW_CHARACTERISTIC_KEYS.map((key) => ({ key, value: draft.characteristics[key] }))
+    .filter((c) => c.value > 0 && c.value <= LOW_RATING)
+    .sort((a, b) => a.value - b.value)
+    .map((c) => LOW_RATING_QUESTION[c.key]);
+
+  const selected = (ids: string[]) =>
+    ids.map((id) => tags.find((tag) => tag.id === id)).filter((tag): tag is Tag => tag !== undefined);
+
+  const negatives = selected(draft.negativeTagIds).map(
+    (tag) => `Você marcou "${tag.label}". Pode contar como foi?`,
+  );
+  const positives = selected(draft.positiveTagIds).map(
+    (tag) => `Você marcou "${tag.label}". Conta uma situação em que isso apareceu.`,
+  );
+
+  const questions = [...lowRated, ...negatives, ...positives];
+  return questions.length > 0 ? questions : [GENERAL_QUESTION];
 }
 
 export function greeting(draft: Draft, tags: Tag[]): string {
-  return `Oi, eu sou o Maurício! Tô aqui pra te ajudar a escrever uma avaliação que ajude de verdade. ${contextualQuestion(draft, tags)}`;
+  return `Oi, eu sou o Maurício! Tô aqui pra te ajudar a escrever uma avaliação que ajude de verdade. ${contextualQuestions(draft, tags)[0]}`;
 }
 
 function ratingReply(draft: Draft): string | null {

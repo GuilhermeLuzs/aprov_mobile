@@ -2,7 +2,7 @@ import type { RewardTopicStatus } from '../../types';
 
 export type Rewards = { coins: number; points: number; xp: number };
 
-export type StepReward = { id: string; rule: string; amount: string; done: boolean };
+export type StepReward = { id: string; rule: string; amount: string; done: boolean; checkedOnPublish: boolean };
 
 const STEP_TOPICS: Record<number, string[]> = {
   2: ['min_tags'],
@@ -36,5 +36,11 @@ export function stepRewards(topics: RewardTopicStatus[], step: number, coinName:
   return keys
     .map((key) => topics.find((t) => t.topic === key))
     .filter((t): t is RewardTopicStatus => t !== undefined && t.coins > 0)
-    .map((t) => ({ id: t.topic, rule: ruleText(t), amount: `+${t.coins} ${coinName}`, done: t.satisfied }));
+    .map((t) => ({
+      id: t.topic,
+      rule: ruleText(t),
+      amount: `+${t.coins} ${coinName}`,
+      done: t.satisfied,
+      checkedOnPublish: t.topic === 'coherent_comment',
+    }));
 }

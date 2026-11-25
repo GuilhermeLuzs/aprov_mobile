@@ -6,6 +6,7 @@ export type { ChipVariant, ChipSize } from './Chip';
 export { SelectableCard } from './SelectableCard';
 export { CompanyCard } from './CompanyCard';
 export { MauricioMascot } from './MauricioMascot';
+export type { MauricioMood } from './MauricioMascot';
 export { MauricioBubble } from './MauricioBubble';
 export { StarRating } from './StarRating';
 export type { StarSize } from './StarRating';

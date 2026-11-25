@@ -39,4 +39,4 @@ export { ACCESSORY_KIND_LABEL } from './accessory';
 export type { Coupon, CouponRedemption } from './coupon';
 export type { Report, ReportReason, ReportTarget } from './report';
 export { REPORT_REASONS, REPORT_REASON_LABEL } from './report';
-export type { DraftRewardFacts, EarnedRewards, RewardPreview, RewardTopicStatus } from './reward';
+export type { DraftRewardFacts, MauricioDraftContext, EarnedRewards, RewardPreview, RewardTopicStatus } from './reward';

@@ -1,9 +1,18 @@
+import type { ReviewCharacteristicKey } from './review';
+
 export type DraftRewardFacts = {
   completed: boolean;
   tagCount: number;
   hasVideo: boolean;
   photoCount: number;
   commentLength: number;
+};
+
+export type MauricioDraftContext = DraftRewardFacts & {
+  characteristics: Record<ReviewCharacteristicKey, number>;
+  positiveTagIds: number[];
+  negativeTagIds: number[];
+  comment: string;
 };
 
 export type RewardTopicStatus = {

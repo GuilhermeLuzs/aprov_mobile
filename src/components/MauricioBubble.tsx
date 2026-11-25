@@ -1,7 +1,11 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { StyleSheet, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { colors, radius, space, mauricioVoice } from '../theme';
 import type { MauricioSkin } from '../types';
 import { MauricioMascot, type MauricioMood } from './MauricioMascot';
+
+const TEXT_FADE_MS = 250;
 
 type Props = {
   text: string;
@@ -12,12 +16,25 @@ type Props = {
 };
 
 export function MauricioBubble({ text, mascotSize = 72, mood = 'talking', skin, outlined }: Props) {
+  const textOpacity = useSharedValue(1);
+  const firstText = useRef(true);
+  const fadeIn = useAnimatedStyle(() => ({ opacity: textOpacity.value }));
+
+  useEffect(() => {
+    if (firstText.current) {
+      firstText.current = false;
+      return;
+    }
+    textOpacity.value = 0;
+    textOpacity.value = withTiming(1, { duration: TEXT_FADE_MS });
+  }, [text, textOpacity]);
+
   return (
     <View style={styles.row}>
       <MauricioMascot size={mascotSize} mood={mood} skin={skin} outlined={outlined} />
       <View style={styles.bubble}>
         <View style={styles.tail} />
-        <Text style={styles.text}>{text}</Text>
+        <Animated.Text style={[styles.text, fadeIn]}>{text}</Animated.Text>
       </View>
     </View>
   );
